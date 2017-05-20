@@ -1,0 +1,148 @@
+body
+{
+	display: flex;
+	flex-direction: column;
+	overflow: auto !important;
+}
+*::-moz-selection
+{
+	background: rgb(242, 113, 28) !important;
+}
+*::selection
+{
+	background: rgb(242, 113, 28) !important;
+}
+
+/* HEADER */
+.ui.menu .item img.logo
+{
+	margin-right: 1.5em;
+}
+.ui.menu .input.item
+{
+	flex: 1;
+	padding: 0;
+}
+.ui.menu .input.item *
+{
+	height: 100%;
+}
+.ui.menu .input.item input
+{
+	padding: 1.14286em !important;
+	padding-right: 0 !important;
+}
+.ui.menu .input.item .search.icon
+{
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0 1.14286em;
+}
+
+/* MAIN */
+.main.container
+{
+	flex: 1;
+	margin-top: 7em;
+}
+
+/* FOOTER */
+.ui.footer.segment
+{
+	margin: 5em 0em 0em;
+	padding: 4em 0em;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.column
+{
+	margin: auto;
+}
+
+/* MODAL */
+#modal_login *
+{
+	border-radius: 0;
+}
+#modal_login .column
+{
+	max-width: 450px;
+}
+#modal_login h2
+{
+	text-shadow: 0 0 8px black;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+#modal_login .remove.icon.link
+{
+	float: right;
+	margin: 0;
+	text-align: right;
+	transition: color .1s ease;
+}
+#modal_login .remove.icon.link:hover
+{
+	color: rgb(260, 131, 46);
+}
+#modal_login .remove.icon.link:active
+{
+	color: rgb(207, 89, 12);
+}
+#modal_login .inverted
+{
+	box-shadow: 0 0 8px black !important;
+}
+#modal_login form .icon
+{
+	color: white;
+}
+#modal_login input
+{
+	background: transparent;
+	border-color: #8d8d8e;
+	color: white;
+}
+#modal_login input:focus
+{   
+	border-color: rgba(242, 113, 28, 0.8);
+	box-shadow: 0 0 8px rgba(242, 113, 28, 0.6);
+	outline: 0 none;
+}
+#modal_login input::-webkit-input-placeholder
+{
+	color: white;
+}
+#modal_login input::-moz-placeholder
+{
+	color: white;
+}
+#modal_login input:-ms-input-placeholder
+{
+	color: white !important;
+}
+#modal_login form .button
+{
+	color: #1B1C1D;
+}
+#modal_login form .button:hover:not(:active)
+{
+	background-color: rgb(260, 131, 46);
+}
+#modal_login .error.message
+{
+	box-shadow: none;
+	color: red;
+}
+#modal_login .message a
+{
+	color: rgb(242, 113, 28);
+}
+#modal_login .message a:hover
+{
+	text-decoration: underline;
+}

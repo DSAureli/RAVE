@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>RAVE</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+	<link rel="icon" href="favicon.ico">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.css">
+	<link rel="stylesheet" href="css/main.css">
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>
+	<script src="js/login.js"></script>
+	<script src="js/script.js"></script>
+</head>
+
+<body>
+	<!-- HEADER -->
+	<header class="ui stackable inverted fixed menu">
+		<div class="ui container">
+			<a href="#" class="header item">
+				<img class="logo" src="img/logo.png">
+				RAVE
+			</a>
+			<div class="ui inverted transparent input item">
+				<input placeholder="Search..." type="text">
+				<a href="#"><i class="search icon"></i></a>
+			</div>
+			<div class="ui simple dropdown right item">
+				Dropdown
+				<i class="dropdown icon"></i>
+				<div class="menu">
+					<a class="item" href="#">Link Item</a>
+					<div class="divider"></div>
+					<div class="header">Header Item</div>
+					<div class="item">
+						<i class="dropdown icon"></i>
+						Sub Menu
+						<div class="menu">
+							<a class="item" href="#">Link Item</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<a id="btn_login" href="login.html" class="ui right item">
+				Login
+			</a>
+		</div>
+	</header>
+	
+	
+	<!-- MAIN -->
+	<div class="ui main text container">
+		<h1 class="ui header">Steins;Gate</h1>
+		<div id="content"></div>
+	</div>
+
+	
+	<!-- FOOTER -->
+	<footer class="ui inverted vertical footer segment">
+		<div class="ui center aligned container">
+			<div class="ui stackable inverted divided grid">
+				<div class="three wide column">
+					<h4 class="ui inverted header">Group 1</h4>
+					<div class="ui inverted link list">
+						<a href="#" class="item">Link One</a>
+						<a href="#" class="item">Link Two</a>
+						<a href="#" class="item">Link Three</a>
+						<a href="#" class="item">Link Four</a>
+					</div>
+				</div>
+				<div class="three wide column">
+					<h4 class="ui inverted header">Group 2</h4>
+					<div class="ui inverted link list">
+						<a href="#" class="item">Link One</a>
+						<a href="#" class="item">Link Two</a>
+						<a href="#" class="item">Link Three</a>
+						<a href="#" class="item">Link Four</a>
+					</div>
+				</div>
+				<div class="three wide column">
+					<h4 class="ui inverted header">Group 3</h4>
+						<div class="ui inverted link list">
+						<a href="#" class="item">Link One</a>
+						<a href="#" class="item">Link Two</a>
+						<a href="#" class="item">Link Three</a>
+						<a href="#" class="item">Link Four</a>
+					</div>
+				</div>
+				<div class="seven wide column">
+					<h4 class="ui inverted header">Footer Header</h4>
+					<p>Extra space for a call to action inside the footer that could help re-engage users.</p>
+				</div>
+			</div>
+			<div class="ui inverted section divider"></div>
+			<img src="img/logo.png" class="ui centered mini image">
+			<div class="ui horizontal inverted small divided link list">
+				<a class="item" href="#">Site Map</a>
+				<a class="item" href="#">Contact Us</a>
+				<a class="item" href="#">Terms and Conditions</a>
+				<a class="item" href="#">Privacy Policy</a>
+			</div>
+		</div>
+	</footer>
+	
+	
+	<!-- MODAL -->
+	<div id="modal_login" class="ui basic modal">
+		<div class="ui column">
+			<h2 class="ui orange header">
+				Log-in to your account
+				<i class="remove icon link"></i>
+			</h2>
+			<form class="ui form">
+				<div class="ui inverted segment">
+					<div class="field">
+						<div class="ui left icon input">
+							<i class="at icon"></i>
+							<input type="text" name="email" placeholder="E-mail address">
+						</div>
+					</div>
+					<div class="field">
+						<div class="ui left icon input">
+							<i class="lock icon"></i>
+							<input type="password" name="password" placeholder="Password">
+						</div>
+					</div>
+					<div class="ui fluid orange submit button">Login</div>
+				</div>
+				<div class="ui inverted error message"></div>
+			</form>
+			<div class="ui inverted center aligned message segment">
+				New to us? <a href="#" style="text-color:orange">Sign Up</a>
+			</div>
+		</div>
+	</div>
+</body>
+</html> 
