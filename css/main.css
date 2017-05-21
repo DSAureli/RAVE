@@ -1,3 +1,5 @@
+/* Orange: rgb(242, 113, 28) */
+
 body
 {
 	display: flex;
@@ -11,6 +13,12 @@ body
 *::selection
 {
 	background: rgb(242, 113, 28) !important;
+}
+.dropdown
+{
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 }
 
 /* HEADER */
@@ -45,6 +53,19 @@ body
 {
 	flex: 1;
 	margin-top: 7em;
+}
+.main.container .selection.dropdown
+{
+	float: right;
+}
+.main.container .selection.dropdown.active,
+.main.container .selection.dropdown:focus
+{
+	border-color: rgb(242, 113, 28);
+}
+.main.container .menu.transition
+{
+	border-color: rgb(242, 113, 28) !important;
 }
 
 /* FOOTER */

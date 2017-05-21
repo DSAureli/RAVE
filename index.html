@@ -51,8 +51,19 @@
 	
 	<!-- MAIN -->
 	<div class="ui main text container">
-		<h1 class="ui header">Steins;Gate</h1>
-		<div id="content"></div>
+		<div class="ui clearing basic segment">
+			<h1 class="ui left floated header">Steins;Gate</h1>
+			<div id="dropdown_sections" class="ui right floated selection dropdown">
+				<input name="section" value="0" type="hidden">
+				<i class="dropdown icon"></i>
+				<div class="default text">Section</div>
+				<div id="menu_sections" class="menu">
+					<div class="item" data-value="0">Summary</div>
+					<!--JS-->
+				</div>
+			</div>
+		</div>
+		<div id="content"><!--JS--></div>
 	</div>
 
 	
