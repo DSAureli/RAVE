@@ -25,7 +25,9 @@ function retrieveSection(index, title)
 		dataType: "jsonp",
 		success: function(apiResult)
 		{
-			$("#content").html(apiResult.parse.text["*"]);
+			$("#content").html(apiResult.parse.text["*"]
+				.split('<a href="/w').join('<a href="https://en.wikipedia.org/w')
+				.split('src="//').join('src="https://'));
 			console.log(index, title);
 		},
 		error: outputError()
@@ -54,7 +56,7 @@ $(document).ready(function()
 		dataType: "jsonp",
 		success: function(apiResult)
 		{
-			$("#content").html("");
+			/*$("#content").html("");*/
 			
 			$.each(apiResult.parse.sections, (i, section) =>
 			{
