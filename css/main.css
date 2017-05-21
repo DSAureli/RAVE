@@ -1,4 +1,5 @@
 /* Orange: rgb(242, 113, 28) */
+/* Light Orange: rgb(260, 131, 46) */
 
 body
 {
@@ -13,6 +14,15 @@ body
 *::selection
 {
 	background: rgb(242, 113, 28) !important;
+}
+a
+{
+	color: rgb(242, 113, 28);
+}
+a:hover
+{
+	color: rgb(242, 113, 28);
+	text-decoration: underline;
 }
 .dropdown
 {
@@ -63,9 +73,26 @@ body
 {
 	border-color: rgb(242, 113, 28);
 }
-.main.container .menu.transition
+.main.container .selection.dropdown .menu.transition
 {
 	border-color: rgb(242, 113, 28) !important;
+}
+.main.container .selection.dropdown .menu.transition .item
+{
+	border-top: none;
+}
+.main.container .selection.dropdown .menu.transition .item:hover
+{
+	background: rgb(260, 131, 46);
+}
+.main.container .selection.dropdown .menu.transition .selected.item
+{
+	background: rgb(242, 113, 28);
+	color: rgb(27,28,29);
+}
+.mw-headline, .mw-editsection, .reference, .references
+{
+	display: none;
 }
 
 /* FOOTER */
@@ -158,12 +185,4 @@ body
 {
 	box-shadow: none;
 	color: red;
-}
-#modal_login .message a
-{
-	color: rgb(242, 113, 28);
-}
-#modal_login .message a:hover
-{
-	text-decoration: underline;
 }
