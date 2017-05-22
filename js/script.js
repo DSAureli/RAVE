@@ -36,7 +36,7 @@ function updateContent(index, title)
 	/* CROSSREF */
 	$.ajax(
 	{
-		url: "https://api.crossref.org/works?query=steins+gate+" + title,
+		url: "https://api.crossref.org/works?query=steins+gate+" + title.split(" ").join("+") + "&rows=10&sort=score",
 		dataType: "text",
 		success: function(cross)
 		{
@@ -47,8 +47,7 @@ function updateContent(index, title)
 			{
 				if (item.issue != "0")
 				{
-					$("#column_crossref").append("<p>Title: {0}</br>Publisher: {1}</p>"
-						.format(item.title[0], item.publisher));
+					$("#column_crossref").append("<div class='ui tall stacked segment'><p>Title: {0}</br>Publisher: {1}</br> Type: {2}</br> <a href='{3}'>Get this content</a></p></div>".format(item.title[0], item.publisher, item.type, item.URL));
 				}
 			});
 		},
