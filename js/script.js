@@ -26,9 +26,23 @@ function updateContent(index, title)
 		dataType: "jsonp",
 		success: function(apiResult)
 		{
+			$("#column_wiki").html(apiResult.parse.text["*"]);
+			
+			$("#column_wiki").find('a[href^="/wiki/"]').prop("href", function(index, old)
+			{
+				return old.split("file://").join("https://en.wikipedia.org");
+			});
+			
+			$("#column_wiki").find('img[src^="//"]').prop("src", function(index, old)
+			{
+				return old.split("file://").join("https://upload.wikimedia.org/");
+			});
+			
+			/*
 			$("#column_wiki").html(apiResult.parse.text["*"]
 				.split('<a href="/w').join('<a href="https://en.wikipedia.org/w')
 				.split('src="//').join('src="https://'));
+			*/
 		},
 		error: outputError()
 	});
