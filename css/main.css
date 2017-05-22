@@ -64,6 +64,16 @@ a:hover
 	flex: 1;
 	margin-top: 7em;
 }
+.main.text.container
+{
+	max-width: 100% !important;
+	width: 100%;
+}
+.main.container .basic.segment
+{
+	margin: auto;
+	max-width: 700px;
+}
 .main.container .selection.dropdown
 {
 	float: right;
@@ -90,7 +100,16 @@ a:hover
 	background: rgb(242, 113, 28);
 	color: rgb(27,28,29);
 }
-.mw-headline, .mw-editsection, .reference, .references
+.main.container .grid
+{
+	max-width: 100%;
+	text-align: justify;
+}
+.main.container .grid table
+{
+	margin: auto;
+}
+#column_wiki h2, .reference, .references
 {
 	display: none;
 }

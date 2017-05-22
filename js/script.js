@@ -9,8 +9,9 @@ String.prototype.format = function()
    return content;
 };
 
-function retrieveSection(index, title)
+function updateContent(index, title)
 {
+	/* WIKIPEDIA */
 	$.ajax(
 	{
 		url: "http://en.wikipedia.org/w/api.php",
@@ -25,10 +26,31 @@ function retrieveSection(index, title)
 		dataType: "jsonp",
 		success: function(apiResult)
 		{
-			$("#content").html(apiResult.parse.text["*"]
+			$("#column_wiki").html(apiResult.parse.text["*"]
 				.split('<a href="/w').join('<a href="https://en.wikipedia.org/w')
 				.split('src="//').join('src="https://'));
-			console.log(index, title);
+		},
+		error: outputError()
+	});
+	
+	/* CROSSREF */
+	$.ajax(
+	{
+		url: "https://api.crossref.org/works?query=steins+gate+" + title,
+		dataType: "text",
+		success: function(cross)
+		{
+			cross = $.parseJSON(cross);
+			$("#column_crossref").html("");
+			
+			$.each(cross.message.items, (i, item) =>
+			{
+				if (item.issue != "0")
+				{
+					$("#column_crossref").append("<p>Title: {0}</br>Publisher: {1}</p>"
+						.format(item.title[0], item.publisher));
+				}
+			});
 		},
 		error: outputError()
 	});
@@ -40,7 +62,7 @@ $(document).ready(function()
 	
 	$("#dropdown_sections").dropdown(
 	{
-		onChange: retrieveSection
+		onChange: updateContent
 	});
 	
 	$.ajax(
@@ -56,62 +78,19 @@ $(document).ready(function()
 		dataType: "jsonp",
 		success: function(apiResult)
 		{
-			/*$("#content").html("");*/
-			
 			$.each(apiResult.parse.sections, (i, section) =>
 			{
 				if (section.line != "References" && section.line != "External links")
 					$("#menu_sections").append('<div class="item" data-value="{0}">{1}</div>'.format(section.index, section.line));
-				
-				/*
-				var div = $('<div class="ui styled accordion"></div>').appendTo("#content");
-				
-				$.ajax(
-				{
-					url: "http://en.wikipedia.org/w/api.php",
-					data:
-					{
-						action: "parse",
-						page: "Steins;Gate (anime)",
-						section: section.index,
-						prop: "text",
-						format: "json"
-					},
-					dataType: "jsonp",
-					success: function(apiResult)
-					{
-						div.append(
-							'<div class="title"><i class="dropdown icon"></i>{0} {1}</div><div class="content"><p>{2}</p></div>'
-							.format(section.index, section.line, apiResult.parse.text["*"]));
-						$('.ui.accordion').accordion();
-					},
-					error: outputError()
-				});
-                
-                $.ajax(
-                {
-                    url: "https://api.crossref.org/works?query=stein's+gate+" + section.line ,
-                    dataType: "text",
-                    success: function(cross)
-					{
-                        cross = $.parseJSON(cross);
-                        $("#content").append(
-							'<div class="ui styled accordion"><div class="title"><i class="dropdown icon"></i>{0} {1}</div><div class="content"><p>{2}</p></div></div>'
-							.format(section.index, cross.message.items[0].title[0], cross.message.items[0].publisher));
-						$('.ui.accordion').accordion();
-					},
-					error: outputError()
-                });
-				*/
 			});
 		},
 		error: outputError()
 	});
 	
-	retrieveSection(0, "Summary");
+	updateContent(0, "Summary");
 });
 
 function outputError(errorMessage)
 {
-	$("#content").html(errorMessage);
+	console.log(errorMessage);
 }
