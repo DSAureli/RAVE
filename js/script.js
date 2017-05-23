@@ -1,12 +1,12 @@
 String.prototype.format = function()
 {
-   var content = this;
-   for (var i=0; i < arguments.length; i++)
-   {
-        var replacement = '{' + i + '}';
-        content = content.replace(replacement, arguments[i]);  
-   }
-   return content;
+	var content = this;
+	for (var i=0; i < arguments.length; i++)
+	{
+		var replacement = '{' + i + '}';
+		content = content.replace(replacement, arguments[i]);
+	}
+	return content;
 };
 
 function updateContent(index, title)
@@ -30,19 +30,15 @@ function updateContent(index, title)
 			
 			$("#column_wiki").find('a[href^="/wiki/"]').prop("href", function(index, old)
 			{
-				return old.split("file://").join("https://en.wikipedia.org");
+				//return old.split("file://").join("https://en.wikipedia.org");
+				return old.replace("file://", "https://en.wikipedia.org");
 			});
 			
 			$("#column_wiki").find('img[src^="//"]').prop("src", function(index, old)
 			{
-				return old.split("file://").join("https://upload.wikimedia.org/");
+				//return old.split("file://").join("https://upload.wikimedia.org");
+				return old.replace("file://", "https://upload.wikimedia.org");
 			});
-			
-			/*
-			$("#column_wiki").html(apiResult.parse.text["*"]
-				.split('<a href="/w').join('<a href="https://en.wikipedia.org/w')
-				.split('src="//').join('src="https://'));
-			*/
 		},
 		error: outputError()
 	});
@@ -61,7 +57,7 @@ function updateContent(index, title)
 			{
 				if (item.issue != "0")
 				{
-					$("#column_crossref").append("<div class='ui tall stacked segment'><p>Title: {0}</br>Publisher: {1}</br> Type: {2}</br> <a href='{3}'>Get this content</a></p></div>".format(item.title[0], item.publisher, item.type, item.URL));
+					$("#column_crossref").append("<div class='ui segment'><p>Title: {0}</br>Publisher: {1}</br> Type: {2}</br> <a href='{3}'>Get this content</a></p></div>".format(item.title[0], item.publisher, item.type, item.URL));
 				}
 			});
 		},

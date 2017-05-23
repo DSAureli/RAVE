@@ -76,6 +76,7 @@ a:hover
 }
 .main.container .selection.dropdown
 {
+	border-radius: 0;
 	float: right;
 }
 .main.container .selection.dropdown.active,
@@ -102,8 +103,23 @@ a:hover
 }
 .main.container .grid
 {
+	margin: auto;
 	max-width: 100%;
-	text-align: justify;
+}
+@media only screen and (max-width: 767px)
+{
+	#column_crossref
+	{
+		order: 2;
+	}
+	#column_wiki
+	{
+		order: 1;
+	}
+}
+#column_crossref .segment
+{
+	border-radius: 0;
 }
 .main.container .grid table
 {
@@ -124,6 +140,7 @@ a:hover
 	user-select: none;
 }
 
+/* FOOTER & MODAL */
 .column
 {
 	margin: auto;
