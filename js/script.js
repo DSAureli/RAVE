@@ -9,7 +9,7 @@ String.prototype.format = function()
 	return content;
 };
 
-function updateContent(index, title)
+function updateContent(index, title, sfor)
 {
 	$("#column_wiki").dimmer("show");
 	$("#column_wiki .loader").removeClass("disabled");
@@ -23,7 +23,7 @@ function updateContent(index, title)
 		data:
 		{
 			action: "parse",
-			page: "Steins;Gate (anime)",
+			page: sfor,
 			section: index,
 			prop: "text",
 			format: "json"
@@ -60,7 +60,7 @@ function updateContent(index, title)
 	/* CROSSREF */
 	$.ajax(
 	{
-		url: "https://api.crossref.org/works?query=steins+gate+" + title.split(" ").join("+") + "&rows=10&sort=score",
+		url: "https://api.crossref.org/works?query=" + sfor + "+" + title.split(" ").join("+") + "&rows=10&sort=score",
 		dataType: "text",
 		success: function(cross)
 		{
@@ -71,7 +71,7 @@ function updateContent(index, title)
 			{
 				if (item.issue != "0")
 				{
-					$("#content_crossref").append("<div class='ui segment'><p>Title: {0}</br>Publisher: {1}</br> Type: {2}</br> <a href='{3}'>Get this content</a></p></div>".format(item.title[0], item.publisher, item.type, item.URL));
+					$("#content_crossref").append("<div class='ui segment'><p>Title: {0}</br>Publisher: {1}</br> Type: {2}</br> <a href='{3}' target='_blank'>Get this content</a></p></div>".format(item.title[0], item.publisher, item.type, item.URL));
 				}
 			});
 		},
@@ -96,30 +96,49 @@ $(document).ready(function()
 	{
 		onChange: updateContent
 	});
-	
-	$.ajax(
-	{
-		url: "http://en.wikipedia.org/w/api.php",
-		data:
-		{
-			action: "parse",
-			prop: "sections",
-			page: "Steins;Gate (anime)",
-			format: "json"
-		},
-		dataType: "jsonp",
-		success: function(apiResult)
-		{
-			$.each(apiResult.parse.sections, (i, section) =>
-			{
-				if (section.line != "References" && section.line != "External links")
-					$("#menu_sections").append('<div class="item" data-value="{0}">{1}</div>'.format(section.index, section.line));
-			});
-		},
-		error: outputError()
-	});
-	
-	updateContent(0, "Summary");
+    
+    var searchSec;
+    var searchFor;
+
+    $('#sbar').on('keypress', function(e){
+        
+        if(e.which == 13)
+        {
+            
+            /*$("#dropdown_sections").dropdown('clear');*/
+            
+            searchFor = $(this).val();
+            $('#mainTitle').text(searchFor);
+            $.ajax(
+            {
+                url: "http://en.wikipedia.org/w/api.php",
+                data:
+                {
+                    action: "parse",
+                    prop: "sections",
+                    page: searchFor,
+                    format: "json"
+                },
+                dataType: "jsonp",
+                success: function(apiResult)
+                {
+                    searchSec = apiResult.parse.sections[0];
+                    $.each(apiResult.parse.sections, (i, section) =>
+                    {
+                        if (section.line != "References" && section.line != "External links")
+                            $("#menu_sections").append('<div class="item" data-value="{0}">{1}</div>'.format(section.index, section.line));
+                    });
+                },
+                error: outputError()
+            });
+
+            updateContent(0, searchSec, searchFor);
+        }
+    });
+    
+    
+    
+        
 });
 
 function outputError(errorMessage)
