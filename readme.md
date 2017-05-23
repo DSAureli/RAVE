@@ -8,6 +8,8 @@
 * "sales" and "critical reception" are duplicated
 * make all the queries at once and save sections in memory
 * bind queries to searchbar
+* handle ambiguous list of wiki search results
+* maybe add search bar suggestion dropdown
 * improve Wiki presentation
 * improve Crossref results and presentation
 * login system
