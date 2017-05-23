@@ -12,7 +12,9 @@ String.prototype.format = function()
 function updateContent(index, title)
 {
 	$("#column_wiki").dimmer("show");
+	$("#column_wiki .loader").removeClass("disabled");
 	$("#column_crossref").dimmer("show");
+	$("#column_crossref .loader").removeClass("disabled");
 	
 	/* WIKIPEDIA */
 	$.ajax(
@@ -51,6 +53,7 @@ function updateContent(index, title)
 		complete: function()
 		{
 			$("#column_wiki").dimmer("hide");
+			$("#column_wiki .loader").addClass("disabled");
 		}
 	});
 	
@@ -80,6 +83,7 @@ function updateContent(index, title)
 		complete: function()
 		{
 			$("#column_crossref").dimmer("hide");
+			$("#column_crossref .loader").addClass("disabled");
 		}
 	});
 }
