@@ -4,9 +4,12 @@
 
 ## TODO
 
+* fix menu responsiveness and selector dropdown position
 * "sales" and "critical reception" are duplicated
 * make all the queries at once and save sections in memory
-* 2/3 columns layout
 * bind queries to searchbar
-* login
-* genius
+* improve Wiki presentation
+* improve Crossref results and presentation
+* login system
+* genius (modal on smartphones)
+* footer
