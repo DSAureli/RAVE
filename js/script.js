@@ -11,6 +11,9 @@ String.prototype.format = function()
 
 function updateContent(index, title)
 {
+	$("#column_wiki").dimmer("show");
+	$("#column_crossref").dimmer("show");
+	
 	/* WIKIPEDIA */
 	$.ajax(
 	{
@@ -26,21 +29,29 @@ function updateContent(index, title)
 		dataType: "jsonp",
 		success: function(apiResult)
 		{
-			$("#column_wiki").html(apiResult.parse.text["*"]);
+			$("#content_wiki").html(apiResult.parse.text["*"]);
 			
-			$("#column_wiki").find('a[href^="/wiki/"]').prop("href", function(index, old)
+			$("#content_wiki").find('a[href^="/wiki/"]').prop("href", function(index, old)
 			{
 				//return old.split("file://").join("https://en.wikipedia.org");
 				return old.replace("file://", "https://en.wikipedia.org");
 			});
 			
-			$("#column_wiki").find('img[src^="//"]').prop("src", function(index, old)
+			$("#content_wiki").find('img[src^="//"]').prop("src", function(index, old)
 			{
 				//return old.split("file://").join("https://upload.wikimedia.org");
 				return old.replace("file://", "https://upload.wikimedia.org");
 			});
 		},
-		error: outputError()
+		error: function(error)
+		{
+			console.log(error);
+			$("#content_wiki").html(error);
+		},
+		complete: function()
+		{
+			$("#column_wiki").dimmer("hide");
+		}
 	});
 	
 	/* CROSSREF */
@@ -51,17 +62,25 @@ function updateContent(index, title)
 		success: function(cross)
 		{
 			cross = $.parseJSON(cross);
-			$("#column_crossref").html("");
+			$("#content_crossref").html("");
 			
 			$.each(cross.message.items, (i, item) =>
 			{
 				if (item.issue != "0")
 				{
-					$("#column_crossref").append("<div class='ui segment'><p>Title: {0}</br>Publisher: {1}</br> Type: {2}</br> <a href='{3}'>Get this content</a></p></div>".format(item.title[0], item.publisher, item.type, item.URL));
+					$("#content_crossref").append("<div class='ui segment'><p>Title: {0}</br>Publisher: {1}</br> Type: {2}</br> <a href='{3}'>Get this content</a></p></div>".format(item.title[0], item.publisher, item.type, item.URL));
 				}
 			});
 		},
-		error: outputError()
+		error: function(error)
+		{
+			console.log(error);
+			$("#content_crossref").html(error);
+		},
+		complete: function()
+		{
+			$("#column_crossref").dimmer("hide");
+		}
 	});
 }
 

@@ -1,3 +1,4 @@
+/* Black: rgb(27,28,29) */
 /* Orange: rgb(242, 113, 28) */
 /* Light Orange: rgb(260, 131, 46) */
 
@@ -49,6 +50,10 @@ a:hover
 {
 	padding: 1.14286em !important;
 	padding-right: 0 !important;
+}
+.ui.menu .input.item a
+{
+	text-decoration: none;
 }
 .ui.menu .input.item .search.icon
 {
@@ -103,6 +108,7 @@ a:hover
 }
 .main.container .grid
 {
+	height: 100%;
 	margin: auto;
 	max-width: 100%;
 }
@@ -117,9 +123,22 @@ a:hover
 		order: 1;
 	}
 }
+.ui.inverted.dimmer
+{
+	z-index: 100;
+}
+.ui.inverted.dimmer .ui.loader::before
+{
+	border-color: transparent;
+}
+.ui.inverted.dimmer .ui.loader::after
+{
+	border-color: rgb(27,28,29) transparent transparent;
+}
 #column_crossref .segment
 {
 	border-radius: 0;
+	border-top: 2px solid rgb(242, 113, 28);
 }
 .main.container .grid table
 {
@@ -211,7 +230,7 @@ a:hover
 }
 #modal_login form .button
 {
-	color: #1B1C1D;
+	color: rgb(27,28,29);
 }
 #modal_login form .button:hover:not(:active)
 {
