@@ -4,7 +4,7 @@ String.prototype.format = function()
 	for (var i=0; i < arguments.length; i++)
 	{
 		var replacement = '{' + i + '}';
-		content = content.replace(replacement, arguments[i]);
+		content = content.split(replacement).join(arguments[i]);
 	}
 	return content;
 };
@@ -32,17 +32,13 @@ function updateContent(index, title)
 		success: function(apiResult)
 		{
 			$("#content_wiki").html(apiResult.parse.text["*"]);
-			
-			$("#content_wiki").find('a[href^="/wiki/"]').prop("href", function(index, old)
+			$("#content_wiki").find("a").each(function(index, elem)
 			{
-				//return old.split("file://").join("https://en.wikipedia.org");
-				return old.replace("file://", "https://en.wikipedia.org");
+				elem.href = "//en.wikipedia.org" + elem.pathname;
 			});
-			
-			$("#content_wiki").find('img[src^="//"]').prop("src", function(index, old)
+			$("#content_wiki").find("img").each(function(index, elem)
 			{
-				//return old.split("file://").join("https://upload.wikimedia.org");
-				return old.replace("file://", "https://upload.wikimedia.org");
+				// ...
 			});
 		},
 		error: function(error)
