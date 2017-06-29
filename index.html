@@ -17,33 +17,22 @@
 	<!-- HEADER -->
 	<header class="ui stackable inverted fixed menu">
 		<div class="ui container">
-			<a href="#" class="header item">
-				<img class="logo" src="img/logo.png">
-				RAVE
-			</a>
-			<div class="ui inverted transparent input item">
+			<div id="header_home_container">
+				<a id="header_home" class="ui item" href="#">
+					<div class="ui item">
+						<img src="img/logo.png">
+						RAVE
+					</div>
+				</a>
+			</div>
+			<div id="header_input" class="ui inverted transparent input item">
 				<input id="search" placeholder="Search..." type="text">
 				<a href="#"><i class="search icon"></i></a>
 			</div>
-			<div class="ui simple dropdown right item">
-				Dropdown
-				<i class="dropdown icon"></i>
-				<div class="menu">
-					<a class="item" href="#">Link Item</a>
-					<div class="divider"></div>
-					<div class="header">Header Item</div>
-					<div class="item">
-						<i class="dropdown icon"></i>
-						Sub Menu
-						<div class="menu">
-							<a class="item" href="#">Link Item</a>
-						</div>
-					</div>
+			<a id="header_login" class="ui item" href="login.html">
+				<div>
+					Login
 				</div>
-			</div>
-			
-			<a id="btn_login" href="login.html" class="ui right item">
-				Login
 			</a>
 		</div>
 	</header>
@@ -58,7 +47,6 @@
 				<i class="dropdown icon"></i>
 				<div id="defaultDrop" class="default text">Section</div>
 				<div id="menu_sections" class="menu">
-					
 					<!--JS-->
 				</div>
 			</div>

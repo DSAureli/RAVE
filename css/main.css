@@ -33,34 +33,63 @@ a:hover
 }
 
 /* HEADER */
-.ui.menu .item img.logo
+#header_home_container
+{
+	display: flex;
+}
+#header_home
+{
+	padding: 0;
+}
+#header_home div, #header_login div
+{
+	margin: auto;
+	width: auto !important;
+}
+#header_home div:before
+{
+	content: none;
+}
+#header_home img
 {
 	margin-right: 1.5em;
 }
-.ui.menu .input.item
+#header_input
 {
 	flex: 1;
 	padding: 0;
 }
-.ui.menu .input.item *
+#header_input *
 {
 	height: 100%;
 }
-.ui.menu .input.item input
+#header_input input
 {
 	padding: 1.14286em !important;
 	padding-right: 0 !important;
 }
-.ui.menu .input.item a
+#header_input a
 {
 	text-decoration: none;
 }
-.ui.menu .input.item .search.icon
+#header_input .search.icon
 {
-	display: flex;
 	align-items: center;
+	display: flex;
 	justify-content: center;
 	margin: 0 1.14286em;
+}
+@media only screen and (max-width: 767px)
+{
+	#header_home
+	{
+		width: 50% !important;
+	}
+	#header_login
+	{
+		border-left: 1px solid rgba(255,255,255,.08);
+		width: 50% !important;
+	}
 }
 
 /* MAIN */

@@ -1,6 +1,6 @@
 $(document).ready(function()
 {
-	$("#btn_login").click(function(e)
+	$("#header_login").click(function(e)
 	{
 		e.preventDefault();
 		$("#modal_login").modal("show");

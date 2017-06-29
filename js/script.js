@@ -9,6 +9,21 @@ String.prototype.format = function()
 	return content;
 };
 
+function respHeader()
+{
+	// Sometimes CSS media queries and JQuery window.width work differently,
+	// so we better check for CSS properties instead of window.width
+	
+	if ($("#column_wiki").css("order") == "1" )
+	{
+		$("#header_login").detach().insertAfter("#header_home");
+	}
+	else
+	{
+		$("#header_login").detach().insertAfter("#header_input");
+	}
+}
+
 function updateContent(index, title, sfor)
 {
 	$("#column_wiki").dimmer("show");
@@ -95,11 +110,14 @@ $(document).ready(function()
 		//onChange: updateContent
 		action: function(text, value)
 		{
-			
 			updateContent(value, text, sfor);
 			action: 'activate'
 		}
 	});
+	
+	respHeader();
+	$(window).resize(respHeader);
+	
 	$("#search").keyup(function(event)
 	{
 		if(event.which == 13)
@@ -142,6 +160,8 @@ $(document).ready(function()
 				});	
 		}
 	});
+	
+	//updateContent(0, "Summary");
 });
 
 function outputError(errorMessage)
