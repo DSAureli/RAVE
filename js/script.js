@@ -24,7 +24,9 @@ function respHeader()
 	}
 }
 
-function updateContent(index, title, sfor)
+var query;
+
+function updateContent(index, section)
 {
 	$("#column_wiki").dimmer("show");
 	$("#column_wiki .loader").removeClass("disabled");
@@ -38,7 +40,7 @@ function updateContent(index, title, sfor)
 		data:
 		{
 			action: "parse",
-			page: sfor,
+			page: query,
 			section: index,
 			prop: "text",
 			format: "json"
@@ -71,7 +73,7 @@ function updateContent(index, title, sfor)
 	/* CROSSREF */
 	$.ajax(
 	{
-		url: "https://api.crossref.org/works?query="+ sfor.split(" ").join("+") + "+" + title.split(" ").join("+") + "&rows=10&sort=score",
+		url: "https://api.crossref.org/works?query="+ query.split(" ").join("+") + "+" + section.split(" ").join("+") + "&rows=10&sort=score",
 		dataType: "text",
 		success: function(cross)
 		{
@@ -99,69 +101,63 @@ function updateContent(index, title, sfor)
 	});
 }
 
+function submitQuery()
+{
+	query = $("#search").val();
+	$("#title").text(query);
+	
+	$.ajax(
+	{
+		url: "http://en.wikipedia.org/w/api.php",
+		data:
+		{
+			action: "parse",
+			prop: "sections",
+			page: query,
+			format: "json"
+		},
+		dataType: "jsonp",
+		success: function(apiResult)
+		{
+			$.each(apiResult.parse.sections, (i, section) =>
+			{
+				if (section.line != "References" && section.line != "External links")
+					$("#menu_sections").append('<div class="item" data-value="{0}">{1}</div>'.format(section.index, section.line));
+			});
+			
+			// "Abstract" section (ie the one before the "Contents" table) missing!
+		},
+		error: outputError(),
+		complete: function()
+		{
+			$("#dropdown_sections").dropdown(
+			{
+				action: "activate",
+				onChange: updateContent
+			});
+			
+			$("#dropdown_sections").dropdown("set selected", 1);
+			var val = $("#dropdown_sections").dropdown("get value");
+			var text = $("#dropdown_sections").dropdown("get text");
+			updateContent(val, text);
+		}
+	});
+}
+
 $(document).ready(function()
 {
 	$("body").on("dragstart", false);
-	
-	var sfor;
-	
-	$("#dropdown_sections").dropdown(
-	{
-		//onChange: updateContent
-		action: function(text, value)
-		{
-			updateContent(value, text, sfor);
-			action: 'activate'
-		}
-	});
 	
 	respHeader();
 	$(window).resize(respHeader);
 	
 	$("#search").keyup(function(event)
 	{
-		if(event.which == 13)
-		{
-		
-			sfor = $("#search").val();
-			var firstSec;
-			$("#title").text(sfor);
-			
-			$.when(   // necessary due to the weird behaviour of ajax, which is executed after the other function call below
-				$.ajax(
-				{
-					url: "http://en.wikipedia.org/w/api.php",
-					data:
-					{
-						action: "parse",
-						prop: "sections",
-						page: sfor,
-						format: "json"
-					},
-					dataType: "jsonp",
-					success: function(apiResult)
-					{
-						$.each(apiResult.parse.sections, (i, section) =>
-						{
-							if(i==0)
-								firstSec = section.line;
-							if (section.line != "References" && section.line != "External links")
-								$("#menu_sections").append('<div class="item" data-value="{0}">{1}</div>'.format(section.index, section.line));
-						});
-						
-						$("#defaultDrop").text(firstSec);
-					},
-					error: outputError()
-				})
-			).then(
-				function()
-				{
-					updateContent(0, firstSec, sfor);
-				});	
-		}
+		if (event.which == 13)
+			submitQuery();
 	});
 	
-	//updateContent(0, "Summary");
+	// Also bind the search icon anchor to submitQuery
 });
 
 function outputError(errorMessage)
