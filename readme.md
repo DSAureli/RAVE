@@ -5,6 +5,7 @@
 ## TODO
 
 * Wiki abstract MIA!!!
+* dropdown highlight fucks up if scrollbar is present
 * subsequent searches don't reset dropdown, so it keeps filling
 * fix selector dropdown position
 * fix automatic selection in dropdown at the changing of section (?)

@@ -9,7 +9,7 @@ String.prototype.format = function()
 	return content;
 };
 
-function respHeader()
+function respCheck()
 {
 	// Sometimes CSS media queries and JQuery window.width work differently,
 	// so we better check for CSS properties instead of window.width
@@ -17,10 +17,14 @@ function respHeader()
 	if ($("#column_wiki").css("order") == "1" )
 	{
 		$("#header_login").detach().insertAfter("#header_home");
+		$("#title").removeClass("left floated").addClass("center aligned");
+		$("#dropdown_sections").css("float", "none").css("display", "flex");
 	}
 	else
 	{
 		$("#header_login").detach().insertAfter("#header_input");
+		$("#title").removeClass("center aligned").addClass("left floated");
+		$("#dropdown_sections").css("display", "block").css("float", "right");
 	}
 }
 
@@ -148,8 +152,8 @@ $(document).ready(function()
 {
 	$("body").on("dragstart", false);
 	
-	respHeader();
-	$(window).resize(respHeader);
+	respCheck();
+	$(window).resize(respCheck);
 	
 	$("#search").keyup(function(event)
 	{
