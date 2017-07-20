@@ -165,6 +165,12 @@ $(document).ready(function()
 			submitQuery();
 	});
 	
+	$("#searchButton").click(function(event)
+	{
+		event.preventDefault();	// prevent link behavior
+		submitQuery();
+	});
+	
 	// Also bind the search icon anchor to submitQuery
 });
 
