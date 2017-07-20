@@ -122,7 +122,11 @@ function submitQuery()
 		},
 		dataType: "jsonp",
 		success: function(apiResult)
-		{
+		{	
+			$("#menu_sections").empty();	//erase old sections from dropdown for each new search
+				
+			$("#menu_sections").append('<div class="item" data-value="{0}">{1}</div>'.format(0, "Introduction"));	// add abstract section as "introduction"
+			
 			$.each(apiResult.parse.sections, (i, section) =>
 			{
 				if (section.line != "References" && section.line != "External links")
@@ -140,7 +144,7 @@ function submitQuery()
 				onChange: updateContent
 			});
 			
-			$("#dropdown_sections").dropdown("set selected", 1);
+			$("#dropdown_sections").dropdown("set selected", 0);	// introduction is the default selected section
 			var val = $("#dropdown_sections").dropdown("get value");
 			var text = $("#dropdown_sections").dropdown("get text");
 			updateContent(val, text);
