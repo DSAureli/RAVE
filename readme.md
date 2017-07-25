@@ -5,8 +5,6 @@
 ## TODO
 
 * eval Introduction position presence/position
-* fix automatic selection in dropdown at the changing of section (?)
-* "sales" and "critical reception" are duplicated
 * make all the queries at once and save sections in memory (toeval)
 * handle ambiguous list of wiki search results
 * redirect page not shown in Edge (test with "Kara no Kyoukai")
