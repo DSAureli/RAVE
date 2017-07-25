@@ -190,6 +190,17 @@ a:hover
 	display: none;
 }
 
+.thumb
+{
+	display: inline-block;
+	float: left;
+	margin-right: 1em;
+	font-family: Verdana, Geneva, sans-serif;
+	font-size: 9;
+	line-height: 1em;
+	text-align: center;
+}
+
 /* FOOTER */
 .ui.footer.segment
 {

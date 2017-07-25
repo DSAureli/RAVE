@@ -9,6 +9,12 @@ String.prototype.format = function()
 	return content;
 };
 
+String.prototype.replaceAll = function(search, replacement) 
+{
+    var target = this;
+    return target.split(search).join(replacement);
+};
+
 function respCheck()
 {
 	// Sometimes CSS media queries and JQuery window.width work differently,
@@ -61,6 +67,7 @@ function updateContent(index, section)
 			{
 				// ...
 			});
+			
 		},
 		error: function(error)
 		{
@@ -71,6 +78,7 @@ function updateContent(index, section)
 		{
 			$("#column_wiki").dimmer("hide");
 			$("#column_wiki .loader").addClass("disabled");
+			$("#content_wiki img.thumbimage").attr("class", "ui medium rounded image");
 		}
 	});
 	
@@ -129,7 +137,7 @@ function submitQuery()
 			
 			$.each(apiResult.parse.sections, (i, section) =>
 			{
-				if (section.line != "References" && section.line != "External links")
+				if (section.line != "References" && section.line != "External links" && section.toclevel==1)
 					$("#menu_sections").append('<div class="item" data-value="{0}">{1}</div>'.format(section.index, section.line));
 			});
 			
