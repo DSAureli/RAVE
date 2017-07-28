@@ -8,6 +8,7 @@ body
 	flex-direction: column;
 	overflow: auto !important;
 }
+/*
 *::-moz-selection
 {
 	background: rgb(242, 113, 28) !important;
@@ -16,6 +17,7 @@ body
 {
 	background: rgb(242, 113, 28) !important;
 }
+*/
 a
 {
 	color: rgb(242, 113, 28);
