@@ -88,7 +88,7 @@ function updateContent(index, section)
 			{
 				if (item.issue != "0")
 				{
-					$("#content_crossref").append("<div class='ui segment'><p>Title: {0}</br>Publisher: {1}</br> Type: {2}</br> <a href='{3}'>Get this content</a></p></div>".format(item.title[0], item.publisher, item.type, item.URL));
+					$("#content_crossref").append("<div class='ui segment genius_sel'><p>Title: {0}</br>Publisher: {1}</br> Type: {2}</br> <a href='{3}'>Get this content</a></p></div>".format(item.title[0], item.publisher, item.type, item.URL));
 				}
 			});
 		},
