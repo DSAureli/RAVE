@@ -366,7 +366,7 @@ for (var i = 0; i < a.length; i++)
 // Range.selectNode(node) or Range.selectNodeContents(node)
 
 
-// 2017/08/01: FINISH IMLEMENTING METHOD 3 AND ALSO IMPLEMENT THIS:
+// 2017/08/01: FINISH IMPLEMENTING METHOD 3 AND ALSO IMPLEMENT THIS:
 //
 // Best method (probably): in document.ready put that code:
 // create array with all genius_sel divs
