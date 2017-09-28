@@ -1,5 +1,8 @@
 // Author: Mateusz W //
-(function ()
+
+// TODO: selezionare TUTTI i range della selection (per ora consedera solo il primo)
+
+(function()
 {
 	function UserRange(win)
 	{
@@ -16,11 +19,6 @@
 		{
 			var selection = this.win.getSelection();
 			return selection.rangeCount ? selection.getRangeAt(0) : this.doc.createRange();
-		},
-		
-		overlapsNode: function(node)
-		{
-			return this.intersectsNode(node);
 		},
 		
 		intersectsNode: function(node)
@@ -65,7 +63,7 @@
 			return this.doc.selection.createRange();
 		},
 		
-		overlapsNode: function(node)
+		intersectsNode: function(node)
 		{
 			var rangeWithNode = this.createRangeWithNode(node);
 			return this.containsRange(rangeWithNode);
@@ -98,14 +96,14 @@ function range(n)
 	return a;
 }
 
-var geniusClass = "genius_sel";
+var geniusClass = ".genius_sel";
 
 $(document).ready(function()
-{
+{	
 	$("#genius").click(function(event)
-	{
-		var userRange = new UserRange();
-		
+	{		
+		//old solution
+		/*
 		var sel = window.getSelection();
 		var ranges = [];
 		
@@ -113,6 +111,9 @@ $(document).ready(function()
 		{
 			ranges.push(sel.getRangeAt(i));
 		}
+		*/
+		
+		var userRange = new UserRange();
 		
 		/*
 		$.each(ranges, function(index, range) // non serve sto ciclo
@@ -132,11 +133,43 @@ $(document).ready(function()
 		// saranno mai troppi...
 		*/
 		
-			$("." + geniusClass).each(function(index, current)
+		var newRanges = [];
+		
+		// divs of class genius_sel not descendant of other divs of same class
+		$(geniusClass).not(geniusClass + " *").each(function(index, current)
+		{
+			if (userRange.intersectsNode(current))
 			{
-				if (userRange.overlapsNode(current))
-					console.log(index);
-			});
+				console.log(index);
+				
+				var newRange = userRange.userRange.cloneRange();
+				newRange.selectNode(current);
+				
+				//se current ha come discendente startContainer calcola l'inizio
+				//if ($.contains(current[0], userRange.userRange.startContainer))
+				if ($(current).has(userRange.userRange.startContainer).length)
+				{
+					newRange.setStart(userRange.userRange.startContainer, userRange.userRange.startOffset);
+				}
+				
+				//se current ha come discendente endContainer calcola la fine
+				//if ($.contains(current[0], userRange.userRange.endContainer))
+				if ($(current).has(userRange.userRange.endContainer).length)
+				{
+					newRange.setEnd(userRange.userRange.endContainer, userRange.userRange.endOffset);
+				}
+				
+				//check selezione (se lunghezza 0 ecc.) (proprietà collapsed?)
+				if (!newRange.collapsed)
+				{
+					newRanges.push(newRange);
+					console.log(newRange);
+				}
+				
+				//selezione rispetto al div genius_sel o il p al suo interno?
+				//eh boh, per wiki mi sa che la metti nel container
+			}
+		});
 	});
 	
 	$("#search").val("we");
