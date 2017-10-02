@@ -4,6 +4,7 @@
 
 ## TODO
 
+* add 2em of padding to columns
 * eval Introduction position presence/position
 * fix automatic selection in dropdown at the changing of section (?)
 * "sales" and "critical reception" are duplicated
@@ -17,3 +18,4 @@
 * genius (modal on smartphones)
 * footer
 * dropdown highlight fucks up if scrollbar is present (Firefox only?) (Semantic UI bug)
+* update jQuery and SemanticUI

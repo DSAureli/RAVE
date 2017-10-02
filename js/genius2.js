@@ -1,37 +1,56 @@
-// Author: Mateusz W //
-
-// TODO: selezionare TUTTI i range della selection (per ora consedera solo il primo)
+// Original author: Mateusz W //
 
 (function()
 {
-	function UserRange(win)
+	function UserSelection()
 	{
-		this.win = win || window;
-		this.doc = this.win.document;
-		this.userRange = this.createUserRange();
+		this.ranges = [];
+		this.createRangeArray();
 	}
 	
 	var NonIEPrototype =
 	{
-		constructor: UserRange,
+		constructor: UserSelection,
 		
-		createUserRange: function()
+		createRangeArray: function()
 		{
-			var selection = this.win.getSelection();
-			return selection.rangeCount ? selection.getRangeAt(0) : this.doc.createRange();
+			var sel = window.getSelection();
+		
+			for (var i of range(sel.rangeCount))
+			{
+				this.ranges.push(sel.getRangeAt(i));
+			}
 		},
 		
 		intersectsNode: function(node)
 		{
-			// this method is implemented in Firefox with Gecko before 1.9 and other non-IE browsers
-			if (this.userRange.intersectsNode)
+			var rangeArray = [];
+			
+			for (var range of this.ranges)
 			{
-				return this.userRange.intersectsNode(node);
+				// this method is implemented in Firefox with Gecko before 1.9 and other non-IE browsers
+				if (range.intersectsNode && range.intersectsNode(node))
+				{
+					rangeArray.push(range);
+				}
+				else
+				{
+					//var nodeRange = this.createRangeWithNode(node);
+					var nodeRange = node.ownerDocument.createRange();
+					nodeRange.selectNode(node);
+					
+					// if start of ranges[i] is before end of nodeRange && end of ranges[i] is after start of nodeRange
+					if (range.compareBoundaryPoints(Range.END_TO_START, nodeRange) === -1 &&
+						range.compareBoundaryPoints(Range.START_TO_END, nodeRange) === 1)
+					{
+						rangeArray.push(range);
+					}
+				}
 			}
 			
-			return this.intersectsRange(this.createRangeWithNode(node));
+			return rangeArray;
 		},
-		
+		/*
 		createRangeWithNode: function(node)
 		{
 			var rangeWithNode = node.ownerDocument.createRange();
@@ -44,23 +63,19 @@
 			{
 				rangeWithNode.selectNodeContents(node);
 			}
+			
+			rangeWithNode.selectNodeContents(node);
 			return rangeWithNode;
-		},
-		
-		intersectsRange: function(range)
-		{
-			return this.userRange.compareBoundaryPoints(Range.END_TO_START, range) === -1 &&
-			this.userRange.compareBoundaryPoints(Range.START_TO_END, range) === 1;
-		}
+		},*/
 	};
 	
 	var IEPrototype =
 	{
-		constructor: UserRange,
+		constructor: UserSelection,
 		
-		createUserRange: function()
+		createRangeArray: function()
 		{
-			return this.doc.selection.createRange();
+			return window.document.selection.createRange();
 		},
 		
 		intersectsNode: function(node)
@@ -82,94 +97,87 @@
 		}
 	};
 	
-	UserRange.prototype = window.getSelection ? NonIEPrototype : IEPrototype;
-	window.UserRange = UserRange;
+	UserSelection.prototype = window.getSelection ? NonIEPrototype : IEPrototype;
+	window.UserSelection = UserSelection;
 }());
 ///////////////////////
 
+//getpathfunction
 
-function range(n)
+function download(text, name, type)
 {
-	var a = [];
-	for (var i = 0; i < n; i++)
-		a[i] = i;
-	return a;
+    var a = document.body.appendChild(document.createElement("a"));
+    a.href = "data:text/plain;base64," + btoa(JSON.stringify(text));
+    a.download = name;
+    a.click();
+}
+
+//incorporate this function into confirm comment function
+function pathTest(div, range)
+{
+	var pathElements = [];
+	var current = $(range.startContainer);
+	
+	while (!current.is(div))
+	{
+		pathElements.push(current);
+		current = current.parent();
+	}
+	
+	pathElements.reverse();
+	
+	for (var elem of pathElements)
+	{
+		
+	}
+	
+	//download({data:newRanges.toString()}, 'test.txt', 'text/plain');
 }
 
 var geniusClass = ".genius_sel";
 
 $(document).ready(function()
-{	
+{
 	$("#genius").click(function(event)
-	{		
-		//old solution
-		/*
-		var sel = window.getSelection();
-		var ranges = [];
-		
-		for (var i in range(sel.rangeCount))
-		{
-			ranges.push(sel.getRangeAt(i));
-		}
-		*/
-		
-		var userRange = new UserRange();
-		
-		/*
-		$.each(ranges, function(index, range) // non serve sto ciclo
-		{
-			$(range.commonAncestorContainer).find("." + geniusClass).each(function(index, current)
-			{
-				if (userRange.overlapsNode(current))
-					console.log(index);
-			});
-		});
-		
-		// se la selezione è interna ad un solo div di classe genius_sel non stampa niente...
-		// perchè faccio la ricerca dei div figli del common ancestor, nel caso la selezione
-		// ricada in un unico div di quel tipo c'è caso che consideri un <p> come il common
-		// ancestor, ad esempio... devo trattarlo come caso particolare... ma come?
-		// forse mi converrebbe considerare sempre tutti i div che sono genius_sel, tanto non
-		// saranno mai troppi...
-		*/
-		
+	{
+		var userSel = new UserSelection();
 		var newRanges = [];
 		
 		// divs of class genius_sel not descendant of other divs of same class
-		$(geniusClass).not(geniusClass + " *").each(function(index, current)
+		$(geniusClass).not(geniusClass + " *").each(function(index, div)
 		{
-			if (userRange.intersectsNode(current))
+			var divRange = document.createRange();
+			divRange.selectNodeContents(div);
+			
+			// array of ranges intersecting with div
+			var intRangeArray = userSel.intersectsNode(div);
+			
+			for (var intRange of intRangeArray)
 			{
-				console.log(index);
+				var newRange = intRange.cloneRange();
 				
-				var newRange = userRange.userRange.cloneRange();
-				newRange.selectNode(current);
-				
-				//se current ha come discendente startContainer calcola l'inizio
-				//if ($.contains(current[0], userRange.userRange.startContainer))
-				if ($(current).has(userRange.userRange.startContainer).length)
+				if (!($(div).hasDescendant(intRange.startContainer)))
 				{
-					newRange.setStart(userRange.userRange.startContainer, userRange.userRange.startOffset);
+					newRange.setStart(div, divRange.startOffset);
 				}
 				
-				//se current ha come discendente endContainer calcola la fine
-				//if ($.contains(current[0], userRange.userRange.endContainer))
-				if ($(current).has(userRange.userRange.endContainer).length)
+				if (!($(div).hasDescendant(intRange.endContainer)))
 				{
-					newRange.setEnd(userRange.userRange.endContainer, userRange.userRange.endOffset);
+					newRange.setEnd(div, divRange.endOffset);
 				}
 				
-				//check selezione (se lunghezza 0 ecc.) (proprietà collapsed?)
+				//check selezione (se lunghezza 0 ecc.)
 				if (!newRange.collapsed)
 				{
 					newRanges.push(newRange);
 					console.log(newRange);
+					
+					pathTest(div, intRange);
 				}
-				
-				//selezione rispetto al div genius_sel o il p al suo interno?
-				//eh boh, per wiki mi sa che la metti nel container
 			}
 		});
+		
+		// ...
 	});
 	
 	$("#search").val("we");
