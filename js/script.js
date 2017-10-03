@@ -35,6 +35,15 @@ function respCheck()
 }
 
 var query;
+var firstDrop = true;
+
+/*function historyNav(index, section)
+{
+	updateContent(index, section);
+	var url = '?' + section;
+	history.pushState( {val:index, text:section}, null, url);
+	var x = history.length;
+}*/
 
 function updateContent(index, section)
 {
@@ -117,6 +126,7 @@ function submitQuery()
 {
 	query = $("#search").val();
 	$("#title").text(query);
+	var firstSec;
 	
 	$.ajax(
 	{
@@ -152,13 +162,17 @@ function submitQuery()
 				onChange: updateContent
 			});
 			
-			$("#dropdown_sections").dropdown("set selected", 0);	// introduction is the default selected section
-			var val = $("#dropdown_sections").dropdown("get value");
+			$("#dropdown_sections").find("[data-value=0]").trigger('click');
+			/* A fake click is necessary to select the correct element of dropdown on each new search.
+			   We need this trick because "set selected" and "set value" don't help with the firing of onChange. */
+			
+			var val = $("#dropdown_sections").dropdown("get value");				
 			var text = $("#dropdown_sections").dropdown("get text");
 			updateContent(val, text);
 		}
 	});
 }
+
 
 $(document).ready(function()
 {
@@ -173,13 +187,19 @@ $(document).ready(function()
 			submitQuery();
 	});
 	
+	// Also bind the search icon anchor to submitQuery
+	
 	$("#searchButton").click(function(event)
 	{
 		event.preventDefault();	// prevent link behavior
 		submitQuery();
 	});
 	
-	// Also bind the search icon anchor to submitQuery
+	//history.pushState(null, null, null);
+	/*window.addEventListener('popstate', function()
+	{
+		
+	});*/
 });
 
 function outputError(errorMessage)
