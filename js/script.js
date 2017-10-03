@@ -1,14 +1,3 @@
-String.prototype.format = function()
-{
-	var content = this;
-	for (var i=0; i < arguments.length; i++)
-	{
-		var replacement = '{' + i + '}';
-		content = content.split(replacement).join(arguments[i]);
-	}
-	return content;
-};
-
 function respCheck()
 {
 	// Sometimes CSS media queries and JQuery window.width work differently,

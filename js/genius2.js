@@ -106,17 +106,18 @@
 
 function download(text, name, type)
 {
-    var a = document.body.appendChild(document.createElement("a"));
-    a.href = "data:text/plain;base64," + btoa(JSON.stringify(text));
-    a.download = name;
-    a.click();
+	var a = document.body.appendChild(document.createElement("a"));
+	a.href = "data:text/plain;base64," + btoa(JSON.stringify(text));
+	a.download = name;
+	a.click();
 }
 
 //incorporate this function into confirm comment function
 function pathTest(div, range)
 {
+	// get elements of path from the father of range up to div
 	var pathElements = [];
-	var current = $(range.startContainer);
+	var current = $(range.startContainer).parent();
 	
 	while (!current.is(div))
 	{
@@ -124,14 +125,52 @@ function pathTest(div, range)
 		current = current.parent();
 	}
 	
+	// get elements of path from the div down to the parent of range
 	pathElements.reverse();
 	
+	// get path css selector string
+	var pathString = "";
 	for (var elem of pathElements)
 	{
+		pathString += elem[0].nodeName;
 		
+		var id = elem[0].id;
+		if (id)
+			string += "#"+ id;
+		
+		var classNames = elem[0].className;
+		if (classNames)
+			string += "." + $.trim(classNames).replace(/\s/gi, ".");
+		
+		pathString += ">";
 	}
 	
-	//download({data:newRanges.toString()}, 'test.txt', 'text/plain');
+	pathString = pathString.slice(0, -1);
+	console.log(pathString);
+	
+	// get #text node array
+	var res = $(div).find(pathString).contents().filter(function(index)
+	{
+		return this.nodeType == Node.TEXT_NODE; // && index check ...
+	});
+	
+	console.log(res);
+	console.log($(range.startContainer).text());
+	
+	// get #text index relative to parent element
+	var textIndex;
+	res.each(function(index)
+	{
+		console.log(index + ": " + $(this).text());
+		if ($(this).text() == $(range.startContainer).text())
+			textIndex = index;
+	});
+	console.log("index: " + textIndex);
+	
+	//send pathString, index e offset, for start and end of every range
+	var obj = {path:pathString, index:textIndex, offset:range.startOffset};
+	console.log(obj);
+	//download(obj, 'test.txt', 'text/plain');
 }
 
 var geniusClass = ".genius_sel";

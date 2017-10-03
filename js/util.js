@@ -6,6 +6,19 @@ function range(n)
 	return a;
 }
 
+String.prototype.format = function()
+{
+	var content = this;
+	for (var i=0; i < arguments.length; i++)
+	{
+		var replacement = '{' + i + '}';
+		content = content.split(replacement).join(arguments[i]);
+	}
+	return content;
+};
+
+
+
 // Is this needed?
 String.prototype.insertAt = function(index, string)
 {
