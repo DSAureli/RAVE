@@ -144,6 +144,7 @@ function submitQuery()
 $(document).ready(function()
 {
 	$("body").on("dragstart", false);
+	$("#modal_login").modal({duration: 300, transition: "fade down"});
 	
 	respCheck();
 	$(window).resize(respCheck);

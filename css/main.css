@@ -18,6 +18,16 @@ body
 	background: rgb(242, 113, 28) !important;
 }
 */
+/* TOEVAL */
+input::-moz-selection, textarea::-moz-selection
+{
+	background-color: rgb(260, 131, 46);
+}
+input::selection, textarea::selection
+{
+	background-color: rgb(260, 131, 46);
+}
+/**/
 a
 {
 	color: rgb(242, 113, 28);
@@ -148,6 +158,11 @@ a:hover
 	margin: auto;
 	max-width: 100%;
 }
+.main.container .grid .row .column
+{
+	padding-left: 1.5em;
+	padding-right: 1.5em;
+}
 @media only screen and (max-width: 767px)
 {
 	#column_crossref
@@ -183,6 +198,7 @@ a:hover
 	border-radius: 0;
 	border-top: 2px solid rgb(242, 113, 28);
 }
+/* what is this for? */
 .main.container .grid table
 {
 	margin: auto;
@@ -190,6 +206,10 @@ a:hover
 #column_wiki h2, .reference, .references
 {
 	display: none;
+}
+#column_wiki table td
+{
+	border: 1px solid black;
 }
 
 /* FOOTER */
@@ -209,6 +229,10 @@ a:hover
 }
 
 /* MODAL */
+.ui.dimmer.modals.page.transition
+{
+	background-color: rgba(0,0,0,.90);
+}
 #modal_login *
 {
 	border-radius: 0;
@@ -219,6 +243,7 @@ a:hover
 }
 #modal_login h2
 {
+	margin-left: 0.5em;
 	text-shadow: 0 0 8px black;
 	-webkit-user-select: none;
 	-ms-user-select: none;
@@ -228,6 +253,7 @@ a:hover
 {
 	float: right;
 	margin: 0;
+	margin-right: 0.4em;
 	text-align: right;
 	transition: color .1s ease;
 }
@@ -241,7 +267,7 @@ a:hover
 }
 #modal_login .inverted
 {
-	box-shadow: 0 0 8px black !important;
+	box-shadow: 0 0 5px black !important;
 }
 #modal_login form .icon
 {
@@ -256,7 +282,7 @@ a:hover
 #modal_login input:focus
 {   
 	border-color: rgba(242, 113, 28, 0.8);
-	box-shadow: 0 0 8px rgba(242, 113, 28, 0.6);
+	box-shadow: 0 0 5px rgba(242, 113, 28, 0.6);
 	outline: 0 none;
 }
 #modal_login input::-webkit-input-placeholder
