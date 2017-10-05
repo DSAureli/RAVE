@@ -129,46 +129,46 @@ function pathTest(div, range)
 	pathElements.reverse();
 	
 	// get path css selector string
-	var pathString = "";
+	var pathArray = [];
+	
 	for (var elem of pathElements)
 	{
-		pathString += elem[0].nodeName;
-		
-		var id = elem[0].id;
-		if (id)
-			string += "#"+ id;
-		
-		var classNames = elem[0].className;
-		if (classNames)
-			string += "." + $.trim(classNames).replace(/\s/gi, ".");
-		
-		pathString += ">";
+		var boh = elem.index();
+		pathArray.push(boh);
 	}
 	
-	pathString = pathString.slice(0, -1);
-	console.log(pathString);
+	console.log("pathArray: " + pathArray);
+	console.log("text: " + $(range.startContainer).text());
 	
 	// get #text node array
-	var res = $(div).find(pathString).contents().filter(function(index)
-	{
-		return this.nodeType == Node.TEXT_NODE; // && index check ...
-	});
+	//dopo testa la discesa con gli index senza reimpostare current
+	current = $(range.startContainer).parent();
 	
-	console.log(res);
-	console.log($(range.startContainer).text());
-	
-	// get #text index relative to parent element
 	var textIndex;
-	res.each(function(index)
+	$(current).contents().each(function(index)
 	{
-		console.log(index + ": " + $(this).text());
-		if ($(this).text() == $(range.startContainer).text())
+		console.log($(this).text() + " : (index) " + $(this).index());
+		
+		if (this.nodeType == Node.TEXT_NODE && $(this).text() == $(range.startContainer).text())
+		{
 			textIndex = index;
+			return false; //breaks each loop
+		}
 	});
-	console.log("index: " + textIndex);
+	
+	console.log("textIndex: " + textIndex);
+	
+	// test
+	var temp = $(div);
+	for (var index of pathArray)
+	{
+		temp = temp.children().eq(index);
+	}
+	console.log("\ntest\n\n" + "#text : " + temp.contents().eq(textIndex)[0]);
+	console.log("#text.text() : " + temp.contents().eq(textIndex).text());
 	
 	//send pathString, index e offset, for start and end of every range
-	var obj = {path:pathString, index:textIndex, offset:range.startOffset};
+	var obj = {path:pathArray, index:textIndex, offset:range.startOffset};
 	console.log(obj);
 	//download(obj, 'test.txt', 'text/plain');
 }
