@@ -28,17 +28,23 @@ String.prototype.insertAt = function(index, string)
 // TOTEST
 Array.prototype.pushArray = function(arr)
 {
-	for (var i in arr)
-		this.push(arr[i]);
+	for (var i of arr)
+		this.push(i);
+	
+	return arr.length;
 };
 
 // TOTEST (check error message)
 Array.prototype.removeAt = function(index)
 {
+	var retval;
+	
 	if (index > -1)
-		this.splice(index, 1);
+		retval = this.splice(index, 1);
 	else
 		console.error("Array.prototype.remove error: negative index");
+	
+	return retval;
 };
 
 // TOTEST

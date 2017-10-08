@@ -102,7 +102,19 @@
 }());
 ///////////////////////
 
-//getpathfunction
+//magari fai un oggetto per GeniusRange
+//eh poi dovrei farne uno anche per GeniusOffset...
+
+/*
+// get the #text container given textIndex
+	var temp = $(div);
+	for (var index of pathArray)
+	{
+		temp = temp.children().eq(index);
+	}
+	console.log("\ntest\n\n" + "#text : " + temp.contents().eq(textIndex)[0]);
+	console.log("#text.text() : " + temp.contents().eq(textIndex).text());
+*/
 
 function download(text, name, type)
 {
@@ -111,13 +123,35 @@ function download(text, name, type)
 	a.download = name;
 	a.click();
 }
+//download(obj, 'test.txt', 'text/plain');
 
-//incorporate this function into confirm comment function
-function pathTest(div, range)
+function getDescendantTextElements(node)
 {
-	// get elements of path from the father of range up to div
+	/** /
+	return $(node).add($(node).find("*")).contents().filter(function()
+	{
+		return this.nodeType == Node.TEXT_NODE;
+	});
+	/**/
+	//nope, we have to ensure the right order
+	
+	// do not optimize
+	var nodes = [];
+	$(node).contents().each(function()
+	{
+		if (this.nodeType == Node.TEXT_NODE)
+			nodes.push(this);
+		else
+			nodes.pushArray(getDescendantTextElements(this));
+	});
+	return nodes;
+}
+
+function getGeniusPath(div, container)
+{
+	// get elements of path from container parent up to div
 	var pathElements = [];
-	var current = $(range.startContainer).parent();
+	var current = $(container).parent();
 	
 	while (!current.is(div))
 	{
@@ -125,52 +159,42 @@ function pathTest(div, range)
 		current = current.parent();
 	}
 	
-	// get elements of path from the div down to the parent of range
+	// get elements of path from div down to container parent
 	pathElements.reverse();
 	
-	// get path css selector string
+	// get index-based path from div to container parent
 	var pathArray = [];
-	
 	for (var elem of pathElements)
 	{
-		var boh = elem.index();
-		pathArray.push(boh);
+		pathArray.push(elem.index());
 	}
 	
-	console.log("pathArray: " + pathArray);
-	console.log("text: " + $(range.startContainer).text());
-	
-	// get #text node array
-	//dopo testa la discesa con gli index senza reimpostare current
-	current = $(range.startContainer).parent();
-	
+	// get #text node index in container's parent children collection
 	var textIndex;
-	$(current).contents().each(function(index)
+	current = $(container).parent();
+	
+	$(getDescendantTextElements(current)).each(function(index)
 	{
-		console.log($(this).text() + " : (index) " + $(this).index());
-		
-		if (this.nodeType == Node.TEXT_NODE && $(this).text() == $(range.startContainer).text())
+		if ($(this).text() == $(container).text())
 		{
 			textIndex = index;
-			return false; //breaks each loop
+			return false; //breaks loop
 		}
 	});
 	
-	console.log("textIndex: " + textIndex);
+	return {path: pathArray, index: textIndex};
+}
+
+function getGeniusRange(div, range)
+{
+	var startGeniusOffset = getGeniusPath(div, range.startContainer);
+	var endGeniusOffset = getGeniusPath(div, range.endContainer);
 	
-	// test
-	var temp = $(div);
-	for (var index of pathArray)
-	{
-		temp = temp.children().eq(index);
-	}
-	console.log("\ntest\n\n" + "#text : " + temp.contents().eq(textIndex)[0]);
-	console.log("#text.text() : " + temp.contents().eq(textIndex).text());
+	startGeniusOffset.offset = range.startOffset;
+	endGeniusOffset.offset = range.endOffset;
 	
-	//send pathString, index e offset, for start and end of every range
-	var obj = {path:pathArray, index:textIndex, offset:range.startOffset};
-	console.log(obj);
-	//download(obj, 'test.txt', 'text/plain');
+	var geniusRange = {startOffset: startGeniusOffset, endOffset: endGeniusOffset};
+	return geniusRange;
 }
 
 var geniusClass = ".genius_sel";
@@ -179,42 +203,53 @@ $(document).ready(function()
 {
 	$("#genius").click(function(event)
 	{
+		//set genius_column loading animation on
+		// ...
+		
 		var userSel = new UserSelection();
 		var newRanges = [];
 		
 		// divs of class genius_sel not descendant of other divs of same class
 		$(geniusClass).not(geniusClass + " *").each(function(index, div)
 		{
+			// divRange is the range covering the whole div
 			var divRange = document.createRange();
 			divRange.selectNodeContents(div);
 			
-			// array of ranges intersecting with div
-			var intRangeArray = userSel.intersectsNode(div);
-			
-			for (var intRange of intRangeArray)
+			// for each range intersecting with a genius_sel div
+			for (var intRange of userSel.intersectsNode(div))
 			{
 				var newRange = intRange.cloneRange();
+				var textNodes = getDescendantTextElements(div);
 				
+				// if startContainer is outside (before) div, set newRange startOffset to the beginning of div
 				if (!($(div).hasDescendant(intRange.startContainer)))
-				{
-					newRange.setStart(div, divRange.startOffset);
-				}
+					newRange.setStart(textNodes[0], 0);
 				
+				// if endContainer is outside (after) div, set newRange endOffset to the end of div
 				if (!($(div).hasDescendant(intRange.endContainer)))
-				{
-					newRange.setEnd(div, divRange.endOffset);
-				}
+					newRange.setEnd(textNodes.lastElement(), textNodes.lastElement().length);
 				
-				//check selezione (se lunghezza 0 ecc.)
+				// check if selection is not empty
 				if (!newRange.collapsed)
-				{
-					newRanges.push(newRange);
-					console.log(newRange);
-					
-					pathTest(div, intRange);
-				}
+					newRanges.push(getGeniusRange(div, newRange));
 			}
 		});
+		//what if there are no genius_sel divs?
+		//e se i range della selezione originaria non sono riferiti ad un #text, ma ad un nodo? cambia la semantica degli offset nei range...
+		//per ora i range in newRanges non hanno riferimento al div genius_sel, come gestisco la cosa?
+		
+		console.log(newRanges);
+		//download(newRanges, 'test.txt', 'text/plain');
+		
+		//deselect
+		// ...
+		
+		//create new selection (color it too)
+		// ...
+		
+		//create genius div for creating comment
+		// ...
 		
 		// ...
 	});
