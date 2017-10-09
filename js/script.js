@@ -42,11 +42,11 @@ function updateContent(index, section)
 		success: function(apiResult)
 		{
 			$("#content_wiki").html(apiResult.parse.text["*"]);
-			$("#content_wiki").find("a").each(function(index, elem)
+			$("#content_wiki").find("a").each(function()
 			{
-				elem.href = "//en.wikipedia.org" + elem.pathname;
+				this.href = "//en.wikipedia.org" + this.pathname;
 			});
-			$("#content_wiki").find("img").each(function(index, elem)
+			$("#content_wiki").find("img").each(function()
 			{
 				// ...
 			});
@@ -77,7 +77,16 @@ function updateContent(index, section)
 			{
 				if (item.issue != "0")
 				{
-					$("#content_crossref").append("<div class='ui segment genius_sel'><p>Title: {0}</br>Publisher: {1}</br> Type: {2}</br> <a href='{3}'>Get this content</a></p></div>".format(item.title[0], item.publisher, item.type, item.URL));
+					$("#content_crossref").append
+					(
+						$("<div></div>").addClass("ui segment genius_sel").append
+						(
+							$("<p></p>").html("Title: {0}</br>Publisher: {1}</br>Type: {2}</br>".format(item.title[0], item.publisher, item.type)).append
+							(
+								$("<a></a>").attr("href", item.URL).text("Get this content")
+							)
+						)
+					);
 				}
 			});
 		},

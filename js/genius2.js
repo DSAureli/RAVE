@@ -235,7 +235,7 @@ $(document).ready(function()
 					newRanges.push(getGeniusRange(div, newRange));
 			}
 		});
-		//what if there are no genius_sel divs?
+		//what if there are no genius_sel divs? -> newRanges == []
 		//e se i range della selezione originaria non sono riferiti ad un #text, ma ad un nodo? cambia la semantica degli offset nei range...
 		//per ora i range in newRanges non hanno riferimento al div genius_sel, come gestisco la cosa?
 		
