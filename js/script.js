@@ -79,7 +79,7 @@ function updateContent(index, section)
 				{
 					$("#content_crossref").append
 					(
-						$("<div></div>").addClass("ui segment").setGenius(item.DOI).append
+						$("<div></div>").addClass("ui segment").setDjeniusID(item.DOI).append
 						(
 							$("<p></p>").html("Title: {0}</br>Publisher: {1}</br>Type: {2}</br>".format(item.title[0], item.publisher, item.type)).append
 							(
@@ -169,6 +169,8 @@ $(document).ready(function()
 		event.preventDefault();	// prevent link behavior
 		submitQuery();
 	});
+	
+	$("#djenius").setAsDjeniusButton();
 	
 	// Also bind the search icon anchor to submitQuery
 });
