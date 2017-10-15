@@ -79,7 +79,7 @@ function updateContent(index, section)
 				{
 					$("#content_crossref").append
 					(
-						$("<div></div>").addClass("ui segment genius_sel").append
+						$("<div></div>").addClass("ui segment").setGenius(item.DOI).append
 						(
 							$("<p></p>").html("Title: {0}</br>Publisher: {1}</br>Type: {2}</br>".format(item.title[0], item.publisher, item.type)).append
 							(

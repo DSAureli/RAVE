@@ -1,3 +1,14 @@
+jQuery.fn.extend
+({
+	setGenius: function(id)
+	{
+		return this.each(function()
+		{
+			$(this).attr("genius", id);
+		});
+	}
+});
+
 // Original author: Mateusz W //
 
 (function()
@@ -105,37 +116,9 @@
 //magari fai un oggetto per GeniusRange
 //eh poi dovrei farne uno anche per GeniusOffset...
 
-/*
-// get the #text container given textIndex
-	var temp = $(div);
-	for (var index of pathArray)
-	{
-		temp = temp.children().eq(index);
-	}
-	console.log("\ntest\n\n" + "#text : " + temp.contents().eq(textIndex)[0]);
-	console.log("#text.text() : " + temp.contents().eq(textIndex).text());
-*/
-
-function download(text, name, type)
-{
-	var a = document.body.appendChild(document.createElement("a"));
-	a.href = "data:text/plain;base64," + btoa(JSON.stringify(text));
-	a.download = name;
-	a.click();
-}
-//download(obj, 'test.txt', 'text/plain');
-
 function getDescendantTextElements(node)
 {
-	/** /
-	return $(node).add($(node).find("*")).contents().filter(function()
-	{
-		return this.nodeType == Node.TEXT_NODE;
-	});
-	/**/
-	//nope, we have to ensure the right order
-	
-	// do not optimize
+	// do not optimize, the right order must be ensured
 	var nodes = [];
 	$(node).contents().each(function()
 	{
@@ -147,7 +130,7 @@ function getDescendantTextElements(node)
 	return nodes;
 }
 
-function getGeniusPath(div, container)
+function getPath(div, container)
 {
 	// get elements of path from container parent up to div
 	var pathElements = [];
@@ -185,19 +168,18 @@ function getGeniusPath(div, container)
 	return {path: pathArray, index: textIndex};
 }
 
-function getGeniusRange(div, range)
+function getTextNode(div, obj)
 {
-	var startGeniusOffset = getGeniusPath(div, range.startContainer);
-	var endGeniusOffset = getGeniusPath(div, range.endContainer);
-	
-	startGeniusOffset.offset = range.startOffset;
-	endGeniusOffset.offset = range.endOffset;
-	
-	var geniusRange = {startOffset: startGeniusOffset, endOffset: endGeniusOffset};
-	return geniusRange;
+	var temp = $(div);
+	for (var index of obj.path)
+	{
+		temp = temp.children().eq(index);
+	}
+	return temp.contents().filter(function()
+	{
+		return this.nodeType == Node.TEXT_NODE;
+	}).eq(obj.index)[0];
 }
-
-var geniusClass = ".genius_sel";
 
 $(document).ready(function()
 {
@@ -206,17 +188,14 @@ $(document).ready(function()
 		//set genius_column loading animation on
 		// ...
 		
-		var userSel = new UserSelection();
 		var newRanges = [];
 		
-		// divs of class genius_sel not descendant of other divs of same class
-		$(geniusClass).not(geniusClass + " *").each(function(index, div)
+		// genius divs not descendant of other genius divs
+		$("[genius]").not("[genius] *").each(function(index, div)
 		{
-			// divRange is the range covering the whole div
-			var divRange = document.createRange();
-			divRange.selectNodeContents(div);
+			var userSel = new UserSelection();
 			
-			// for each range intersecting with a genius_sel div
+			// for each range intersecting a genius div
 			for (var intRange of userSel.intersectsNode(div))
 			{
 				var newRange = intRange.cloneRange();
@@ -230,23 +209,38 @@ $(document).ready(function()
 				if (!($(div).hasDescendant(intRange.endContainer)))
 					newRange.setEnd(textNodes.lastElement(), textNodes.lastElement().length);
 				
-				// check if selection is not empty
+				// if selection is not empty
 				if (!newRange.collapsed)
-					newRanges.push(getGeniusRange(div, newRange));
+				{
+					var geniusID = $(div).attr("genius");
+					
+					var start = getPath(div, newRange.startContainer);
+					var end = getPath(div, newRange.endContainer);
+					
+					start.offset = newRange.startOffset;
+					end.offset = newRange.endOffset;
+					
+					var geniusRange = {geniusID: geniusID, start: start, end: end};
+					newRanges.push(geniusRange);
+				}
 			}
 		});
-		//what if there are no genius_sel divs? -> newRanges == []
-		//e se i range della selezione originaria non sono riferiti ad un #text, ma ad un nodo? cambia la semantica degli offset nei range...
-		//per ora i range in newRanges non hanno riferimento al div genius_sel, come gestisco la cosa?
 		
 		console.log(newRanges);
-		//download(newRanges, 'test.txt', 'text/plain');
-		
-		//deselect
-		// ...
+		window.getSelection().removeAllRanges();
 		
 		//create new selection (color it too)
-		// ...
+		for (var range of newRanges)
+		{
+			var newRange = new Range();
+			
+			var startNode = getTextNode($('[genius="{0}"]'.format(range.geniusID)), range.start);
+			var endNode = getTextNode($('[genius="{0}"]'.format(range.geniusID)), range.end);
+			newRange.setStart(startNode, range.start.offset);
+			newRange.setEnd(endNode, range.end.offset);
+			
+			window.getSelection().addRange(newRange);
+		}
 		
 		//create genius div for creating comment
 		// ...

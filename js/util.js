@@ -53,12 +53,15 @@ Array.prototype.lastElement = function()
 	return this[this.length - 1];
 };
 
-jQuery.fn.hasDescendant = function(node)
-{
-	return this.has($(node)).length;
-};
-
-jQuery.fn.isDescendantOf = function(node)
-{
-	return $(node).has(this).length;
-};
+jQuery.fn.extend
+({
+	hasDescendant: function(node)
+	{
+		return this.has($(node)).length;
+	},
+	
+	isDescendantOf: function(node)
+	{
+		return $(node).has(this).length;
+	}
+});
