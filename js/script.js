@@ -34,7 +34,18 @@ function respCheck()
 	}
 }
 
-var query;
+var query = null;
+
+var firstCall = true;	// necessary in order to avoid onChange activation
+var oldDrop;
+
+function historyNav(index, section)
+{
+	updateContent(index, section);
+	var url = '?' + section;
+	history.pushState({old:oldDrop, word:query, val:index, text:section}, null, url);
+	var x = history.length;
+}
 
 function updateContent(index, section)
 {
@@ -115,8 +126,11 @@ function updateContent(index, section)
 
 function submitQuery()
 {
+	var oldQuery = query;
 	query = $("#search").val();
 	$("#title").text(query);
+	if(oldQuery != query)
+		oldDrop = $("#menu_sections").html();
 	
 	$.ajax(
 	{
@@ -141,7 +155,6 @@ function submitQuery()
 					$("#menu_sections").append('<div class="item" data-value="{0}">{1}</div>'.format(section.index, section.line));
 			});
 			
-			// "Abstract" section (ie the one before the "Contents" table) missing!
 		},
 		error: outputError(),
 		complete: function()
@@ -149,16 +162,27 @@ function submitQuery()
 			$("#dropdown_sections").dropdown(
 			{
 				action: "activate",
-				onChange: updateContent
+				onChange:
+				function(value, text, $choice)
+				{
+					historyNav(value,text);
+					firstCall = false;
+				}
 			});
 			
-			$("#dropdown_sections").dropdown("set selected", 0);	// introduction is the default selected section
-			var val = $("#dropdown_sections").dropdown("get value");
+			$("#dropdown_sections").find("[data-value=0]").trigger('click');
+			/* A fake click is necessary to select the correct element of dropdown on each new search.
+			   We need this trick because "set selected" and "set value" don't help with the firing of onChange. */
+			
+			var val = $("#dropdown_sections").dropdown("get value");				
 			var text = $("#dropdown_sections").dropdown("get text");
-			updateContent(val, text);
+			if(firstCall)
+				historyNav(val, text);
+			firstCall = true;
 		}
 	});
 }
+
 
 $(document).ready(function()
 {
@@ -167,11 +191,16 @@ $(document).ready(function()
 	respCheck();
 	$(window).resize(respCheck);
 	
+
 	$("#search").keyup(function(event)
 	{
 		if (event.which == 13)
+		{
 			submitQuery();
+		}
 	});
+	
+	// Also bind the search icon anchor to submitQuery
 	
 	$("#searchButton").click(function(event)
 	{
@@ -179,7 +208,19 @@ $(document).ready(function()
 		submitQuery();
 	});
 	
-	// Also bind the search icon anchor to submitQuery
+	window.addEventListener('popstate', function(e)
+	{
+		var index = e.state.val;
+		var section = e.state.text;
+		query = e.state.word;
+		$("#title").text(query);
+
+		updateContent(index,section);
+		
+		$("#menu_sections").empty();
+		$("#menu_sections").append(oldDrop);
+		$("#dropdown_sections").dropdown("set text", section);		
+	});
 });
 
 function outputError(errorMessage)
