@@ -1,19 +1,43 @@
-function init()
+(function()
 {
-	jQuery.fn.extend
-	({
-		setDjeniusID: function(id)
+	// public
+	
+	Djenius =
+	{
+		//il senso di prendere più nodi e un solo id?
+		setSelectable: function(nodes, id)
 		{
-			return this.each(function()
+			/*
+			if (id && (id is string && not empty string || id is int))
 			{
-				$(this).attr("DjeniusID", id);
-			});
+			*/
+				$(nodes).each(function()
+				{
+					$(this).attr("djenius_id", id);
+				});
+			/*
+			}
+			else
+			{
+				console.error("Djenius.setSelectable: id is an invalid unique identifier");
+			}
+			*/
 		},
-		setAsDjeniusButton: function()
+		setButton: function(elem)
 		{
-			setDjeniusClickRoutine(this);
+			var node = $(elem);
+			if (node.length)
+			{
+				setDjeniusClickRoutine(node);
+			}
+			else
+			{
+				console.error("Djenius.setButton: invalid element");
+			}
 		}
-	});
+	};
+	
+	// private
 	
 	class UserSelection
 	{
@@ -27,7 +51,7 @@ function init()
 			}
 		}
 		
-		intersectsNode(node)
+		intRanges(node)
 		{
 			var rangeArray = [];
 			
@@ -57,6 +81,39 @@ function init()
 		}
 	}
 	
+	/*
+	function getChildTextBlocks(node)
+	{
+		// do not optimize, the right order must be ensured
+		
+		var blocks = [];
+		var nodes = [];
+		
+		$(node).contents().each(function()
+		{
+			if (this.nodeType == Node.TEXT_NODE)
+			{
+				nodes.push(this);
+			}
+			else if (nodes.length)
+			{
+				blocks.push(nodes);
+				nodes = [];
+			}
+		});
+		
+		return blocks;
+	}
+	*/
+	
+	function getChildTextNodes(node)
+	{
+		return $(node).contents().filter(function()
+		{
+			return this.nodeType == Node.TEXT_NODE;
+		});
+	}
+	
 	function getDescendantTextNodes(node)
 	{
 		// do not optimize, the right order must be ensured
@@ -70,43 +127,81 @@ function init()
 		});
 		return nodes;
 	}
-
-	function getPath(div, container)
+	
+	function getDescendantTextBlocks(node)
 	{
-		// get elements of path from container parent up to div
-		var pathElements = [];
-		var current = $(container).parent();
+		// do not optimize, the right order must be guaranteed
+		
+		var blocks = [];
+		var nodes = [];
+		
+		// .not("br") also excludes text nodes...
+		$(node).contents().filter(function()
+		{
+			return !($(this).is("br"));
+		}
+		).each(function()
+		{
+			if (this.nodeType == Node.TEXT_NODE)
+			{
+				nodes.push(this);
+			}
+			else
+			{
+				if (nodes.length)
+				{
+					blocks.push(nodes);
+					nodes = [];
+				}
+				
+				for (var block of getDescendantTextBlocks(this))
+				{
+					blocks.push(block);
+				}
+			}
+		});
+		
+		if (nodes.length)
+		{
+			blocks.push(nodes);
+		}
+		
+		return blocks;
+	}
+	
+	function getRelativePath(div, node)
+	{
+		// get index-based path from div to node parent
+		
+		var pathArray = [];
+		var current = $(node).parent();
 		
 		while (!current.is(div))
 		{
-			pathElements.push(current);
+			pathArray.push(current.index());
 			current = current.parent();
 		}
 		
-		// get elements of path from div down to container parent
-		pathElements.reverse();
+		pathArray.reverse();
+		return pathArray;
+	}
+	
+	function getTextNodeIndex(node)
+	{
+		// get #text node index relative to node parent
 		
-		// get index-based path from div to container parent
-		var pathArray = [];
-		for (var elem of pathElements)
+		var nodeIndex;
+		
+		getChildTextNodes($(node).parent()).each(function(index)
 		{
-			pathArray.push(elem.index());
-		}
-		
-		// get #text node index in container's parent children collection
-		var textIndex;
-		current = $(container).parent();
-		
-		$(getDescendantTextNodes(current)).each(function(index)
-		{
-			if ($(this).text() == $(container).text())
+			if ($(this).text() == $(node).text())
 			{
-				textIndex = index;
+				nodeIndex = index;
 				return false; //breaks loop
 			}
 		});
 		
-		return {path: pathArray, index: textIndex};
+		return nodeIndex;
 	}
 
 	function getTextNode(div, obj)
@@ -130,39 +225,52 @@ function init()
 			// ...
 			
 			var newRanges = [];
+			var userSel = new UserSelection(window.getSelection());
 			
 			// Djenius divs not descendant of other Djenius divs
-			$("[DjeniusID]").not("[DjeniusID] *").each(function(index, div)
+			$("[djenius_id]").not("[djenius_id] *").each(function(index, div)
 			{
-				var userSel = new UserSelection(window.getSelection());
+				//var divTextNodes = getDescendantTextNodes(div);
+				var textBlocks = getDescendantTextBlocks(div);
 				
-				// for each range intersecting a Djenius div
-				for (var intRange of userSel.intersectsNode(div))
+				// for each range of selection intersecting div
+				for (var intRange of userSel.intRanges(div))
 				{
-					var newRange = intRange.cloneRange();
-					var textNodes = getDescendantTextNodes(div);
+					var djenius_id = $(div).attr("djenius_id");
 					
-					// if startContainer is outside (before) div, set newRange startOffset to the beginning of div
-					if (!($(div).hasDescendant(intRange.startContainer)))
-						newRange.setStart(textNodes[0], 0);
-					
-					// if endContainer is outside (after) div, set newRange endOffset to the end of div
-					if (!($(div).hasDescendant(intRange.endContainer)))
-						newRange.setEnd(textNodes.lastElement(), textNodes.lastElement().length);
-					
-					// if selection is not empty
-					if (!newRange.collapsed)
+					for (var block of textBlocks)
 					{
-						var DjeniusID = $(div).attr("DjeniusID");
+						var firstRange = document.createRange();
+						var lastRange = document.createRange();
+						firstRange.selectNode(block[0]);
+						lastRange.selectNode(block.lastElement());
 						
-						var start = getPath(div, newRange.startContainer);
-						var end = getPath(div, newRange.endContainer);
+						var newRange = intRange.cloneRange();
 						
-						start.offset = newRange.startOffset;
-						end.offset = newRange.endOffset;
+						if (firstRange.compareBoundaryPoints(Range.START_TO_START, newRange))
+							newRange.setStart(block[0], 0);
 						
-						var djeniusRange = {DjeniusID: DjeniusID, start: start, end: end};
-						newRanges.push(djeniusRange);
+						if (newRange.compareBoundaryPoints(Range.END_TO_END, lastRange))
+							newRange.setEnd(block.lastElement(), block.lastElement().length);
+						
+						if (!newRange.collapsed)
+						{
+							newRanges.push(
+							{
+								djenius_id: djenius_id,
+								path: getRelativePath(div, block[0]),
+								start:
+								{
+									index: getTextNodeIndex(newRange.startContainer),
+									offset: newRange.startOffset
+								},
+								end:
+								{
+									index: getTextNodeIndex(newRange.endContainer),
+									offset: newRange.endOffset
+								}
+							});
+						}
 					}
 				}
 			});
@@ -175,8 +283,8 @@ function init()
 			{
 				var newRange = new Range();
 				
-				var startNode = getTextNode($('[DjeniusID="{0}"]'.format(range.DjeniusID)), range.start);
-				var endNode = getTextNode($('[DjeniusID="{0}"]'.format(range.DjeniusID)), range.end);
+				var startNode = getTextNode($('[djenius_id="{0}"]'.format(range.djenius_id)), range.start);
+				var endNode = getTextNode($('[djenius_id="{0}"]'.format(range.djenius_id)), range.end);
 				newRange.setStart(startNode, range.start.offset);
 				newRange.setEnd(endNode, range.end.offset);
 				
@@ -187,7 +295,7 @@ function init()
 			//create new selection (color it too)
 			for (var range of newRanges)
 			{
-				var textNodes = getDescendantTextNodes($('[DjeniusID="{0}"]'.format(range.DjeniusID));
+				var textNodes = getDescendantTextNodes($('[djenius_id="{0}"]'.format(range.djenius_id));
 				for (var node of textNodes)
 				{
 					// ...
@@ -202,12 +310,4 @@ function init()
 			// ...
 		});
 	}
-};
-
-$(document).ready(function()
-{
-	init();
-	
-	$("#search").val("we");
-	submitQuery();
-});
+})();

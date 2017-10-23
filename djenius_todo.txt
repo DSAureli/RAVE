@@ -1,0 +1,74 @@
+attuale:
+
+per ogni div djenius
+{
+	per ogni range che interseca il div
+	{
+		adatta start e end del range se sfora
+		
+		crea djeniusRange con
+			DjeniusID: DjeniusID del div
+			start:
+				path: percorso al nodo start a partire dal div
+				index: indice del nodo #text tra i nodi #text del nodo start
+				offset: start offset del range
+			end: ...
+	}
+}
+
+
+modifiche:
+
+1) devo poter "evidenziare" il testo, per farlo devo circondare il testo con un tag (tipo span o a)
+2) l'attuale configurazione dei range di djenius non va bene, dato che start ed end possono cadere dentro nodi diversi
+3) ho tre strade:
+	1) faccio un range per ogni nodo #text, wrappo ogni nodo #text con il tag
+		problemi: il tag è direttamente adiacente al testo, nel caso si evidenzi un <a> quest'ultimo ha la precedenza del click
+-->	2) /*
+		creo tag attorno al nodo padre del nodo #text, creo span "attorno" al nodo #text che copre il range.
+		...
+		array dei path relativi a singoli nodi #text o a blocchi di nodi #text adiacenti
+		ogni nodo del path, se è un link deve essere adattato; non serve per forza circondarlo con un tag, basta modificarlo
+		trasferendo l'href in un attributo custom, tipo djenius_link
+		*/
+		
+		Mantieni ben separati Creazione e Visualizzazione, poichè nel prodotto finale saranno divisi
+		
+		Creazione:			(ignoro gli <input>?)
+		Funzione che mi restituisce l'array dei blocchi di testo direttamente figli del div passato come parametro
+		suddividi il range in sottorange ("mini range") sui blocchi di testo direttamente figli del div, chiama ricorsivamente sui figli non nodi text
+		ora ho un array di "mini range" che hanno start e end giacenti nello stesso blocco text, ognuno con: path, start (index, offset) e end (index, offset)
+		
+		Visualizzazione:	(i nested link sono illegali in HTML)
+		Scendo il path nodo per nodo, se il nodo è un <a> salvalo in una var
+		Wrappa il "minirange" con uno span:
+			- la classe dello span si occupa dell'evidenzitura e della trasformazione cursore in manina ("cursor: pointer")
+			- magari uniforma il colore del testo ("color: ?") in modo che il link nel commento sia sottolineato ma non con colore diverso
+				(per trovare il colore del testo, dato che potrebbe non essere nero, potresti aggiungere un nodo testo al padre dello span,
+				recuperarne l'attributo "color" con JQuery e rimuoverlo. Poi assegni quel color allo span)
+			
+			- mouseenter: svuota l'href del link (non eliminarlo!, trasferiscilo in un nuovo attributo djenius_link);
+			  aggiungi click event: compare un floating div con url del link e selezione azione (commento o link)
+			- mouseleave: ripristina href, rimuovi click event
+			
+		oppure suddivido il <a> in più <a>, quelli compresi nella selezione con le dovute modifiche, quelli non compresi restano normali
+		(problemi...)
+		
+	3) la parte evidenziata non è cliccabile, ma l'hover del mouse fa comparire un popup per interagire con il commento.
+		In tal modo il commento non ha un click listener: si può selezionare il testo già commentato senza problemi,
+		a meno che non sia un link. (più semplice creare commenti sovrapposti)
+		Per il mobile non va bene, dovrei comunque gestire gli eventi click... forse meglio definire bene la 2)
+
+La funzione che mi restituisce l'array dei nodi text figli di un div non dovrebbe restituire anche quelli interni ad un nodo figlio del div...
+Non serve, c'è già il path che se ne occupa... Sarebbe invece meglio che restituisse un array di array di nodi text, ossia un array di blocchi di testo
+
+Aggiungi metodo per escludere dei div dalla possibilità di essere selezionati
+setDjeniusIgnore
+
+Aggiungi metodo per settare il colore della selezione
+Aggiungi metodo per dare la possibilità di scegliere se cambiare colore del testo nella parte di link selezionata
+
+Escludo gli input di default dal poter essere selezionati?
+
+invece che legare un button, esponi direttamente la funzione, così legame button e animazioni se le gestisce chi usa la libreria
+newComment o startCommentEdit

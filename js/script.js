@@ -77,16 +77,16 @@ function updateContent(index, section)
 			{
 				if (item.issue != "0")
 				{
-					$("#content_crossref").append
+					var newDiv = $("<div></div>").addClass("ui segment").append
 					(
-						$("<div></div>").addClass("ui segment").setDjeniusID(item.DOI).append
+						$("<p></p>").html("Title: {0}</br>Publisher: {1}</br>Type: {2}</br>".format(item.title[0], item.publisher, item.type)).append
 						(
-							$("<p></p>").html("Title: {0}</br>Publisher: {1}</br>Type: {2}</br>".format(item.title[0], item.publisher, item.type)).append
-							(
-								$("<a></a>").attr("href", item.URL).text("Get this content")
-							)
+							$("<a></a>").attr("href", item.URL).text("Get this content")
 						)
 					);
+					
+					Djenius.setSelectable(newDiv, item.DOI);
+					$("#content_crossref").append(newDiv);
 				}
 			});
 		},
@@ -170,9 +170,13 @@ $(document).ready(function()
 		submitQuery();
 	});
 	
-	$("#djenius").setAsDjeniusButton();
+	Djenius.setButton($("#djenius_button"));
 	
 	// Also bind the search icon anchor to submitQuery
+	
+	//
+	$("#search").val("we");
+	submitQuery();
 });
 
 function outputError(errorMessage)

@@ -3,9 +3,133 @@
 	<title>test</title>
 	<meta charset="UTF-8">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-	<script src="js/util.js"></script>
+	<!--<script src="js/util.js"></script>
 	<script>function submitQuery() {}</script>
-	<script src="js/genius2.js"></script>
+	<script src="js/genius2.js"></script>-->
+	<!--<script src="https://genius.codes"></script>-->
+	<script>
+	$(function()
+	{
+		$(".int").css("background-color", "yellow");
+		$(".int").click(function()
+		{
+			console.log("dio");
+		});
+		
+		$(".int").mouseenter(function()
+		{
+			$(this).css("background-color", "orange");
+		}).mouseleave(function()
+		{
+			$(this).css("background-color", "yellow");
+		});
+		
+		$(".ext").css("background-color", "yellow");
+		$(".ext").click(function()
+		{
+			console.log("dio");
+		});
+		
+		$(".ext").mouseenter(function()
+		{
+			$(this).css("background-color", "orange");
+		}).mouseleave(function()
+		{
+			$(this).css("background-color", "yellow");
+		});
+		
+		$("#buttondedio").click(function()
+		{
+			console.log("buttondedio");
+		});
+		
+		$(".ext").children().eq(0).click(function(e)
+		{
+			e.preventDefault();
+		});
+	});
+	</script>
+	
+	<style>
+		#colore
+		{
+			color: green;
+		}
+		/*
+		#color_span
+		{
+			color:red;
+			text-decoration: underline;
+			text-decoration-color: red;
+		}
+		*/
+	</style>
+	<script>
+		$(function()
+		{
+			$("#color_button").click(function()
+			{
+				var parent = $("#color_span").parent();
+				
+				while (parent.is("a") /*&& !parent.is(div)*/)
+					parent = parent.parent();
+				
+				if (parent)
+				{
+					var newP = $("<p></p>");
+					parent.append(newP);
+					var color = newP.css("color");
+					console.log(color);
+					newP.remove();
+				}
+				
+				$("#color_span").css("color", color);
+				$("#color_span").css("text-decoration", "underline");
+				$("#color_span").css("text-decoration-color", color);
+			});
+		});
+	</script>
+	<script>
+		function getDescendantTextBlocks(node)
+		{
+			// do not optimize, the right order must be ensured
+			
+			var blocks = [];
+			var nodes = [];
+			
+			// .not("br") also excludes text nodes...
+			$(node).contents().filter(function()
+			{
+				return !($(this).is("br"));
+			}
+			).each(function()
+			{
+				if (this.nodeType == Node.TEXT_NODE)
+				{
+					nodes.push(this);
+				}
+				else if (nodes.length)
+				{
+					blocks.push(nodes);
+					nodes = [];
+					blocks.push(getDescendantTextBlocks(this));
+				}
+			});
+			
+			if (nodes.length)
+				blocks.push(nodes);
+			
+			return blocks;
+		}
+		
+		$(function()
+		{
+			$("#text_button").click(function()
+			{
+				console.log(getDescendantTextBlocks($("#text_div")));
+			});
+		});
+	</script>
 </head>
 
 <body>
@@ -22,6 +146,43 @@
 		</div>
 	</div>
 	<br>
-	<input id="genius" type="button" value="button">
+	<a href="extern">This<a href="intern">is a</a>link</a>
+	<br>
+	<span class="ext"><a href="boh">This is <span class="int">another</span> link</a></span>
+	<br>
+	<a href="buttona"><input id="buttondedio" type="button" value="button"></a>
+	<br>
+	<br>
+	<input id="genius" type="button" value="genius">
+	<br>
+	<br>
+	<h4>
+		Test per la gestione colori del testo
+	</h4>
+	<br>
+	<div id="colore">
+		Questo è un testo<br>
+		<a>Questo è un link senza href</a><br>
+		<a href="we"><span id="color_span">Questo è un li</span>nk con href pieno</a><br>
+	</div>
+	<input id="color_button" type="button" value="change color">
+	<br>
+	<br>
+	<h4>
+		Test per la gestione colori del testo
+	</h4>
+	<br>
+	<div id="text_div">
+		testo direttamente figlio
+		altro testo senza br prima<br>
+		altro testo con br prima<br>
+		<p>
+			testo dentro p
+			testo dentro p senza br prima<br>
+			testo dentro p con br prima
+		</p>
+		testo dopo p
+	</div>
+	<input id="text_button" type="button" value="get descendant text blocks">
 </body>
 </html>
