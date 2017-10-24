@@ -72,3 +72,5 @@ Escludo gli input di default dal poter essere selezionati?
 
 invece che legare un button, esponi direttamente la funzione, così legame button e animazioni se le gestisce chi usa la libreria
 newComment o startCommentEdit
+
+prova disposizione che dovrebbe dare path vuoto

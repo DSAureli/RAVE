@@ -204,17 +204,18 @@
 		return nodeIndex;
 	}
 
-	function getTextNode(div, obj)
+	function getTextNode(div, path, index)
 	{
 		var temp = $(div);
-		for (var index of obj.path)
+		for (var step of path)
 		{
-			temp = temp.children().eq(index);
+			temp = temp.children().eq(step);
 		}
 		return temp.contents().filter(function()
 		{
 			return this.nodeType == Node.TEXT_NODE;
-		}).eq(obj.index)[0];
+		}
+		).eq(index)[0];
 	}
 	
 	function setDjeniusClickRoutine(elem)
@@ -247,10 +248,10 @@
 						
 						var newRange = intRange.cloneRange();
 						
-						if (firstRange.compareBoundaryPoints(Range.START_TO_START, newRange))
+						if (newRange.compareBoundaryPoints(Range.START_TO_START, firstRange) === -1)
 							newRange.setStart(block[0], 0);
 						
-						if (newRange.compareBoundaryPoints(Range.END_TO_END, lastRange))
+						if (newRange.compareBoundaryPoints(Range.END_TO_END, lastRange) === 1)
 							newRange.setEnd(block.lastElement(), block.lastElement().length);
 						
 						if (!newRange.collapsed)
@@ -283,8 +284,8 @@
 			{
 				var newRange = new Range();
 				
-				var startNode = getTextNode($('[djenius_id="{0}"]'.format(range.djenius_id)), range.start);
-				var endNode = getTextNode($('[djenius_id="{0}"]'.format(range.djenius_id)), range.end);
+				var startNode = getTextNode($('[djenius_id="{0}"]'.format(range.djenius_id)), range.path, range.start.index);
+				var endNode = getTextNode($('[djenius_id="{0}"]'.format(range.djenius_id)), range.path, range.end.index);
 				newRange.setStart(startNode, range.start.offset);
 				newRange.setEnd(endNode, range.end.offset);
 				
