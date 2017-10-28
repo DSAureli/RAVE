@@ -1,12 +1,12 @@
 Mantieni ben separati Creazione e Visualizzazione, poichè nel prodotto finale saranno divisi
 
-Creazione:			(ignoro gli <input>?)
+Creazione:			(ignoro gli <input>? non ce n'è bisogno, lo fa già da solo)
 Funzione che mi restituisce l'array dei blocchi di testo direttamente figli del div passato come parametro
 suddividi il range in sottorange ("mini range") sui blocchi di testo direttamente figli del div, chiama ricorsivamente sui figli non nodi text
 ora ho un array di "mini range" che hanno start e end giacenti nello stesso blocco text, ognuno con: path, start (index, offset) e end (index, offset)
 
 Visualizzazione:	(i nested link sono illegali in HTML)
-Scendo il path nodo per nodo, se il nodo è un <a> salvalo in una var
+Scendo lungo il path nodo per nodo
 Wrappa il "minirange" con uno span:
 	- la classe dello span si occupa dell'evidenziatura e della trasformazione cursore in manina ("cursor: pointer")
 	- magari uniforma il colore del testo ("color: ?") in modo che il link nel commento sia sottolineato ma non con colore diverso
@@ -24,11 +24,14 @@ setDjeniusIgnore
 Aggiungi metodo per settare il colore della selezione
 Aggiungi metodo per dare la possibilità di scegliere se cambiare colore del testo nella parte di link selezionata
 
-Escludo di default gli input dal poter essere selezionati?
-
 l'offset tiene conto anche di ritorni a capo, spazi e tab presenti tra la chiusura del tag e il testo...
 
 newAnnotation prende una funzione callback, da chiamare passando l'array di djenius range come parametro
 faccio tutto il calcolo in asincrono?
 
 "switched to a text-node-based approach, as the block-based one..."
+
+problema: quando creo un commento che inizia in un nodo #text in cui c'è ad esempio la fine del commento precedente, l'offset dell'inizio del nuovo
+commento sarà sfalsato, poichè sarà presente lo span per l'evidenziatura... anzi, non solo l'offset, forse anche index e path si fottono...
+Mi sa che, alla creazione di un nuovo commento, ad ogni div djenius considerato devo togliere qualsiasi span di commenti precedenti.
+Se mi salvo tutto il necessario in una var globale (in window o in document) mi rendo più facile il lavoro...

@@ -67,31 +67,6 @@
 		}
 	}
 	
-	/*
-	function getChildTextBlocks(node)
-	{
-		// do not optimize, the right order must be ensured
-		
-		var blocks = [];
-		var nodes = [];
-		
-		$(node).contents().each(function()
-		{
-			if (this.nodeType == Node.TEXT_NODE)
-			{
-				nodes.push(this);
-			}
-			else if (nodes.length)
-			{
-				blocks.push(nodes);
-				nodes = [];
-			}
-		});
-		
-		return blocks;
-	}
-	*/
-	
 	function getChildTextNodes(node)
 	{
 		return $(node).contents().filter(function()
@@ -121,7 +96,7 @@
 		var blocks = [];
 		var nodes = [];
 		
-		// .not("br") also excludes text nodes...
+		// may not use .not("br") as it also excludes text nodes...
 		$(node).contents().filter(function()
 		{
 			return !($(this).is("br"));
@@ -172,15 +147,6 @@
 		return pathArray;
 	}
 	
-	/*
-	function getTextNode(div, path, index)
-	{
-		var temp = $(div);
-		for (var step of path)
-			temp = temp.children().eq(step);
-		return temp.contents().eq(index)[0];
-	}
-	*/
 	function getTextNode(div, path, index)
 	{
 		for (var step of path)
@@ -196,7 +162,6 @@
 		// Djenius divs not descendant of other Djenius divs
 		$("[djenius_id]").not("[djenius_id] *").each(function(index, div)
 		{
-			//var divTextNodes = getDescendantTextNodes(div);
 			var textBlocks = getDescendantTextBlocks(div);
 			var djenius_id = $(div).attr("djenius_id");
 			
@@ -205,23 +170,8 @@
 			{
 				for (var block of textBlocks)
 				{
-					//is this useful?
-					/*
-					var trimmedBlock = $(block).filter(function()
-					{
-						return $(this).text().trim();
-					});
-					
-					if (!trimmedBlock.length)
-					{
-						continue;
-					}
-					*/
-					
 					var firstRange = document.createRange();
 					var lastRange = document.createRange();
-					//firstRange.selectNodeContents(trimmedBlock.first().get(0));
-					//lastRange.selectNodeContents(trimmedBlock.last().get(0));
 					firstRange.selectNodeContents($(block).first().get(0));
 					lastRange.selectNodeContents($(block).last().get(0));
 					
@@ -237,21 +187,15 @@
 					{
 						newRanges.push(
 						{
-							djenius_id: djenius_id,
+							djeniusID: djenius_id,
 							path: getRelativePath(div, block[0]),
-							start:
-							{
-								index: $(newRange.startContainer).parent().contents().index(newRange.startContainer),
-								// had to write it that way because $(newRange.startContainer).index() would refer to
-								// startContainer as a member of the previous "block" array, thus providing the index
-								// of the container relative to the block made up of text-only non-br nodes
-								offset: newRange.startOffset
-							},
-							end:
-							{
-								index: $(newRange.endContainer).parent().contents().index(newRange.endContainer),
-								offset: newRange.endOffset
-							}
+							// had to write it that way because $(newRange.startContainer).index() would refer to
+							// startContainer as a member of the previous "block" array, thus providing the index
+							// of the container relative to the block made up of text-only non-br nodes
+							startIndex: $(newRange.startContainer).parent().contents().index(newRange.startContainer),
+							startOffset: newRange.startOffset,
+							endIndex: $(newRange.endContainer).parent().contents().index(newRange.endContainer),
+							endOffset: newRange.endOffset
 						});
 					}
 				}
@@ -259,36 +203,25 @@
 		});
 		
 		console.log(newRanges);
-		window.getSelection().removeAllRanges();
 		
-		//create selection with newRanges
-		for (var range of newRanges)
+		if (newRanges.length)
 		{
-			var newRange = new Range();
+			window.getSelection().removeAllRanges();
 			
-			var startNode = getTextNode($('[djenius_id="{0}"]'.format(range.djenius_id)), range.path, range.start.index);
-			var endNode = getTextNode($('[djenius_id="{0}"]'.format(range.djenius_id)), range.path, range.end.index);
-			newRange.setStart(startNode, range.start.offset);
-			newRange.setEnd(endNode, range.end.offset);
-			
-			window.getSelection().addRange(newRange);
-		}
-		
-		/*
-		//create new selection (color it too)
-		for (var range of newRanges)
-		{
-			var textNodes = getDescendantTextNodes($('[djenius_id="{0}"]'.format(range.djenius_id));
-			for (var node of textNodes)
+			//test
+			//create selection with newRanges
+			for (var range of newRanges)
 			{
-				// ...
+				var newRange = new Range();
+				
+				var startNode = getTextNode($('[djenius_id="{0}"]'.format(range.djeniusID)), range.path, range.startIndex);
+				var endNode = getTextNode($('[djenius_id="{0}"]'.format(range.djeniusID)), range.path, range.endIndex);
+				newRange.setStart(startNode, range.startOffset);
+				newRange.setEnd(endNode, range.endOffset);
+				
+				window.getSelection().addRange(newRange);
 			}
-			// ...
 		}
-		*/
-		
-		//create Djenius div for creating comment
-		// ...
 		
 		// ...
 	}
