@@ -4,37 +4,23 @@
 	
 	Djenius =
 	{
-		//il senso di prendere più nodi e un solo id?
-		setSelectable: function(nodes, id)
+		setAnnotatable: function(node, id)
 		{
-			/*
-			if (id && (id is string && not empty string || id is int))
+			if (!($.type(id) === "number" || ($.type(id) === "string" && id.trim())))
 			{
-			*/
-				$(nodes).each(function()
-				{
-					$(this).attr("djenius_id", id);
-				});
-			/*
+				console.error("'id' is an invalid unique identifier");
+				return;
 			}
-			else
+			
+			if (node.length > 1)
 			{
-				console.error("Djenius.setSelectable: id is an invalid unique identifier");
+				console.error("'node' parameter must contain only one element");
+				return;
 			}
-			*/
+			
+			$(node).attr("djenius_id", id);
 		},
-		setButton: function(elem)
-		{
-			var node = $(elem);
-			if (node.length)
-			{
-				setDjeniusClickRoutine(node);
-			}
-			else
-			{
-				console.error("Djenius.setButton: invalid element");
-			}
-		}
+		newAnnotation: newAnnotation
 	};
 	
 	// private
@@ -186,129 +172,124 @@
 		return pathArray;
 	}
 	
-	function getTextNodeIndex(node)
-	{
-		// get #text node index relative to node parent
-		
-		var nodeIndex;
-		
-		getChildTextNodes($(node).parent()).each(function(index)
-		{
-			if ($(this).text() == $(node).text())
-			{
-				nodeIndex = index;
-				return false; //breaks loop
-			}
-		});
-		
-		return nodeIndex;
-	}
-
+	/*
 	function getTextNode(div, path, index)
 	{
 		var temp = $(div);
 		for (var step of path)
-		{
 			temp = temp.children().eq(step);
-		}
-		return temp.contents().filter(function()
-		{
-			return this.nodeType == Node.TEXT_NODE;
-		}
-		).eq(index)[0];
+		return temp.contents().eq(index)[0];
+	}
+	*/
+	function getTextNode(div, path, index)
+	{
+		for (var step of path)
+			div = $(div).children().eq(step);
+		return div.contents().eq(index)[0];
 	}
 	
-	function setDjeniusClickRoutine(elem)
+	function newAnnotation()
 	{
-		$(elem).click(function(event)
+		var newRanges = [];
+		var userSel = new UserSelection(window.getSelection());
+		
+		// Djenius divs not descendant of other Djenius divs
+		$("[djenius_id]").not("[djenius_id] *").each(function(index, div)
 		{
-			//set djenius_column loading animation on
-			// ...
+			//var divTextNodes = getDescendantTextNodes(div);
+			var textBlocks = getDescendantTextBlocks(div);
+			var djenius_id = $(div).attr("djenius_id");
 			
-			var newRanges = [];
-			var userSel = new UserSelection(window.getSelection());
-			
-			// Djenius divs not descendant of other Djenius divs
-			$("[djenius_id]").not("[djenius_id] *").each(function(index, div)
+			// for each range of selection intersecting div
+			for (var intRange of userSel.intRanges(div))
 			{
-				//var divTextNodes = getDescendantTextNodes(div);
-				var textBlocks = getDescendantTextBlocks(div);
-				
-				// for each range of selection intersecting div
-				for (var intRange of userSel.intRanges(div))
+				for (var block of textBlocks)
 				{
-					var djenius_id = $(div).attr("djenius_id");
-					
-					for (var block of textBlocks)
+					//is this useful?
+					/*
+					var trimmedBlock = $(block).filter(function()
 					{
-						var firstRange = document.createRange();
-						var lastRange = document.createRange();
-						firstRange.selectNode(block[0]);
-						lastRange.selectNode(block.lastElement());
-						
-						var newRange = intRange.cloneRange();
-						
-						if (newRange.compareBoundaryPoints(Range.START_TO_START, firstRange) === -1)
-							newRange.setStart(block[0], 0);
-						
-						if (newRange.compareBoundaryPoints(Range.END_TO_END, lastRange) === 1)
-							newRange.setEnd(block.lastElement(), block.lastElement().length);
-						
-						if (!newRange.collapsed)
+						return $(this).text().trim();
+					});
+					
+					if (!trimmedBlock.length)
+					{
+						continue;
+					}
+					*/
+					
+					var firstRange = document.createRange();
+					var lastRange = document.createRange();
+					//firstRange.selectNodeContents(trimmedBlock.first().get(0));
+					//lastRange.selectNodeContents(trimmedBlock.last().get(0));
+					firstRange.selectNodeContents($(block).first().get(0));
+					lastRange.selectNodeContents($(block).last().get(0));
+					
+					var newRange = intRange.cloneRange();
+					
+					if (newRange.compareBoundaryPoints(Range.START_TO_START, firstRange) < 1)
+						newRange.setStart(block[0], 0);
+					
+					if (newRange.compareBoundaryPoints(Range.END_TO_END, lastRange) > -1)
+						newRange.setEnd(block.lastElement(), block.lastElement().length);
+					
+					if (!newRange.collapsed && newRange.toString().trim())
+					{
+						newRanges.push(
 						{
-							newRanges.push(
+							djenius_id: djenius_id,
+							path: getRelativePath(div, block[0]),
+							start:
 							{
-								djenius_id: djenius_id,
-								path: getRelativePath(div, block[0]),
-								start:
-								{
-									index: getTextNodeIndex(newRange.startContainer),
-									offset: newRange.startOffset
-								},
-								end:
-								{
-									index: getTextNodeIndex(newRange.endContainer),
-									offset: newRange.endOffset
-								}
-							});
-						}
+								index: $(newRange.startContainer).parent().contents().index(newRange.startContainer),
+								// had to write it that way because $(newRange.startContainer).index() would refer to
+								// startContainer as a member of the previous "block" array, thus providing the index
+								// of the container relative to the block made up of text-only non-br nodes
+								offset: newRange.startOffset
+							},
+							end:
+							{
+								index: $(newRange.endContainer).parent().contents().index(newRange.endContainer),
+								offset: newRange.endOffset
+							}
+						});
 					}
 				}
-			});
-			
-			console.log(newRanges);
-			window.getSelection().removeAllRanges();
-			
-			//create selection with newRanges
-			for (var range of newRanges)
-			{
-				var newRange = new Range();
-				
-				var startNode = getTextNode($('[djenius_id="{0}"]'.format(range.djenius_id)), range.path, range.start.index);
-				var endNode = getTextNode($('[djenius_id="{0}"]'.format(range.djenius_id)), range.path, range.end.index);
-				newRange.setStart(startNode, range.start.offset);
-				newRange.setEnd(endNode, range.end.offset);
-				
-				window.getSelection().addRange(newRange);
 			}
+		});
+		
+		console.log(newRanges);
+		window.getSelection().removeAllRanges();
+		
+		//create selection with newRanges
+		for (var range of newRanges)
+		{
+			var newRange = new Range();
 			
-			/*
-			//create new selection (color it too)
-			for (var range of newRanges)
+			var startNode = getTextNode($('[djenius_id="{0}"]'.format(range.djenius_id)), range.path, range.start.index);
+			var endNode = getTextNode($('[djenius_id="{0}"]'.format(range.djenius_id)), range.path, range.end.index);
+			newRange.setStart(startNode, range.start.offset);
+			newRange.setEnd(endNode, range.end.offset);
+			
+			window.getSelection().addRange(newRange);
+		}
+		
+		/*
+		//create new selection (color it too)
+		for (var range of newRanges)
+		{
+			var textNodes = getDescendantTextNodes($('[djenius_id="{0}"]'.format(range.djenius_id));
+			for (var node of textNodes)
 			{
-				var textNodes = getDescendantTextNodes($('[djenius_id="{0}"]'.format(range.djenius_id));
-				for (var node of textNodes)
-				{
-					// ...
-				}
 				// ...
 			}
-			*/
-			
-			//create Djenius div for creating comment
 			// ...
-			
-			// ...
-		});
+		}
+		*/
+		
+		//create Djenius div for creating comment
+		// ...
+		
+		// ...
 	}
 })();

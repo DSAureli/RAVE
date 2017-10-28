@@ -184,5 +184,55 @@
 		testo dopo p
 	</div>
 	<input id="text_button" type="button" value="get descendant text blocks">
+	
+	<br>
+	<br>
+	
+	<script src="js/djenius.js"></script>
+	<script src="js/util.js"></script>
+	<script>
+		$(function()
+		{
+			Djenius.setAnnotatable($("#test_djenius_div"), 1);
+			$("#test_djenius_button").click(Djenius.newAnnotation);
+		});
+	</script>
+	<div id="test_djenius_div">
+		blocco div 1.1<br>
+		blocco div 1.2<br>
+		<p>
+			blocco div > p 1.1<br>
+			blocco div > p 1.2<br>
+			<a href="">blocco div > p > a</a>
+		</p>
+		blocco div 2<br>
+		<a href="">blocco div > a</a><br>
+		blocco div 3
+	</div>
+	<input id="test_djenius_button" type="button" value="test djenius">
+	
+	<br>
+	<br>
+<!--
+	<script src="js/djenius.js"></script>
+	<script src="js/util.js"></script>
+	<script>
+		$(function()
+		{
+			Djenius.setAnnotatable($("#test_djenius_div"), 1);
+			$("#test_djenius_button").click(Djenius.newAnnotation);
+		});
+	</script>
+	<div id="test_djenius_div">
+		<p>
+			blocco p1<br>
+		</p>
+		blocco div<br>
+		<p>
+			blocco p2<br>
+		</p>
+	</div>
+	<input id="test_djenius_button" type="button" value="test djenius">
+-->
 </body>
 </html>

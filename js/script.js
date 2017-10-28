@@ -85,7 +85,7 @@ function updateContent(index, section)
 						)
 					);
 					
-					Djenius.setSelectable(newDiv, item.DOI);
+					Djenius.setAnnotatable(newDiv, item.DOI);
 					$("#content_crossref").append(newDiv);
 				}
 			});
@@ -170,7 +170,16 @@ $(document).ready(function()
 		submitQuery();
 	});
 	
-	Djenius.setButton($("#djenius_button"));
+	$("#djenius_button").click(function()
+	{
+		//set djenius_column loading animation on
+		// ...
+		
+		Djenius.newAnnotation();
+		
+		//set djenius_column loading animation off
+		// ...
+	});
 	
 	// Also bind the search icon anchor to submitQuery
 	
