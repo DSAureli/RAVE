@@ -228,8 +228,34 @@
 		blocco div 3
 	</div>
 	<input id="test_djenius_button" type="button" value="test djenius">
+	<input id="test_sel" type="button" value="test sel">
+	<input id="test_unwrap" type="button" value="unwrap">
 	
 	<br>
 	<br>
+	
+	<script>
+		$(function()
+		{
+			var div = $("#test_normalize_div");
+			div.append(document.createTextNode("Text 1"));
+			div.append(document.createTextNode("Text 2"));
+			
+			var pnode = $("<p></p>");
+			pnode.append(document.createTextNode("Pnode 1"));
+			pnode.append(document.createTextNode("Pnode 2"));
+			div.append(pnode);
+			
+			div.append(document.createTextNode("Text 3"));
+			div.append(document.createTextNode("Text 4"));
+			
+			$("#test_normalize_button").click(function()
+			{
+				div[0].normalize();
+			});
+		});
+	</script>
+	<div id="test_normalize_div"></div>
+	<input id="test_normalize_button" type="button" value="normalize">
 </body>
 </html>

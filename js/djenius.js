@@ -162,6 +162,8 @@
 		// Djenius divs not descendant of other Djenius divs
 		$("[djenius_id]").not("[djenius_id] *").each(function(index, div)
 		{
+			$(div)[0].normalize();
+			
 			var textBlocks = getDescendantTextBlocks(div);
 			var djenius_id = $(div).attr("djenius_id");
 			
@@ -205,23 +207,25 @@
 		return newDjeniusRanges;
 	}
 	
-	function getNewNativeRanges(ranges)
+	function getNativeRanges(ranges)
 	{
-		var newNativeRanges = [];
+		var nativeRanges = [];
 		
 		for (var range of ranges)
 		{
-			var newRange = new Range();
+			var djeniusNode = $('[djenius_id="{0}"]'.format(range.djeniusID));
+			djeniusNode[0].normalize();
 			
-			var startNode = getTextNode($('[djenius_id="{0}"]'.format(range.djeniusID)), range.path, range.startIndex);
-			var endNode = getTextNode($('[djenius_id="{0}"]'.format(range.djeniusID)), range.path, range.endIndex);
+			var newRange = new Range();
+			var startNode = getTextNode(djeniusNode, range.path, range.startIndex);
+			var endNode = getTextNode(djeniusNode, range.path, range.endIndex);
+			
 			newRange.setStart(startNode, range.startOffset);
 			newRange.setEnd(endNode, range.endOffset);
-			
-			newNativeRanges.push(newRange);
+			nativeRanges.push(newRange);
 		}
 		
-		return newNativeRanges;
+		return nativeRanges;
 	}
 	
 	var djeniusSpans = [];
@@ -232,6 +236,7 @@
 		{
 			var spanParent = $(span).parent()[0];
 			$(span).contents().unwrap();
+			spanParent.normalize();
 		}
 		
 		djeniusSpans = [];
@@ -240,7 +245,7 @@
 	function highlightDjeniusRanges(ranges)
 	{
 		removeHighlightings();
-		var newNativeRanges = getNewNativeRanges(ranges);
+		var newNativeRanges = getNativeRanges(ranges);
 		
 		for (var range of newNativeRanges)
 		{
