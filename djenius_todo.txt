@@ -35,3 +35,17 @@ problema: quando creo un commento che inizia in un nodo #text in cui c'è ad ese
 commento sarà sfalsato, poichè sarà presente lo span per l'evidenziatura... anzi, non solo l'offset, forse anche index e path si fottono...
 Mi sa che, alla creazione di un nuovo commento, ad ogni div djenius considerato devo togliere qualsiasi span di commenti precedenti.
 Se mi salvo tutto il necessario in una var globale (in window o in document) mi rendo più facile il lavoro...
+(basta fare una var globale nella closure, credo)
+
+prova a fare un range e poi modificare il testo precedente a tale range, si adatta? Se si, sono a cavallo.
+Sì, si adatta, ma solo se cambia la struttura DOM, se modifico il testo invece collassa.
+
+controlla che normalize sia ricorsivo sul sottoalbero
+si, è ricorsivo sul sottoalbero
+fai normalize ad ogni div ad ogni aggiunta di un commento (?)
+
+aggiungi colore ad highlightDjeniusRange
+
+magari durante la scrittura del commento fai dim di tutta la pagina, tranne il div per il commento e il commento stesso (eventualmente dagli anche dell'ombra)
+
+"Fix new annotation adding system: indexes and offsets are no longer affected by previous annotations"

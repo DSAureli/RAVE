@@ -154,9 +154,9 @@
 		return div.contents().eq(index)[0];
 	}
 	
-	function newAnnotation()
+	function getNewDjeniusRanges()
 	{
-		var newRanges = [];
+		var newDjeniusRanges = [];
 		var userSel = new UserSelection(window.getSelection());
 		
 		// Djenius divs not descendant of other Djenius divs
@@ -170,22 +170,22 @@
 			{
 				for (var block of textBlocks)
 				{
-					var firstRange = document.createRange();
-					var lastRange = document.createRange();
-					firstRange.selectNodeContents($(block).first().get(0));
-					lastRange.selectNodeContents($(block).last().get(0));
+					var firstDivNodeRange = document.createRange();
+					var lastDivNodeRange = document.createRange();
+					firstDivNodeRange.selectNodeContents($(block).first().get(0));
+					lastDivNodeRange.selectNodeContents($(block).last().get(0));
 					
 					var newRange = intRange.cloneRange();
 					
-					if (newRange.compareBoundaryPoints(Range.START_TO_START, firstRange) < 1)
+					if (newRange.compareBoundaryPoints(Range.START_TO_START, firstDivNodeRange) < 1)
 						newRange.setStart(block[0], 0);
 					
-					if (newRange.compareBoundaryPoints(Range.END_TO_END, lastRange) > -1)
+					if (newRange.compareBoundaryPoints(Range.END_TO_END, lastDivNodeRange) > -1)
 						newRange.setEnd(block.lastElement(), block.lastElement().length);
 					
 					if (!newRange.collapsed && newRange.toString().trim())
 					{
-						newRanges.push(
+						newDjeniusRanges.push(
 						{
 							djeniusID: djenius_id,
 							path: getRelativePath(div, block[0]),
@@ -202,27 +202,102 @@
 			}
 		});
 		
-		console.log(newRanges);
+		return newDjeniusRanges;
+	}
+	
+	function getNewNativeRanges(ranges)
+	{
+		var newNativeRanges = [];
 		
-		if (newRanges.length)
+		for (var range of ranges)
 		{
-			window.getSelection().removeAllRanges();
+			var newRange = new Range();
+			
+			var startNode = getTextNode($('[djenius_id="{0}"]'.format(range.djeniusID)), range.path, range.startIndex);
+			var endNode = getTextNode($('[djenius_id="{0}"]'.format(range.djeniusID)), range.path, range.endIndex);
+			newRange.setStart(startNode, range.startOffset);
+			newRange.setEnd(endNode, range.endOffset);
+			
+			newNativeRanges.push(newRange);
+		}
+		
+		return newNativeRanges;
+	}
+	
+	var djeniusSpans = [];
+	
+	function removeHighlightings()
+	{
+		for (var span of djeniusSpans)
+		{
+			var spanParent = $(span).parent()[0];
+			$(span).contents().unwrap();
+		}
+		
+		djeniusSpans = [];
+	}
+	
+	function highlightDjeniusRanges(ranges)
+	{
+		removeHighlightings();
+		var newNativeRanges = getNewNativeRanges(ranges);
+		
+		for (var range of newNativeRanges)
+		{
+			var newSpan = $("<span></span>")[0];
+			$(newSpan).css("backgroundColor", "yellow");
+			
+			djeniusSpans.push(newSpan);
+			range.surroundContents(newSpan);
+		}
+	}
+	
+	var djeniusRanges = [];
+	
+	function newAnnotation(handler)
+	{
+		/*
+		if (!($.isFunction(handler)))
+		{
+			//error message
+			return;
+		}
+		*/
+		
+		removeHighlightings();
+		
+		var newDjeniusRanges = getNewDjeniusRanges();
+		console.log(newDjeniusRanges);
+		
+		highlightDjeniusRanges(djeniusRanges);
+		
+		if (newDjeniusRanges.length)
+		{
+			window.getSelection().removeAllRanges(); //maybe save it if it fails to load the new ranges to server
+			highlightDjeniusRanges(newDjeniusRanges);
+			
+			//call function taken as argument that returns a string (ie. the comment) or something like null or undefined otherwise
+			//if the string isn't null then compare newNativeRanges with allNativeRanges and split/arrange them accordingly (handle overlapping)
+			//then finally add the new ones, properly adapted, to allNativeRanges
 			
 			//test
-			//create selection with newRanges
-			for (var range of newRanges)
+			var annotation = window.prompt("Please enter comment on selection", "default");
+			if (annotation && annotation.trim())
 			{
-				var newRange = new Range();
+				djeniusRanges.pushArray(newDjeniusRanges);
 				
-				var startNode = getTextNode($('[djenius_id="{0}"]'.format(range.djeniusID)), range.path, range.startIndex);
-				var endNode = getTextNode($('[djenius_id="{0}"]'.format(range.djeniusID)), range.path, range.endIndex);
-				newRange.setStart(startNode, range.startOffset);
-				newRange.setEnd(endNode, range.endOffset);
-				
-				window.getSelection().addRange(newRange);
+				//proper handling:
+				//send newDjeniusRanges to the server; ask server for all the annotations
+				//if an error occurs, display an error message; otherwise, update djeniusRanges
+			}
+			else
+			{
+				// ...
+				console.error("annotation failed");
 			}
 		}
 		
-		// ...
+		removeHighlightings();
+		highlightDjeniusRanges(djeniusRanges);
 	}
 })();

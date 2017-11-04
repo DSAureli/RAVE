@@ -195,6 +195,24 @@
 		{
 			Djenius.setAnnotatable($("#test_djenius_div"), 1);
 			$("#test_djenius_button").click(Djenius.newAnnotation);
+			
+			$("#test_sel").click(function()
+			{
+				console.log(window.getSelection().getRangeAt(0));
+			});
+			
+			$("#test_unwrap").click(function()
+			{
+				var spans = $("#test_djenius_div span");
+				var spanParents = spans.parent();
+				
+				spans.contents().unwrap();
+				
+				spanParents.each(function()
+				{
+					this.normalize();
+				});
+			});
 		});
 	</script>
 	<div id="test_djenius_div">
