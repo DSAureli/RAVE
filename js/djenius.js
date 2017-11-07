@@ -18,7 +18,7 @@
 				return;
 			}
 			
-			$(node).attr("djenius_id", id);
+			$(node).attr("djenius_sel_id", id);
 		},
 		newAnnotation: newAnnotation
 	};
@@ -160,12 +160,12 @@
 		var userSel = new UserSelection(window.getSelection());
 		
 		// Djenius divs not descendant of other Djenius divs
-		$("[djenius_id]").not("[djenius_id] *").each(function(index, div)
+		$("[djenius_sel_id]").not("[djenius_sel_id] *").each(function(index, div)
 		{
 			$(div)[0].normalize();
 			
 			var textBlocks = getDescendantTextBlocks(div);
-			var djenius_id = $(div).attr("djenius_id");
+			var djenius_sel_id = $(div).attr("djenius_sel_id");
 			
 			// for each range of selection intersecting div
 			for (var intRange of userSel.intRanges(div))
@@ -189,7 +189,7 @@
 					{
 						newDjeniusRanges.push(
 						{
-							djeniusID: djenius_id,
+							djeniusSelID: djenius_sel_id,
 							path: getRelativePath(div, block[0]),
 							// had to write it that way because $(newRange.startContainer).index() would refer to
 							// startContainer as a member of the previous "block" array, thus providing the index
@@ -213,7 +213,7 @@
 		
 		for (var range of ranges)
 		{
-			var djeniusNode = $('[djenius_id="{0}"]'.format(range.djeniusID));
+			var djeniusNode = $("[djenius_sel_id='{0}']".format(range.djeniusSelID));
 			djeniusNode[0].normalize();
 			
 			var newRange = new Range();
@@ -242,22 +242,72 @@
 		djeniusSpans = [];
 	}
 	
-	function highlightDjeniusRanges(ranges)
+	function spanMouseEnterHandler(nodes)
 	{
-		removeHighlightings();
-		var newNativeRanges = getNativeRanges(ranges);
-		
-		for (var range of newNativeRanges)
+		$(nodes).css("backgroundColor", "orange");
+	}
+	
+	function spanMouseLeaveHandler(nodes)
+	{
+		$(nodes).css("backgroundColor", "yellow");
+	}
+	
+	function highlightNativeRanges(ranges, id)
+	{
+		for (var range of ranges)
 		{
 			var newSpan = $("<span></span>")[0];
-			$(newSpan).css("backgroundColor", "yellow");
+			
+			$(newSpan).css("cursor", "pointer");
+			$(newSpan).attr("djenius_ann_id", id);
+			
+			$(newSpan).hover(
+				function()
+				{
+					var nodes = $("[djenius_ann_id='{0}']".format($(this).attr("djenius_ann_id")));
+					spanMouseEnterHandler(nodes);
+				},
+				function()
+				{
+					var nodes = $("[djenius_ann_id='{0}']".format($(this).attr("djenius_ann_id")));
+					spanMouseLeaveHandler(nodes);
+				}
+			);
+			
+			spanMouseLeaveHandler(newSpan);
 			
 			djeniusSpans.push(newSpan);
 			range.surroundContents(newSpan);
 		}
 	}
 	
-	var djeniusRanges = [];
+	function highlightDjeniusRanges(ranges, id)
+	{
+		removeHighlightings();
+		var newNativeRanges = getNativeRanges(ranges);
+		highlightNativeRanges(newNativeRanges, id);
+	}
+	
+	function highlightDjeniusAnnotations(annotations)
+	{
+		removeHighlightings();
+		
+		var ranges = [];
+		for (var annotation of annotations)
+		{
+			ranges.push(
+			{
+				id: annotation.id,
+				ranges: getNativeRanges(annotation.ranges)
+			});
+		}
+		for (var range of ranges)
+		{
+			highlightNativeRanges(range.ranges, range.id);
+		}
+	}
+	
+	var djeniusAnnotations = [];
 	
 	function newAnnotation(handler)
 	{
@@ -270,16 +320,12 @@
 		*/
 		
 		removeHighlightings();
-		
 		var newDjeniusRanges = getNewDjeniusRanges();
-		console.log(newDjeniusRanges);
-		
-		highlightDjeniusRanges(djeniusRanges);
 		
 		if (newDjeniusRanges.length)
 		{
 			window.getSelection().removeAllRanges(); //maybe save it if it fails to load the new ranges to server
-			highlightDjeniusRanges(newDjeniusRanges);
+			highlightDjeniusRanges(newDjeniusRanges, djeniusAnnotations.length);
 			
 			//call function taken as argument that returns a string (ie. the comment) or something like null or undefined otherwise
 			//if the string isn't null then compare newNativeRanges with allNativeRanges and split/arrange them accordingly (handle overlapping)
@@ -289,11 +335,17 @@
 			var annotation = window.prompt("Please enter comment on selection", "default");
 			if (annotation && annotation.trim())
 			{
-				djeniusRanges.pushArray(newDjeniusRanges);
+				djeniusAnnotations.push(
+				{
+					id: djeniusAnnotations.length,
+					//user: ... or editable: ...(true, false)
+					//public: ... or visibility: ...
+					ranges: newDjeniusRanges
+				});
 				
 				//proper handling:
 				//send newDjeniusRanges to the server; ask server for all the annotations
-				//if an error occurs, display an error message; otherwise, update djeniusRanges
+				//if an error occurs, display an error message; otherwise, update djeniusAnnotations
 			}
 			else
 			{
@@ -303,6 +355,8 @@
 		}
 		
 		removeHighlightings();
-		highlightDjeniusRanges(djeniusRanges);
+		highlightDjeniusAnnotations(djeniusAnnotations);
+		
+		console.log(djeniusAnnotations);
 	}
 })();

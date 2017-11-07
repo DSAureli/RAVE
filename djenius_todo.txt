@@ -48,5 +48,9 @@ aggiungi colore ad highlightDjeniusRange
 
 magari durante la scrittura del commento fai dim di tutta la pagina, tranne il div per il commento e il commento stesso (eventualmente dagli anche dell'ombra)
 
-"Fix new annotation adding system: indexes and offsets are no longer affected by previous annotations"
-"Assure that adjacent text nodes are always merged together"
+
+ANNOTATION ID SYSTEM
+WARNING: future changes on the overlapping handling system are in STASH!
+// ...
+
+se tieni il sistema id di una djeniusAnnotation come djeniusAnnotations.length() ricordati, quando ne rimuovi una, di scalare l'id di tutte le altre!  (lato server)
