@@ -1,4 +1,4 @@
-Mantieni ben separati Creazione e Visualizzazione, poichè nel prodotto finale saranno divisi
+﻿Mantieni ben separati Creazione e Visualizzazione, poichè nel prodotto finale saranno divisi
 
 Creazione:			(ignoro gli <input>? non ce n'è bisogno, lo fa già da solo)
 Funzione che mi restituisce l'array dei blocchi di testo direttamente figli del div passato come parametro
@@ -29,28 +29,46 @@ l'offset tiene conto anche di ritorni a capo, spazi e tab presenti tra la chiusu
 newAnnotation prende una funzione callback, da chiamare passando l'array di djenius range come parametro
 faccio tutto il calcolo in asincrono?
 
-"switched to a text-node-based approach, as the block-based one..."
-
-problema: quando creo un commento che inizia in un nodo #text in cui c'è ad esempio la fine del commento precedente, l'offset dell'inizio del nuovo
-commento sarà sfalsato, poichè sarà presente lo span per l'evidenziatura... anzi, non solo l'offset, forse anche index e path si fottono...
-Mi sa che, alla creazione di un nuovo commento, ad ogni div djenius considerato devo togliere qualsiasi span di commenti precedenti.
-Se mi salvo tutto il necessario in una var globale (in window o in document) mi rendo più facile il lavoro...
-(basta fare una var globale nella closure, credo)
-
 prova a fare un range e poi modificare il testo precedente a tale range, si adatta? Se si, sono a cavallo.
 Sì, si adatta, ma solo se cambia la struttura DOM, se modifico il testo invece collassa.
 
 controlla che normalize sia ricorsivo sul sottoalbero
 si, è ricorsivo sul sottoalbero
-fai normalize ad ogni div ad ogni aggiunta di un commento (?)
 
 aggiungi colore ad highlightDjeniusRange
 
 magari durante la scrittura del commento fai dim di tutta la pagina, tranne il div per il commento e il commento stesso (eventualmente dagli anche dell'ombra)
 
+IMPORTANTI:
+- overlap ranges
+	due casi:
+	1) overlap parziale
+	2) overlap totale (uno dentro l'altro)
+   (3) coincidenti)
+	due strade:
+	1) fai sempre uno span dedicato per ogni zona di overlap [nel caso 2) quello esterno viene diviso in due span (ad esempio), sinistro e destro di quello interno]
+	in questo caso devo dare un identificativo condiviso tra le parti, e quando una ha l'hover deve attivare l'hover delle altre
+	2) solo span innestati; se overlap parziale dividi il nuovo span in due, una parte innestata allo span precedente/successivo, e una esterna
+	forse più facile da implementare, ma preferisco la coerenza strutturale della prima
+- gestione dei link interni ai range
 
-ANNOTATION ID SYSTEM
-WARNING: future changes on the overlapping handling system are in STASH!
-// ...
+Strada 1)
+Usa lo stesso codice che usi per trovare l'intersezione dei nuovi range con i blocchi text.
+Una volta che hai il range interno crea due nuovi range, uno che inizia dove inizia l'esterno e finisce dove inizia l'interno,
+l' altro che inizia dove finisce l'interno e finisce dove finisce l'esterno.
+Aggiungi il range interno e i due range esterni se non collassati.
 
+colori:
+dividi il colore pieno per il numero massimo di span che fanno overlap.
+2 span -> ognuno ha il 50% (il massimo, ovvero quando ci sono due in overlap, è 100%)
+3 span -> ognuno ha il 33% (con due in overlap 66%, con 3 il 99%)
+e così via, anche se forse sarebbe meglio rapportare sul rimanente con un minimo di tipo 20%:
+2 span -> il primo ha 60%, quelli sopra il 40%
+3 span -> il primo ha 47%, quelli sopra il 27% (quindi uno da solo 47%, in due 74%, in tre 100%)
+4 span -> il primo ha 40%, quelli sopra il 20% (uno da solo 40%, due 60%, tre 80%, quattro 100%)
+[(100 - 20) / n = percentuale di quelli sopra, +20 = percentuale del primo]
+
+c'è un metodo per ottenere il rettangolo che circonda una selezione/range, potrei usarlo per fare una roba tipo la riga che indica la selezione nella colonna a destra su Genius
+
+Prima di fare l'overlap devo fare il sistema di accorpamento dei range che fanno parte della stessa selezione!!!
 se tieni il sistema id di una djeniusAnnotation come djeniusAnnotations.length() ricordati, quando ne rimuovi una, di scalare l'id di tutte le altre!  (lato server)

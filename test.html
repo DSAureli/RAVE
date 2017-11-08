@@ -257,5 +257,69 @@
 	</script>
 	<div id="test_normalize_div"></div>
 	<input id="test_normalize_button" type="button" value="normalize">
+	
+	<br>
+	<br>
+	
+	<script>
+		$(function()
+		{
+			$("#test_bubble #p1").click(function()
+			{
+				console.log("P1");
+			});
+			
+			$("#test_bubble #p2").click(function()
+			{
+				console.log("P2");
+			});
+		});
+	</script>
+	<div id="test_bubble">
+		<p id="p1">
+			Testo1
+			<p id="p2">
+				Testo 2
+			</p>
+			Testo3
+		</p>
+	</div>
+	
+	<br>
+	<br>
+	
+	<script>
+		$(function()
+		{
+			$("#test_bubble2 #span1").click(function()
+			{
+				console.log("span1");
+			});
+			
+			$("#test_bubble2 #span2").click(function()
+			{
+				console.log("span2");
+			});
+		});
+	</script>
+	<div id="test_bubble2">
+		Testo <span id="span1">Span1 <span id="span2">Span2</span> Span1</span> Testo
+	</div>
+	
+	<br>
+	<br>
+	
+	<script>
+		$(function()
+		{
+			$("#test_bubble3 a span").click(function()
+			{
+				console.log("span");
+			});
+		});
+	</script>
+	<div id="test_bubble3">
+		Testo <a href="">A <span>Span</span> A</a> Testo
+	</div>
 </body>
 </html>

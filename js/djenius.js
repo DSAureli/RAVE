@@ -1,6 +1,8 @@
-(function()
+﻿(function()
 {
-	// public
+	////////////////////////
+	//  public interface  //
+	////////////////////////
 	
 	Djenius =
 	{
@@ -23,47 +25,26 @@
 		newAnnotation: newAnnotation
 	};
 	
-	// private
 	
-	class UserSelection
+	/////////////////////
+	//  private space  //
+	/////////////////////
+	
+	Range.prototype.crossIntersectsNode = function(node)
 	{
-		constructor(sel)
+		// for any browser except Edge
+		if (Range.prototype.intersectsNode)
 		{
-			this.ranges = [];
-			
-			for (var i of range(sel.rangeCount))
-			{
-				this.ranges.push(sel.getRangeAt(i));
-			}
+			return this.intersectsNode(node);
 		}
-		
-		intRanges(node)
+		else
 		{
-			var rangeArray = [];
+			var nodeRange = node.ownerDocument.createRange();
+			nodeRange.selectNode(node);
 			
-			for (var range of this.ranges)
-			{
-				// this method is implemented in Firefox with Gecko before 1.9 and other non-IE browsers
-				if (range.intersectsNode && range.intersectsNode(node))
-				{
-					rangeArray.push(range);
-				}
-				else
-				{
-					//var nodeRange = this.createRangeWithNode(node);
-					var nodeRange = node.ownerDocument.createRange();
-					nodeRange.selectNode(node);
-					
-					// if start of ranges[i] is before end of nodeRange && end of ranges[i] is after start of nodeRange
-					if (range.compareBoundaryPoints(Range.END_TO_START, nodeRange) === -1 &&
-						range.compareBoundaryPoints(Range.START_TO_END, nodeRange) === 1)
-					{
-						rangeArray.push(range);
-					}
-				}
-			}
-			
-			return rangeArray;
+			// start of this is before end of nodeRange && end of ranges[i] is after start of this
+			return (this.compareBoundaryPoints(Range.END_TO_START, nodeRange) === -1 &&
+					this.compareBoundaryPoints(Range.START_TO_END, nodeRange) === 1);
 		}
 	}
 	
@@ -157,7 +138,14 @@
 	function getNewDjeniusRanges()
 	{
 		var newDjeniusRanges = [];
-		var userSel = new UserSelection(window.getSelection());
+		
+		var userSel = window.getSelection();
+		var selRanges = [];
+		
+		for (var i of range(userSel.rangeCount))
+		{
+			selRanges.push(userSel.getRangeAt(i));
+		}
 		
 		// Djenius divs not descendant of other Djenius divs
 		$("[djenius_sel_id]").not("[djenius_sel_id] *").each(function(index, div)
@@ -167,9 +155,11 @@
 			var textBlocks = getDescendantTextBlocks(div);
 			var djenius_sel_id = $(div).attr("djenius_sel_id");
 			
-			// for each range of selection intersecting div
-			for (var intRange of userSel.intRanges(div))
+			for (var range of selRanges)
 			{
+				if (!range.crossIntersectsNode(div))
+					continue;
+				
 				for (var block of textBlocks)
 				{
 					var firstDivNodeRange = document.createRange();
@@ -177,7 +167,7 @@
 					firstDivNodeRange.selectNodeContents($(block).first().get(0));
 					lastDivNodeRange.selectNodeContents($(block).last().get(0));
 					
-					var newRange = intRange.cloneRange();
+					var newRange = range.cloneRange();
 					
 					if (newRange.compareBoundaryPoints(Range.START_TO_START, firstDivNodeRange) < 1)
 						newRange.setStart(block[0], 0);
@@ -256,7 +246,18 @@
 	{
 		for (var range of ranges)
 		{
-			var newSpan = $("<span></span>")[0];
+			//////
+			for (var span of djeniusSpans)
+			{
+				if (range.crossIntersectsNode(span))
+				{
+					
+				}
+			}
+			// ...
+			//////
+			
+			var newSpan = document.createElement("span");
 			
 			$(newSpan).css("cursor", "pointer");
 			$(newSpan).attr("djenius_ann_id", id);
@@ -284,26 +285,25 @@
 	function highlightDjeniusRanges(ranges, id)
 	{
 		removeHighlightings();
-		var newNativeRanges = getNativeRanges(ranges);
-		highlightNativeRanges(newNativeRanges, id);
+		highlightNativeRanges(getNativeRanges(ranges), id);
 	}
 	
 	function highlightDjeniusAnnotations(annotations)
 	{
 		removeHighlightings();
 		
-		var ranges = [];
+		var rangesObjects = [];
 		for (var annotation of annotations)
 		{
-			ranges.push(
+			rangesObjects.push(
 			{
 				id: annotation.id,
 				ranges: getNativeRanges(annotation.ranges)
 			});
 		}
-		for (var range of ranges)
+		for (var obj of rangesObjects)
 		{
-			highlightNativeRanges(range.ranges, range.id);
+			highlightNativeRanges(obj.ranges, obj.id);
 		}
 	}
 	
@@ -341,6 +341,7 @@
 					//user: ... or editable: ...(true, false)
 					//public: ... or visibility: ...
 					ranges: newDjeniusRanges
+					//comment: ...
 				});
 				
 				//proper handling:
