@@ -1,3 +1,5 @@
+// TODO: fix the duplication of history entry on the refresh.
+
 String.prototype.format = function()
 {
 	var content = this;
@@ -34,7 +36,13 @@ function respCheck()
 	}
 }
 
+function virtualClickOnDropElement(value)
+{
+	$("#dropdown_sections").find("[data-value=" + value + "]").trigger('click');
+}
+
 var query = null;
+var oldQuery;
 
 var firstCall = true;	// necessary in order to avoid onChange activation
 var oldDrop;
@@ -42,9 +50,9 @@ var oldDrop;
 function historyNav(index, section)
 {
 	updateContent(index, section);
-	var url = '?' + section;
+	oldDrop = $("#menu_sections").html();
+	var url = '?' + query + '&' + index + '&' + section;
 	history.pushState({old:oldDrop, word:query, val:index, text:section}, null, url);
-	var x = history.length;
 }
 
 function updateContent(index, section)
@@ -124,13 +132,35 @@ function updateContent(index, section)
 	});
 }
 
-function submitQuery()
+function submitQuery(refresh)
 {
-	var oldQuery = query;
-	query = $("#search").val();
+	
+	var refresh;
+	var urlSections = window.location.href;
+	var urlCheck = urlSections.indexOf('?')
+	if ( refresh && urlCheck>-1 ) // in case of refresh or bookmark
+	{
+		urlSections = urlSections.split("?");
+		urlSections = urlSections[1].split("&");
+		query = decodeURIComponent(urlSections[0]);
+		refresh = true;
+	}
+	else if(refresh && urlCheck==-1 )
+		return;
+	else
+	{
+		query = $("#search").val();
+		$.trim(query);
+		if (/\S/.test(query))			// avoid empty search
+			refresh = false;
+		else 
+		{
+			alert("Please insert at least one keyword");
+			return;
+		}
+	}
+
 	$("#title").text(query);
-	if(oldQuery != query)
-		oldDrop = $("#menu_sections").html();
 	
 	$.ajax(
 	{
@@ -170,15 +200,28 @@ function submitQuery()
 				}
 			});
 			
-			$("#dropdown_sections").find("[data-value=0]").trigger('click');
-			/* A fake click is necessary to select the correct element of dropdown on each new search.
-			   We need this trick because "set selected" and "set value" don't help with the firing of onChange. */
+			if(refresh == false)
+			{
+				virtualClickOnDropElement('0');
+				/* A fake click is necessary to select the correct element of dropdown on each new search.
+				   We need this trick because "set selected" and "set value" don't help with the firing of onChange. */
+
+				var val = $("#dropdown_sections").dropdown("get value");				
+				var text = $("#dropdown_sections").dropdown("get text");
+				if(firstCall)
+					historyNav(val, text);
+				firstCall = true;
+			}
+			// Add the content in case of refresh or bookmark
+			else	
+			{
+				var index = urlSections[1];
+				var section = decodeURIComponent(urlSections[2]);
+				virtualClickOnDropElement(index);
+				updateContent(urlSections[1], section);
+			}
+			oldDrop = $("#menu_sections").html();
 			
-			var val = $("#dropdown_sections").dropdown("get value");				
-			var text = $("#dropdown_sections").dropdown("get text");
-			if(firstCall)
-				historyNav(val, text);
-			firstCall = true;
 		}
 	});
 }
@@ -190,13 +233,14 @@ $(document).ready(function()
 	
 	respCheck();
 	$(window).resize(respCheck);
-	
 
+	submitQuery(true);	// in case of refresh or bookmark
+	
 	$("#search").keyup(function(event)
 	{
 		if (event.which == 13)
 		{
-			submitQuery();
+			submitQuery(false);
 		}
 	});
 	
@@ -205,7 +249,7 @@ $(document).ready(function()
 	$("#searchButton").click(function(event)
 	{
 		event.preventDefault();	// prevent link behavior
-		submitQuery();
+		submitQuery(false);
 	});
 	
 	window.addEventListener('popstate', function(e)
@@ -218,8 +262,10 @@ $(document).ready(function()
 		updateContent(index,section);
 		
 		$("#menu_sections").empty();
-		$("#menu_sections").append(oldDrop);
-		$("#dropdown_sections").dropdown("set text", section);		
+		$("#menu_sections").append(e.state.old);
+		$("#dropdown_sections").dropdown("set text", section);
+		if(section!="Introduction")
+			virtualClickOnDropElement(index);
 	});
 });
 

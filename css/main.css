@@ -286,10 +286,22 @@ a:hover
 }
 #modal_login form .button:hover:not(:active)
 {
-	background-color: rgb(260, 131, 46);
+	background-color: rgb(260,131,46);
 }
 #modal_login .error.message
 {
 	box-shadow: none;
 	color: red;
+}
+#modal_login .hidden
+{
+	display: none;
+}
+#modal_login .message.segment p, #modal_login .message.segment a
+{
+	display: inline;
+}
+#modal_login h2 p, #modal_login h2 i
+{
+	display: inline;
 }
