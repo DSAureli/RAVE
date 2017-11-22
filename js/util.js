@@ -1,4 +1,4 @@
-function range(n)
+function iter(n)
 {
 	var a = [];
 	for (var i = 0; i < n; i++)
@@ -37,14 +37,10 @@ Array.prototype.pushArray = function(arr)
 // TOTEST (check error message)
 Array.prototype.removeAt = function(index)
 {
-	var retval;
-	
 	if (index > -1)
-		retval = this.splice(index, 1);
+		return this.splice(index, 1);
 	else
 		console.error("Array.prototype.remove error: negative index");
-	
-	return retval;
 };
 
 // TOTEST

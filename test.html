@@ -213,6 +213,11 @@
 					this.normalize();
 				});
 			});
+			
+			$("#test_remove_span").click(function()
+			{
+				Djenius.removeSpan($("#test_djenius_div span")[0]);
+			});
 		});
 	</script>
 	<div id="test_djenius_div">
@@ -230,6 +235,7 @@
 	<input id="test_djenius_button" type="button" value="test djenius">
 	<input id="test_sel" type="button" value="test sel">
 	<input id="test_unwrap" type="button" value="unwrap">
+	<input id="test_remove_span" type="button" value="test removeSpan">
 	
 	<br>
 	<br>
@@ -321,5 +327,62 @@
 	<div id="test_bubble3">
 		Testo <a href="">A <span>Span</span> A</a> Testo
 	</div>
+	
+	<br>
+	<br>
+	
+	<script>
+		$(function()
+		{
+			$("#test_pointinrange_button1").click(function()
+			{
+				var range = document.createRange();
+				range.selectNode($("#test_pointinrange_div")[0]);
+				var bool = range.isPointInRange($("#test_pointinrange_p1")[0], 1);
+				console.log(bool);
+			});
+			
+			$("#test_pointinrange_button2").click(function()
+			{
+				var range = document.createRange();
+				range.selectNode($("#test_pointinrange_div")[0]);
+				var bool = range.isPointInRange($("#test_pointinrange_p2")[0], 1);
+				console.log(bool);
+			});
+		});
+	</script>
+	<div id="test_pointinrange_div">
+		<p id="test_pointinrange_p1">we</p>
+	</div>
+	<p id="test_pointinrange_p2">we</p>
+	<input id="test_pointinrange_button1" type="button" value="test isPointInRange 1">
+	<input id="test_pointinrange_button2" type="button" value="test isPointInRange 2">
+	
+	<br>
+	<br>
+	
+	<script>
+		$(function()
+		{
+			$("#test_add_span_button").click(function()
+			{
+				var userSel = window.getSelection();
+				var userRange = userSel.getRangeAt(0);
+				
+				console.log(userRange);
+				
+				var text = $("#test_add_span").contents()[0];
+				var range = document.createRange();
+				range.setStart(text, 5);
+				range.setEnd(text, 9);
+				var newSpan = document.createElement("span");
+				range.surroundContents(newSpan);
+				
+				console.log(userRange);
+			});
+		});
+	</script>
+	<div id="test_add_span">Text Text Text</div>
+	<input id="test_add_span_button" type="button" value="test add span">
 </body>
 </html>

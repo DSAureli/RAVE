@@ -22,7 +22,10 @@
 			
 			$(node).attr("djenius_sel_id", id);
 		},
-		newAnnotation: newAnnotation
+		newAnnotation: newAnnotation,
+		
+		//test
+		removeSpan: removeSpan
 	};
 	
 	
@@ -30,7 +33,7 @@
 	//  private space  //
 	/////////////////////
 	
-	Range.prototype.crossIntersectsNode = function(node)
+	Range.prototype.crossIntersectsNode = function(node) ////////////////////////////////////////////////////////////////////////////////isPointInRange?
 	{
 		// for any browser except Edge
 		if (Range.prototype.intersectsNode)
@@ -48,6 +51,20 @@
 		}
 	}
 	
+	function getSelectionRanges()
+	{
+		var userSel = window.getSelection();
+		var selRanges = [];
+		
+		for (var i of iter(userSel.rangeCount))
+		{
+			selRanges.push(userSel.getRangeAt(i));
+		}
+		
+		return selRanges;
+	}
+	
+	/*
 	function getChildTextNodes(node)
 	{
 		return $(node).contents().filter(function()
@@ -69,6 +86,7 @@
 		});
 		return nodes;
 	}
+	*/
 	
 	function getDescendantTextBlocks(node)
 	{
@@ -111,6 +129,48 @@
 		return blocks;
 	}
 	
+	/*
+	function getIntersectionRange(range, node)
+	{
+		var firstNode = $(node).first()[0];
+		var lastNode = $(node).last()[0];
+		
+		var firstNodeRange = document.createRange();
+		var lastNodeRange = document.createRange();
+		
+		firstNodeRange.selectNodeContents(firstNode);
+		lastNodeRange.selectNodeContents(lastNode);
+		
+		var intRange = range.cloneRange();
+		
+		if (intRange.compareBoundaryPoints(Range.START_TO_START, firstNodeRange) < 1)
+			intRange.setStart(firstNodeRange.startContainer, firstNodeRange.startOffset);
+		
+		if (intRange.compareBoundaryPoints(Range.END_TO_END, lastNodeRange) > -1)
+			intRange.setEnd(lastNodeRange.endContainer, lastNodeRange.endOffset);
+		
+		if (intRange.collapsed || !intRange.toString().trim())
+			return null;
+		
+		return intRange;
+	}
+	*/
+	function getIntersectionRange(range_a, range_b)
+	{
+		var intRange = range_a.cloneRange();
+		
+		if (intRange.compareBoundaryPoints(Range.START_TO_START, range_b) < 1)
+			intRange.setStart(range_b.startContainer, range_b.startOffset);
+		
+		if (intRange.compareBoundaryPoints(Range.END_TO_END, range_b) > -1)
+			intRange.setEnd(range_b.endContainer, range_b.endOffset);
+		
+		if (intRange.collapsed || !intRange.toString().trim())
+			return null;
+		
+		return intRange;
+	}
+	
 	function getRelativePath(div, node)
 	{
 		// get index-based path from div to node parent
@@ -128,24 +188,10 @@
 		return pathArray;
 	}
 	
-	function getTextNode(div, path, index)
-	{
-		for (var step of path)
-			div = $(div).children().eq(step);
-		return div.contents().eq(index)[0];
-	}
-	
 	function getNewDjeniusRanges()
 	{
 		var newDjeniusRanges = [];
-		
-		var userSel = window.getSelection();
-		var selRanges = [];
-		
-		for (var i of range(userSel.rangeCount))
-		{
-			selRanges.push(userSel.getRangeAt(i));
-		}
+		var selRanges = getSelectionRanges();
 		
 		// Djenius divs not descendant of other Djenius divs
 		$("[djenius_sel_id]").not("[djenius_sel_id] *").each(function(index, div)
@@ -157,37 +203,34 @@
 			
 			for (var range of selRanges)
 			{
-				if (!range.crossIntersectsNode(div))
-					continue;
-				
 				for (var block of textBlocks)
 				{
-					var firstDivNodeRange = document.createRange();
-					var lastDivNodeRange = document.createRange();
-					firstDivNodeRange.selectNodeContents($(block).first().get(0));
-					lastDivNodeRange.selectNodeContents($(block).last().get(0));
+					/**/
+					var firstBlockNodeRange = document.createRange();
+					var lastBlockNodeRange = document.createRange();
+					firstBlockNodeRange.selectNodeContents($(block).first()[0]);
+					lastBlockNodeRange.selectNodeContents($(block).last()[0]);
 					
-					var newRange = range.cloneRange();
+					var blockRange = document.createRange();
+					blockRange.setStart(firstBlockNodeRange.startContainer, firstBlockNodeRange.startOffset);
+					blockRange.setEnd(lastBlockNodeRange.endContainer, lastBlockNodeRange.endOffset);
+					/**/
 					
-					if (newRange.compareBoundaryPoints(Range.START_TO_START, firstDivNodeRange) < 1)
-						newRange.setStart(block[0], 0);
-					
-					if (newRange.compareBoundaryPoints(Range.END_TO_END, lastDivNodeRange) > -1)
-						newRange.setEnd(block.lastElement(), block.lastElement().length);
-					
-					if (!newRange.collapsed && newRange.toString().trim())
+					//var intRange = getIntersectionRange(range, block);
+					var intRange = getIntersectionRange(range, blockRange);
+					if (intRange)
 					{
 						newDjeniusRanges.push(
 						{
 							djeniusSelID: djenius_sel_id,
-							path: getRelativePath(div, block[0]),
-							// had to write it that way because $(newRange.startContainer).index() would refer to
+							path: getRelativePath(div, $(block).first()[0]),
+							// had to write it that way because $(intRange.startContainer).index() would refer to
 							// startContainer as a member of the previous "block" array, thus providing the index
 							// of the container relative to the block made up of text-only non-br nodes
-							startIndex: $(newRange.startContainer).parent().contents().index(newRange.startContainer),
-							startOffset: newRange.startOffset,
-							endIndex: $(newRange.endContainer).parent().contents().index(newRange.endContainer),
-							endOffset: newRange.endOffset
+							startIndex: $(intRange.startContainer).parent().contents().index(intRange.startContainer),
+							startOffset: intRange.startOffset,
+							endIndex: $(intRange.endContainer).parent().contents().index(intRange.endContainer),
+							endOffset: intRange.endOffset
 						});
 					}
 				}
@@ -195,6 +238,13 @@
 		});
 		
 		return newDjeniusRanges;
+	}
+	
+	function getTextNode(div, path, index)
+	{
+		for (var step of path)
+			div = $(div).children().eq(step);
+		return div.contents().eq(index)[0];
 	}
 	
 	function getNativeRanges(ranges)
@@ -220,16 +270,106 @@
 	
 	var djeniusSpans = [];
 	
+	function removeSpan(span)
+	{
+		// unwrapping a span changes any user selection intersecting it,
+		// unless its start and end points are both outside the span
+		
+		var selRanges = getSelectionRanges();
+		
+		var spanRange = document.createRange();
+		spanRange.selectNodeContents(span);
+		
+		var pairs = [];
+		
+		for (var range of selRanges)
+		{
+			if (range.crossIntersectsNode(span))
+			{
+				var start = false;
+				var end = false;
+				
+				var tempRange = document.createRange();
+				tempRange.setStart(spanRange.startContainer, spanRange.startOffset);
+				tempRange.setEnd(spanRange.endContainer, spanRange.endOffset);
+				
+				if (spanRange.isPointInRange(range.startContainer, range.startOffset))
+				{
+					tempRange.setStart(range.startContainer, range.startOffset);
+					start = true;
+				}
+				
+				if (spanRange.isPointInRange(range.endContainer, range.endOffset))
+				{
+					tempRange.setEnd(range.endContainer, range.endOffset);
+					end = true;
+				}
+				
+				if (!start && !end)
+					continue;
+				
+				var tempSpan = document.createElement("span");
+				tempRange.surroundContents(tempSpan);
+				
+				pairs.push(
+				{
+					range: range,
+					span: tempSpan,
+					start: start,
+					end: end
+				});
+			}
+		}
+		
+		var spanParent = $(span).parent()[0];
+		$(span).contents().unwrap();
+		spanParent.normalize();
+		
+		for (var pair of pairs)
+		{
+			if (pair.start)
+				pair.range.setStartBefore(pair.span);
+			
+			if (pair.end)
+			{
+				//pair.range.setEndAfter(pair.span); // NOPE
+				pair.range.setEnd(pair.span.nextSibling, 0); // HAH!
+			}
+			
+			var pairSpanParent = $(pair.span).parent()[0];
+			$(pair.span).contents().unwrap();
+			pairSpanParent.normalize();
+		}
+	}
+	
 	function removeHighlightings()
 	{
 		for (var span of djeniusSpans)
 		{
-			var spanParent = $(span).parent()[0];
-			$(span).contents().unwrap();
-			spanParent.normalize();
+			removeSpan(span);
 		}
 		
 		djeniusSpans = [];
+	}
+	
+	function getRelatedSpans(span)
+	{
+		// filter(Boolean) removes empty strings from array
+		
+		var span_ids = $(span).attr("djenius_ann_id").split(",").filter(Boolean);
+		
+		return $("[djenius_ann_id]").filter(function()
+		{
+			var node_ids = $(this).attr("djenius_ann_id").split(",").filter(Boolean);
+			
+			for (var id of span_ids)
+			{
+				if (node_ids.includes(id))
+					return true;
+			}
+			
+			return false;
+		}).toArray();
 	}
 	
 	function spanMouseEnterHandler(nodes)
@@ -242,58 +382,213 @@
 		$(nodes).css("backgroundColor", "yellow");
 	}
 	
+	function getRangesDifference(extRange, intRange)
+	{
+		var beforeRange = document.createRange();
+		beforeRange.setStart(extRange.startContainer, extRange.startOffset);
+		beforeRange.setEnd(intRange.startContainer, intRange.startOffset);
+		
+		var afterRange = document.createRange();
+		afterRange.setStart(intRange.endContainer, intRange.endOffset);
+		afterRange.setEnd(extRange.endContainer, extRange.endOffset);
+		
+		return [beforeRange, afterRange];
+	}
+	
+	function createSpan(range, id)
+	{
+		var newSpan = document.createElement("span");
+		
+		$(newSpan).css("cursor", "pointer");
+		$(newSpan).attr("djenius_ann_id", id);
+		
+		$(newSpan).hover
+		(
+			function()
+			{
+				spanMouseEnterHandler(getRelatedSpans(newSpan));
+			},
+			function()
+			{
+				spanMouseLeaveHandler(getRelatedSpans(newSpan));
+			}
+		);
+		
+		spanMouseLeaveHandler(newSpan);
+		
+		djeniusSpans.push(newSpan);
+		range.surroundContents(newSpan);
+	}
+	
+	/*
 	function highlightNativeRanges(ranges, id)
 	{
 		for (var range of ranges)
 		{
-			//////
-			for (var span of djeniusSpans)
+			var nonIntRange = true;
+			
+			//for (var span of djeniusSpans)
+			for (var i = djeniusSpans.length - 1; i >= 0; i--)
 			{
-				if (range.crossIntersectsNode(span))
+				var span = djeniusSpans[i];
+				
+				var intRange = getIntersectionRange(range, span);
+				if (intRange)
 				{
+					var spanRange = document.createRange();
+					spanRange.selectNodeContents(span);
 					
+					var diffRanges = getRangesDifference(spanRange, intRange);
+					var span_id = $(span).attr("djenius_ann_id");
+					
+					removeSpan(span);
+					djeniusSpans.removeAt(i);
+					
+					for (var range of diffRanges)
+					{
+						if (!range.collapsed)
+						{
+							createSpan(range, span_id);
+						}
+					}
+					
+					createSpan(intRange, span_id + "," + id);
+					
+					diffRanges = getRangesDifference(range, intRange);
+					
+					for (var range of diffRanges)
+					{
+						if (!range.collapsed)
+						{
+							ranges.push(range);
+						}
+					}
+					
+					nonIntRange = false;
+					break;
 				}
 			}
-			// ...
-			//////
 			
-			var newSpan = document.createElement("span");
+			if (nonIntRange && !range.collapsed)
+			{
+				createSpan(range, id);
+			}
+		}
+	}
+	*/
+	
+	
+	
+	function highlightNativeRangePairs(idRanges)
+	{
+		var spanIdRanges = [];
+		
+		for (var idRange of idRanges)
+		{
+			var nonIntRange = true;
 			
-			$(newSpan).css("cursor", "pointer");
-			$(newSpan).attr("djenius_ann_id", id);
-			
-			$(newSpan).hover(
-				function()
+			for (var spanIdRange of spanIdRanges)	//no need for a normal backwards for?
+			{
+				var intRange = getIntersectionRange(idRange, spanIdRange);
+				if (intRange)
 				{
-					var nodes = $("[djenius_ann_id='{0}']".format($(this).attr("djenius_ann_id")));
-					spanMouseEnterHandler(nodes);
-				},
-				function()
-				{
-					var nodes = $("[djenius_ann_id='{0}']".format($(this).attr("djenius_ann_id")));
-					spanMouseLeaveHandler(nodes);
+					var diffRanges = getRangesDifference(spanIdRange, intRange);
+					spanIdRanges.removeAt(spanIdRanges.indexOf(spanIdRange));
+					
+					for (var diffRange of diffRanges)
+					{
+						if (!diffRange.collapsed)
+						{
+							diffRange.id = spanIdRange.id
+							spanIdRanges.push(diffRange);
+						}
+					}
+					
+					intRange.id = spanIdRange.id + "," + idRange.id;
+					spanIdRanges.push(intRange);
+					
+					diffRanges = getRangesDifference(idRange, intRange);
+					//does this interfere with previous diffRange?
+					//non dovrebbe, in quanto ridefinisce, ma non modifica?
+					
+					for (var diffRange of diffRanges)
+					{
+						if (!diffRange.collapsed)
+						{
+							diffRange.id = idRange.id;
+							idRanges.push(diffRange);
+						}
+					}
+					
+					nonIntRange = false;
+					break;
 				}
-			);
+			}
 			
-			spanMouseLeaveHandler(newSpan);
-			
-			djeniusSpans.push(newSpan);
-			range.surroundContents(newSpan);
+			if (nonIntRange && !idRange.collapsed)
+			{
+				spanIdRanges.push(idRange);
+			}
+		}
+		
+		for (var spanIdRange of spanIdRanges)
+		{
+			//add one to every range's start
+			spanIdRange.setStart(spanIdRange.startContainer, spanIdRange.startOffset + 1);
+		}
+		
+		for (var spanIdRange of spanIdRanges)
+		{
+			//add to document
+			spanIdRange.setStart(spanIdRange.startContainer, spanIdRange.startOffset - 1);
+			createSpan(spanIdRange, spanIdRange.id);
 		}
 	}
 	
+	function highlightDjeniusAnnotations(annotations)
+	{
+		//I think you should leave this here... forever...
+		//useful for getNativeRanges?
+		removeHighlightings();
+		
+		var idRanges = [];
+		for (var annotation of djeniusAnnotations)
+		{
+			for (var range of getNativeRanges(annotation.ranges))
+			{
+				range.id = annotation.id;
+				idRanges.push(range);
+			}
+		}
+		
+		highlightNativeRangePairs(idRanges);
+	}
+	
+	function highlightDjeniusRanges(djRanges, id)
+	{
+		highlightDjeniusAnnotations(
+		[
+			{
+				id: id,
+				ranges: djRanges
+			}
+		]);
+	}
+	
+	
+	/*
 	function highlightDjeniusRanges(ranges, id)
 	{
 		removeHighlightings();
 		highlightNativeRanges(getNativeRanges(ranges), id);
 	}
 	
-	function highlightDjeniusAnnotations(annotations)
+	function highlightDjeniusAnnotations()
 	{
 		removeHighlightings();
 		
 		var rangesObjects = [];
-		for (var annotation of annotations)
+		for (var annotation of djeniusAnnotations)
 		{
 			rangesObjects.push(
 			{
@@ -306,6 +601,8 @@
 			highlightNativeRanges(obj.ranges, obj.id);
 		}
 	}
+	*/
+	
 	
 	var djeniusAnnotations = [];
 	
@@ -355,9 +652,7 @@
 			}
 		}
 		
-		removeHighlightings();
 		highlightDjeniusAnnotations(djeniusAnnotations);
-		
 		console.log(djeniusAnnotations);
 	}
 })();

@@ -72,3 +72,12 @@ c'è un metodo per ottenere il rettangolo che circonda una selezione/range, potr
 
 Prima di fare l'overlap devo fare il sistema di accorpamento dei range che fanno parte della stessa selezione!!!
 se tieni il sistema id di una djeniusAnnotation come djeniusAnnotations.length() ricordati, quando ne rimuovi una, di scalare l'id di tutte le altre!  (lato server)
+
+remove highlighting lascia uno span senza attributi!
+non si possono selezionare le seconde righe di un blocco! (WTF???)
+
+
+
+REFACTORING
+rendi più chiara la distinzione tra nativo, jquery e djenius
+copia le funzioni di util utilizzate in djenius.js all'inizio dello spazio privato
