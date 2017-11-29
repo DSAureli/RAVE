@@ -45,10 +45,15 @@
 			var nodeRange = node.ownerDocument.createRange();
 			nodeRange.selectNode(node);
 			
-			// start of this is before end of nodeRange && end of ranges[i] is after start of this
+			// start of this is before end of nodeRange && end of this is after start of nodeRange
 			return (this.compareBoundaryPoints(Range.END_TO_START, nodeRange) === -1 &&
 					this.compareBoundaryPoints(Range.START_TO_END, nodeRange) === 1);
 		}
+	}
+	
+	Range.prototype.isEmpty = function()
+	{
+		return (this.collapsed || !this.toString());
 	}
 	
 	function getSelectionRanges()
@@ -72,7 +77,8 @@
 			return this.nodeType == Node.TEXT_NODE;
 		});
 	}
-	
+	*/
+	/**/
 	function getDescendantTextNodes(node)
 	{
 		// do not optimize, the right order must be ensured
@@ -86,8 +92,8 @@
 		});
 		return nodes;
 	}
-	*/
-	
+	/**/
+	/** /
 	function getDescendantTextBlocks(node)
 	{
 		// do not optimize, the right order must be guaranteed
@@ -128,6 +134,7 @@
 		
 		return blocks;
 	}
+	/**/
 	
 	/*
 	function getIntersectionRange(range, node)
@@ -165,12 +172,13 @@
 		if (intRange.compareBoundaryPoints(Range.END_TO_END, range_b) > -1)
 			intRange.setEnd(range_b.endContainer, range_b.endOffset);
 		
-		if (intRange.collapsed || !intRange.toString().trim())
-			return null;
+		if (!intRange.isEmpty())
+			return intRange;
 		
-		return intRange;
+		return null;
 	}
 	
+	/** /
 	function getRelativePath(div, node)
 	{
 		// get index-based path from div to node parent
@@ -187,7 +195,25 @@
 		pathArray.reverse();
 		return pathArray;
 	}
+	/**/
+	/**/
+	function getRelativePath(div, node)
+	{
+		var pathArray = [];
+		node = $(node);
+		
+		while (!node.is(div))
+		{
+			pathArray.push(node.parent().contents().index(node));
+			node = node.parent();
+		}
+		
+		pathArray.reverse();
+		return pathArray;
+	}
+	/**/
 	
+	/** /
 	function getNewDjeniusRanges()
 	{
 		var newDjeniusRanges = [];
@@ -205,7 +231,6 @@
 			{
 				for (var block of textBlocks)
 				{
-					/**/
 					var firstBlockNodeRange = document.createRange();
 					var lastBlockNodeRange = document.createRange();
 					firstBlockNodeRange.selectNodeContents($(block).first()[0]);
@@ -214,11 +239,11 @@
 					var blockRange = document.createRange();
 					blockRange.setStart(firstBlockNodeRange.startContainer, firstBlockNodeRange.startOffset);
 					blockRange.setEnd(lastBlockNodeRange.endContainer, lastBlockNodeRange.endOffset);
-					/**/
 					
 					//var intRange = getIntersectionRange(range, block);
 					var intRange = getIntersectionRange(range, blockRange);
-					if (intRange)
+					
+					if (intRange && intRange.toString().trim())
 					{
 						newDjeniusRanges.push(
 						{
@@ -239,13 +264,64 @@
 		
 		return newDjeniusRanges;
 	}
+	/**/
+	function getNewDjeniusRanges()
+	{
+		var newDjeniusRanges = [];
+		var selRanges = getSelectionRanges();
+		
+		// Djenius divs not descendant of other Djenius divs
+		$("[djenius_sel_id]").not("[djenius_sel_id] *").each(function(index, div)
+		{
+			$(div)[0].normalize();
+			
+			var textNodes = getDescendantTextNodes(div);
+			var djenius_sel_id = $(div).attr("djenius_sel_id");
+			
+			for (var range of selRanges)
+			{
+				for (var textNode of textNodes)
+				{
+					var textNodeRange = document.createRange();
+					textNodeRange.selectNodeContents(textNode);
+					
+					var intRange = getIntersectionRange(range, textNodeRange);
+					if (intRange && intRange.toString().trim())
+					{
+						newDjeniusRanges.push(
+						{
+							djeniusSelID: djenius_sel_id,
+							path: getRelativePath(div, textNode),
+							startOffset: intRange.startOffset,
+							endOffset: intRange.endOffset
+						});
+					}
+				}
+			}
+		});
+		
+		return newDjeniusRanges;
+	}
 	
+	/** /
 	function getTextNode(div, path, index)
 	{
 		for (var step of path)
 			div = $(div).children().eq(step);
 		return div.contents().eq(index)[0];
 	}
+	/**/
+	/**/
+	function getTextNode(div, path)
+	{
+		for (var step of path)
+		{
+			div = $(div).contents().eq(step);
+		}
+		
+		return div[0];
+	}
+	/**/
 	
 	function getNativeRanges(ranges)
 	{
@@ -256,12 +332,20 @@
 			var djeniusNode = $("[djenius_sel_id='{0}']".format(range.djeniusSelID));
 			djeniusNode[0].normalize();
 			
-			var newRange = new Range();
+			var newRange = document.createRange();
+			/** /
 			var startNode = getTextNode(djeniusNode, range.path, range.startIndex);
 			var endNode = getTextNode(djeniusNode, range.path, range.endIndex);
 			
 			newRange.setStart(startNode, range.startOffset);
 			newRange.setEnd(endNode, range.endOffset);
+			/**/
+			/**/
+			var textNode = getTextNode(djeniusNode, range.path);
+			newRange.setStart(textNode, range.startOffset);
+			newRange.setEnd(textNode, range.endOffset);
+			/**/
+			
 			nativeRanges.push(newRange);
 		}
 		
@@ -323,7 +407,9 @@
 		
 		var spanParent = $(span).parent()[0];
 		$(span).contents().unwrap();
-		spanParent.normalize();
+		
+		//trying moving this after
+		//spanParent.normalize();
 		
 		for (var pair of pairs)
 		{
@@ -332,14 +418,35 @@
 			
 			if (pair.end)
 			{
-				//pair.range.setEndAfter(pair.span); // NOPE
-				pair.range.setEnd(pair.span.nextSibling, 0); // HAH!
+				//doesn't work always (try selecting the second half of a row, and then the whole row; fails for unknown reason)
+				//pair.range.setEndAfter(pair.span); // NOPE!
+				
+				//doesn't work always (try selecting the last block two times in a row, last one does not have nextSibling)
+				//pair.range.setEnd(pair.span.nextSibling, 0); // HAH! NOPE AGAIN!
+				
+				//maybe? nope...
+				/*
+				if (pair.span.nextSibling)
+				{
+					pair.range.setEnd(pair.span.nextSibling, 0);
+				}
+				else
+				{
+					pair.range.setEndAfter(pair.span);
+				}
+				*/
+				
+				//ok, now that normalize is done after, that should work fine
+				pair.range.setEnd(pair.span.nextSibling, 0);
 			}
 			
 			var pairSpanParent = $(pair.span).parent()[0];
 			$(pair.span).contents().unwrap();
+			$(pair.span).remove();
 			pairSpanParent.normalize();
 		}
+		
+		spanParent.normalize();
 	}
 	
 	function removeHighlightings()
@@ -415,9 +522,23 @@
 		);
 		
 		spanMouseLeaveHandler(newSpan);
-		
 		djeniusSpans.push(newSpan);
-		range.surroundContents(newSpan);
+		
+		/*TEST* /
+		if ($(range.endContainer).is("br"))
+		{
+			range.setEndBefore(range.endContainer);		//end relative to the genius_sel div, must fix the end index here below by setting it to null and handle the null case in getTextNode
+			//if that doesn't work just move that test back to where it was before
+		}
+		/**/
+		
+		/**/range.surroundContents(newSpan);/**/
+		/*TEST - NOT WORKING (<br> are duplicated)* /
+		newSpan.appendChild(range.extractContents());
+		range.insertNode(newSpan);
+		/**/
+		
+		return newSpan;
 	}
 	
 	/*
@@ -479,7 +600,7 @@
 	
 	
 	
-	function highlightNativeRangePairs(idRanges)
+	function highlightIdRanges(idRanges)
 	{
 		var spanIdRanges = [];
 		
@@ -492,12 +613,14 @@
 				var intRange = getIntersectionRange(idRange, spanIdRange);
 				if (intRange)
 				{
+					// internal diff //
+					
 					var diffRanges = getRangesDifference(spanIdRange, intRange);
 					spanIdRanges.removeAt(spanIdRanges.indexOf(spanIdRange));
 					
 					for (var diffRange of diffRanges)
 					{
-						if (!diffRange.collapsed)
+						if (!diffRange.isEmpty())
 						{
 							diffRange.id = spanIdRange.id
 							spanIdRanges.push(diffRange);
@@ -507,13 +630,15 @@
 					intRange.id = spanIdRange.id + "," + idRange.id;
 					spanIdRanges.push(intRange);
 					
+					// external diff //
+					
 					diffRanges = getRangesDifference(idRange, intRange);
 					//does this interfere with previous diffRange?
 					//non dovrebbe, in quanto ridefinisce, ma non modifica?
 					
 					for (var diffRange of diffRanges)
 					{
-						if (!diffRange.collapsed)
+						if (!diffRange.isEmpty())
 						{
 							diffRange.id = idRange.id;
 							idRanges.push(diffRange);
@@ -525,12 +650,15 @@
 				}
 			}
 			
-			if (nonIntRange && !idRange.collapsed)
+			if (nonIntRange && !idRange.isEmpty())
 			{
 				spanIdRanges.push(idRange);
 			}
 		}
 		
+		// ranges that begin immediately after another range are modified
+		// if a node is added in the latter range
+		/*
 		for (var spanIdRange of spanIdRanges)
 		{
 			//add one to every range's start
@@ -543,6 +671,67 @@
 			spanIdRange.setStart(spanIdRange.startContainer, spanIdRange.startOffset - 1);
 			createSpan(spanIdRange, spanIdRange.id);
 		}
+		*/
+		//forse piuttosto che fare +1 e -1 è meglio fare una lista dei range da sistemare (quelli che iniziano alla fine del range al momento considerato),
+		//quindi aggiungere il range considerato e settare ogni range nella lista all'offset 0 del range successivo l'attuale.
+		//per la condizione per inserire nella lista potrei fare un range temporaneo che va dalla fine dell'attuale all'inizio del range A per ogni A dei range da
+		//aggiungere != da attuale, e controllare con isEmpty() (se è vuoto coincidono)
+		/** /
+		for (var spanIdRange of spanIdRanges)
+		{
+			var needFix = null;
+			//var rightContainer = null;
+			//var rightOffset = null;
+			
+			for (var compRange of spanIdRanges)
+			{
+				if (compRange === spanIdRange || compRange.compareBoundaryPoints(Range.END_TO_START, spanIdRange) === -1)
+					continue;
+				
+				var checkRange = document.createRange();
+				checkRange.setStart(spanIdRange.endContainer, spanIdRange.endOffset);
+				checkRange.setEnd(compRange.startContainer, compRange.startOffset);
+				
+				if (checkRange.isEmpty())
+				{
+					needFix = compRange;
+					rightContainer = compRange.startContainer;
+					rightOffset = compRange.startOffset;
+					break;	//there sould be only one
+				}
+			}
+			
+			var newSpan = createSpan(spanIdRange, spanIdRange.id);
+			
+			if (needFix)
+			{
+				//needFix.setStart(rightContainer, rightOffset);
+				needFix.setStartAfter(newSpan);
+			}
+		}
+		/**/
+		/**/
+		for (var spanIdRange of spanIdRanges)
+		{
+			var needFix = null;
+			
+			for (var compRange of spanIdRanges)
+			{
+				if (compRange.compareBoundaryPoints(Range.END_TO_START, spanIdRange))
+					continue;
+				
+				needFix = compRange;
+				break;	//there sould be only one
+			}
+			
+			var newSpan = createSpan(spanIdRange, spanIdRange.id);
+			
+			if (needFix)
+			{
+				needFix.setStartAfter(newSpan);
+			}
+		}
+		/**/
 	}
 	
 	function highlightDjeniusAnnotations(annotations)
@@ -552,7 +741,7 @@
 		removeHighlightings();
 		
 		var idRanges = [];
-		for (var annotation of djeniusAnnotations)
+		for (var annotation of annotations)
 		{
 			for (var range of getNativeRanges(annotation.ranges))
 			{
@@ -561,7 +750,7 @@
 			}
 		}
 		
-		highlightNativeRangePairs(idRanges);
+		highlightIdRanges(idRanges);
 	}
 	
 	function highlightDjeniusRanges(djRanges, id)
