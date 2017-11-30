@@ -40,23 +40,7 @@ aggiungi colore ad highlightDjeniusRange
 magari durante la scrittura del commento fai dim di tutta la pagina, tranne il div per il commento e il commento stesso (eventualmente dagli anche dell'ombra)
 
 IMPORTANTI:
-- overlap ranges
-	due casi:
-	1) overlap parziale
-	2) overlap totale (uno dentro l'altro)
-   (3) coincidenti)
-	due strade:
-	1) fai sempre uno span dedicato per ogni zona di overlap [nel caso 2) quello esterno viene diviso in due span (ad esempio), sinistro e destro di quello interno]
-	in questo caso devo dare un identificativo condiviso tra le parti, e quando una ha l'hover deve attivare l'hover delle altre
-	2) solo span innestati; se overlap parziale dividi il nuovo span in due, una parte innestata allo span precedente/successivo, e una esterna
-	forse più facile da implementare, ma preferisco la coerenza strutturale della prima
 - gestione dei link interni ai range
-
-Strada 1)
-Usa lo stesso codice che usi per trovare l'intersezione dei nuovi range con i blocchi text.
-Una volta che hai il range interno crea due nuovi range, uno che inizia dove inizia l'esterno e finisce dove inizia l'interno,
-l' altro che inizia dove finisce l'interno e finisce dove finisce l'esterno.
-Aggiungi il range interno e i due range esterni se non collassati.
 
 colori:
 dividi il colore pieno per il numero massimo di span che fanno overlap.
@@ -70,24 +54,9 @@ e così via, anche se forse sarebbe meglio rapportare sul rimanente con un minim
 
 c'è un metodo per ottenere il rettangolo che circonda una selezione/range, potrei usarlo per fare una roba tipo la riga che indica la selezione nella colonna a destra su Genius
 
-Prima di fare l'overlap devo fare il sistema di accorpamento dei range che fanno parte della stessa selezione!!!
 se tieni il sistema id di una djeniusAnnotation come djeniusAnnotations.length() ricordati, quando ne rimuovi una, di scalare l'id di tutte le altre!  (lato server)
-
-!!! : seleziona "div", seleziona "1.1", seleziona "div 1.1", controlla gli span e piangi
-i text node blocks danno problemi in quanto possono contenere <br>, e se un range finisce all'offset 0 di un <br> da errore se si prova ad inserirvi uno span
-[reverted to #text node based approach]
-
-seleziona ultimo blocco due volte
-spostare il normalize in fondo SEMBRA funzionare...
-[fixed by moving normalize after]
 
 seleziona la prima lettera, poi seleziona la prima lettera e qualcosa di fuori dal div, si crea uno span vuoto prima della lettera.
 Ora, non è un grosso problema, però se puoi risolverlo senza toccare niente... (mi sa che centra il normalize... no, in realtà no)
 ci sono "CR LF TAB TAB" quindi non è vuoto...
 potrei anche lasciare così, male non fa.
-
-
-
-REFACTORING
-rendi più chiara la distinzione tra nativo, jquery e djenius
-copia le funzioni di util utilizzate in djenius.js all'inizio dello spazio privato
