@@ -384,5 +384,28 @@
 	</script>
 	<div id="test_add_span">Text Text Text</div>
 	<input id="test_add_span_button" type="button" value="test add span">
+	
+	<br>
+	<br>
+	
+	<script>
+		$(function()
+		{
+			$("#test_color_button").click(function()
+			{
+				var newElem = document.createElement("span");
+				$(newElem).css("color", "wewewe");
+				
+				$("#test_color").append(newElem);
+				
+				var cs = window.getComputedStyle(newElem);
+				console.log(cs.getPropertyValue("color"));
+				
+				// Edge returns "transparent" with transparent, other colors work consistently everywhere (I hope)
+			});
+		});
+	</script>
+	<div id="test_color"></div>
+	<input id="test_color_button" type="button" value="test color">
 </body>
 </html>

@@ -21,7 +21,6 @@ Wrappa il "minirange" con uno span:
 Aggiungi metodo per escludere dei div dalla possibilità di essere selezionati
 setDjeniusIgnore
 
-Aggiungi metodo per settare il colore della selezione
 Aggiungi metodo per dare la possibilità di scegliere se cambiare colore del testo nella parte di link selezionata
 
 l'offset tiene conto anche di ritorni a capo, spazi e tab presenti tra la chiusura del tag e il testo...
@@ -34,8 +33,6 @@ Sì, si adatta, ma solo se cambia la struttura DOM, se modifico il testo invece 
 
 controlla che normalize sia ricorsivo sul sottoalbero
 si, è ricorsivo sul sottoalbero
-
-aggiungi colore ad highlightDjeniusRange
 
 magari durante la scrittura del commento fai dim di tutta la pagina, tranne il div per il commento e il commento stesso (eventualmente dagli anche dell'ombra)
 
@@ -60,3 +57,5 @@ seleziona la prima lettera, poi seleziona la prima lettera e qualcosa di fuori d
 Ora, non è un grosso problema, però se puoi risolverlo senza toccare niente... (mi sa che centra il normalize... no, in realtà no)
 ci sono "CR LF TAB TAB" quindi non è vuoto...
 potrei anche lasciare così, male non fa.
+
+fade animation for highlighting as on Genius

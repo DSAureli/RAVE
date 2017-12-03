@@ -8,7 +8,7 @@
 	{
 		setAnnotatable: function(node, id)
 		{
-			if (!($.type(id) === "number" || ($.type(id) === "string" && id.trim())))
+			if (!($.type(id) === "number" || (isString(id) && id.trim())))
 			{
 				console.error("'id' is an invalid unique identifier");
 				return;
@@ -22,6 +22,8 @@
 			
 			$(node).attr("djenius_sel_id", id);
 		},
+		setIdleAnnotationColor: setIdleAnnotationColor,
+		setActiveAnnotationColor: setActiveAnnotationColor,
 		newAnnotation: newAnnotation,
 		
 		//test
@@ -33,12 +35,21 @@
 	//  private space  //
 	/////////////////////
 	
+	//
+	// Utilities
+	//
+	
 	function iter(n)
 	{
 		var a = [];
 		for (var i = 0; i < n; i++)
 			a[i] = i;
 		return a;
+	}
+	
+	function isString(obj)
+	{
+		return (typeof obj === "string" || obj instanceof String);
 	}
 	
 	String.prototype.format = function()
@@ -65,8 +76,82 @@
 		if (index > -1)
 			return this.splice(index, 1);
 		else
-			console.error("Array.prototype.remove error: negative index");
+			console.error("Array.prototype.removeAt error: negative index");
 	};
+	
+	//
+	// Color
+	//
+	
+	function Color()
+	{
+		this.r = 0;
+		this.g = 0;
+		this.b = 0;
+	}
+	
+	var idleColor = new Color();
+	var activeColor = new Color();
+	
+	function getCssColor(color, alpha)
+	{
+		if (alpha != undefined && alpha != null)
+		{
+			return "rgba({0},{1},{2},{3})".format(color.r, color.g, color.b, alpha);
+		}
+		else
+		{
+			return "rgb({0},{1},{2})".format(color.r, color.g, color.b);
+		}
+	}
+	
+	function setAnnotationColor(obj, str)
+	{
+		if (obj && obj instanceof Color && isString(str))
+		{
+			var newElem = document.createElement("span");
+			
+			// must attach the element to DOM, otherwise it will work only on Firefox
+			document.body.appendChild(newElem);
+			var style = window.getComputedStyle(newElem);
+			
+			$(newElem).css("color", getCssColor(obj));
+			var oldCssColor = style.getPropertyValue("color");
+			
+			$(newElem).css("color", str);
+			var newCssColor = style.getPropertyValue("color");
+			
+			newElem.remove();
+			
+			if (newCssColor != "transparent" && newCssColor != oldCssColor)
+			{
+				//assign color components to obj
+				var rgbArray = newCssColor.split("(")[1].split(")")[0].split(",");
+				obj.r = Number(rgbArray[0].trim());
+				obj.g = Number(rgbArray[1].trim());
+				obj.b = Number(rgbArray[2].trim());
+			}
+		}
+	}
+	
+	function setIdleAnnotationColor(str)
+	{
+		setAnnotationColor(idleColor, str);
+	}
+	
+	function setActiveAnnotationColor(str)
+	{
+		setAnnotationColor(activeColor, str);
+	}
+	
+	//setIdleAnnotationColor("rgb(221,221,221)");
+	//setActiveAnnotationColor("rgb(255,255,100)");
+	setIdleAnnotationColor("grey");
+	setActiveAnnotationColor("orange");
+	
+	//
+	// newAnnotation
+	//
 	
 	Range.prototype.crossIntersectsNode = function(node)
 	{
@@ -307,15 +392,19 @@
 		djeniusSpans = [];
 	}
 	
-	function getRelatedSpans(span)
+	function getNodeDjeniusIds(span)
 	{
 		// filter(Boolean) removes empty strings from array
-		
-		var span_ids = $(span).attr("djenius_ann_id").split(",").filter(Boolean);
+		return $(span).attr("djenius_ann_id").split(",").filter(x => x.trim()).filter(Boolean);
+	}
+	
+	function getRelatedSpans(span)
+	{
+		var span_ids = getNodeDjeniusIds(span);
 		
 		return $("[djenius_ann_id]").filter(function()
 		{
-			var node_ids = $(this).attr("djenius_ann_id").split(",").filter(Boolean);
+			var node_ids = getNodeDjeniusIds(this);
 			
 			for (var id of span_ids)
 			{
@@ -327,14 +416,28 @@
 		}).toArray();
 	}
 	
-	function spanMouseEnterHandler(nodes)
+	function spanMouseEnterHandler(relSpans, spanIds)
 	{
-		$(nodes).css("backgroundColor", "orange");
+		var fraction = 0.90 / spanIds.length;
+		
+		$(relSpans).each(function()
+		{
+			var commonIds = getNodeDjeniusIds(this).filter(x => spanIds.includes(x));
+			var alpha = 0.10 + commonIds.length * fraction;
+			
+			$(this).css("backgroundColor", getCssColor(activeColor, alpha));
+		});
 	}
 	
-	function spanMouseLeaveHandler(nodes)
+	function spanMouseLeaveHandler(relSpans)
 	{
-		$(nodes).css("backgroundColor", "yellow");
+		var fraction = 0.90 / djeniusSpans.length;
+		
+		$(relSpans).each(function()
+		{
+			var alpha = 0.10 + getNodeDjeniusIds(this).length * fraction;
+			$(this).css("backgroundColor", getCssColor(idleColor, alpha));
+		});
 	}
 	
 	function getRangesDifference(extRange, intRange)
@@ -361,7 +464,7 @@
 		(
 			function()
 			{
-				spanMouseEnterHandler(getRelatedSpans(newSpan));
+				spanMouseEnterHandler(getRelatedSpans(newSpan), getNodeDjeniusIds(newSpan));
 			},
 			function()
 			{
@@ -369,10 +472,10 @@
 			}
 		);
 		
-		spanMouseLeaveHandler(newSpan);
-		
 		djeniusSpans.push(newSpan);
 		range.surroundContents(newSpan);
+		
+		$(newSpan).trigger("mouseleave");
 		
 		return newSpan;
 	}
@@ -465,7 +568,7 @@
 		{
 			for (var range of getNativeRanges(annotation.ranges))
 			{
-				range.id = annotation.id;
+				range.id = String(annotation.id);
 				idRanges.push(range);
 			}
 		}
@@ -503,6 +606,7 @@
 		{
 			window.getSelection().removeAllRanges(); //maybe save it if it fails to load the new ranges to server
 			highlightDjeniusRanges(newDjeniusRanges, djeniusAnnotations.length);
+			$(djeniusSpans[0]).trigger("mouseenter");
 			
 			//call function taken as argument that returns a string (ie. the comment) or something like null or undefined otherwise
 			//if the string isn't null then compare newNativeRanges with allNativeRanges and split/arrange them accordingly (handle overlapping)
