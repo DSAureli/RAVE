@@ -35,9 +35,9 @@
 	//  private space  //
 	/////////////////////
 	
-	//
-	// Utilities
-	//
+	//*************//
+	//  Utilities  //
+	//*************//
 	
 	function iter(n)
 	{
@@ -79,9 +79,9 @@
 			console.error("Array.prototype.removeAt error: negative index");
 	};
 	
-	//
-	// Color
-	//
+	//*********//
+	//  Color  //
+	//*********//
 	
 	function Color()
 	{
@@ -144,11 +144,6 @@
 		setAnnotationColor(activeColor, str);
 	}
 	
-	//setIdleAnnotationColor("rgb(221,221,221)");
-	//setActiveAnnotationColor("rgb(255,255,100)");
-	setIdleAnnotationColor("grey");
-	setActiveAnnotationColor("orange");
-	
 	$("<style>").html(`
 		[djenius_sel_id] [djenius_ann_id]
 		{
@@ -160,9 +155,13 @@
 		}
 	`).appendTo("head");
 	
-	//
-	// newAnnotation
-	//
+	setIdleAnnotationColor("rgb(140,140,140)");
+	//setActiveAnnotationColor("rgb(255,255,100)");
+	setActiveAnnotationColor("orange");
+	
+	//*****************//
+	//  newAnnotation  //
+	//*****************//
 	
 	Range.prototype.crossIntersectsNode = function(node)
 	{
@@ -442,7 +441,7 @@
 	
 	function spanMouseLeaveHandler(relSpans)
 	{
-		var fraction = 0.90 / djeniusSpans.length;
+		var fraction = 0.90 / djeniusAnnotations.length;
 		
 		$(relSpans).each(function()
 		{
