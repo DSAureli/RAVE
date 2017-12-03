@@ -123,9 +123,9 @@
 			
 			newElem.remove();
 			
+			// if the new color is different from the previous one it's legal
 			if (newCssColor != "transparent" && newCssColor != oldCssColor)
 			{
-				//assign color components to obj
 				var rgbArray = newCssColor.split("(")[1].split(")")[0].split(",");
 				obj.r = Number(rgbArray[0].trim());
 				obj.g = Number(rgbArray[1].trim());
@@ -148,6 +148,17 @@
 	//setActiveAnnotationColor("rgb(255,255,100)");
 	setIdleAnnotationColor("grey");
 	setActiveAnnotationColor("orange");
+	
+	$("<style>").html(`
+		[djenius_sel_id] [djenius_ann_id]
+		{
+			transition: background-color 100ms linear;
+		}
+		[djenius_sel_id] [djenius_ann_id]:hover
+		{
+			transition: background-color 100ms linear;
+		}
+	`).appendTo("head");
 	
 	//
 	// newAnnotation

@@ -59,3 +59,8 @@ ci sono "CR LF TAB TAB" quindi non è vuoto...
 potrei anche lasciare così, male non fa.
 
 fade animation for highlighting as on Genius
+
+Always implement default functions, but leave the chance to set custom ones
+(annotation new text (prompt), annotation text edit (prompt with old text), 
+
+c'è un problema con il calcolo del colore... più annotazioni fai più il grigio diventa scuro (si avvicina a quello che dovrebbe essere)

@@ -407,5 +407,60 @@
 	</script>
 	<div id="test_color"></div>
 	<input id="test_color_button" type="button" value="test color">
+	
+	<br>
+	<br>
+	
+	<script>
+		$(function()
+		{
+			$("#test_class").addClass("myclass");
+			var meh;
+			
+			$("#test_new_class_button").click(function()
+			{
+				meh = $("<style type='text/css'>").html(".myclass {background-color: orange;}").appendTo("head");
+			});
+			
+			$("#test_edit_class_button").click(function()
+			{
+				meh.html(".myclass {background-color: green;}");
+			});
+		});
+	</script>
+	<div id="test_class">text text text</div>
+	<input id="test_new_class_button" type="button" value="test new class">
+	<input id="test_edit_class_button" type="button" value="test edit class">
+	
+	<br>
+	<br>
+	
+	<style>
+		#test_trans
+		{
+			transition: background-color 200ms linear;
+		}
+		#test_trans:hover
+		{
+			transition: background-color 200ms linear;
+		}
+	</style>
+	<script>
+		$(function()
+		{
+			$("#test_trans").hover
+			(
+				function()
+				{
+					$("#test_trans").css("background-color", "orange");
+				},
+				function()
+				{
+					$("#test_trans").css("background-color", "lightgrey");
+				}
+			);
+		});
+	</script>
+	<div id="test_trans">test trans</div>
 </body>
 </html>
