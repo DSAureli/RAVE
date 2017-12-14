@@ -2,6 +2,15 @@
 <head>
 	<title>test</title>
 	<meta charset="UTF-8">
+	
+	<!--!!!-->
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!---->
+	
+	<!--
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	-->
+	
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 	<!--<script src="js/util.js"></script>
 	<script>function submitQuery() {}</script>
@@ -193,7 +202,7 @@
 	<script>
 		$(function()
 		{
-			Djenius.setAnnotatable($("#test_djenius_div"), 1);
+			Djenius.setAnnotatable($("#test_djenius_div"), String(1));
 			$("#test_djenius_button").click(Djenius.newAnnotation);
 			
 			$("#test_sel").click(function()
@@ -462,5 +471,232 @@
 		});
 	</script>
 	<div id="test_trans">test trans</div>
+	
+	<br>
+	<br>
+	
+	<script>
+		function defer(fun, res, rej, fin)
+		{
+			var _resolve;
+			var _reject;
+			var promise = new Promise((resolve, reject) =>
+			{
+				_resolve = resolve;
+				_reject = reject;
+			});
+			
+			fun(_resolve, _reject);
+			//promise.then(res).catch(rej).finally(fin);
+			promise.then(res).catch(rej).then(fin, fin);
+		}
+		
+		function external(resolve, reject)
+		{
+			$("#test_promise_button").click(function()
+			{
+				var text = $("#test_promise_entry").val();
+				
+				if (text)
+				{
+					resolve(text);
+				}
+				else
+				{
+					reject("empty input");
+				}
+			});
+			
+			$("#reject_promise_button").click(function()
+			{
+				reject();
+			});
+		}
+		
+		$(function()
+		{
+			$("#new_promise_button").click(function()
+			{
+				defer(external, function(str)
+				{
+					console.log("str: " + str);
+				},
+				function(err)
+				{
+					str = "promise rejected";
+					
+					if (err)
+						str += " with error: " + err;
+					
+					console.error(str);
+				},
+				function()
+				{
+					console.log("finally")
+				});
+			});
+		});
+	</script>
+	<input id="new_promise_button" type="button" value="new promise">
+	<input id="test_promise_entry" type="text">
+	<input id="test_promise_button" type="button" value="test promise">
+	<input id="reject_promise_button" type="button" value="reject promise">
+	
+	
+	
+<!--
+	<style>
+		dialog
+		{
+			border-width: 2px; 
+			padding: 0;
+		}
+		header
+		{
+			text-align: center;
+			border-bottom: 2px solid;
+			padding: 1em;
+			-webkit-user-select: none;
+			user-select: none;
+		}
+		textarea
+		{
+			border: 2px solid;
+			height: 10em;
+			margin: 0.5em;
+			resize: none;
+			width: 25em;
+		}
+		.flex_container
+		{
+			border-top: 2px solid;
+			display: flex;
+		}
+		.flex_container > *
+		{
+			flex: 1;
+		}
+		button
+		{
+			border: none;
+			background: none;
+			padding: 1em;
+			transition: background 50ms linear;
+		}
+		button:first-child
+		{
+			border-right: 1px solid;
+		}
+		button:last-child
+		{
+			border-left: 1px solid;
+		}
+		button:hover
+		{
+			background: silver;
+			transition: background 50ms linear;
+		}
+		button:active
+		{
+			background: darkgrey;
+			transition: background 50ms linear;
+		}
+	</style>
+	<dialog open>
+		<header>Header</header>
+		<textarea></textarea>
+		<div class="flex_container">
+			<button>Cancel</button>
+			<button>OK</button>
+		</div>
+	</dialog>
+	
+	
+	
+	<style>
+		dialog
+		{
+			border-width: 2px; 
+			padding: 0;
+			-webkit-user-select: none;
+			user-select: none;
+		}
+		header
+		{
+			text-align: center;
+			border-bottom: 2px solid;
+			padding: 1em;
+		}
+		
+		.vertical-menu
+		{
+			max-height: 300px;
+			overflow-y: auto;
+			width: 400px;
+		}
+		.vertical-menu a
+		{
+			background: none;
+			display: flex;
+			padding: 0.75em;
+			transition: background 50ms linear;
+		}
+		.vertical-menu a:hover
+		{
+			background: #ddd;
+			transition: background 50ms linear;
+		}
+		.vertical-menu a:active
+		{
+			background: #bbb;
+			transition: background 50ms linear;
+		}
+		/**/
+		.vertical-menu .id
+		{
+			border-right: 1px solid;
+			flex: 1;
+			overflow: hidden;
+			padding-right: 0.75em;
+			text-align: center;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		.vertical-menu .text
+		{
+			flex: 6;
+			overflow: hidden;
+			padding-left: 1em;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		/**/
+		button
+		{
+			border-top: 2px solid;
+			background: none;
+			padding: 1em;
+			transition: background 50ms linear;
+			width: 100%;
+		}
+	</style>
+	<dialog open>
+		<header>Header</header>
+		<div class="vertical-menu">
+			<a>Home</a>
+			<a><div class="id">0101</div><div class="text">Link 1Link 1Link 1Link 1Link 1Link 1Link 1Link 1Link 1Link 1Link 1</div></a>
+			<a>Link 2</a>
+			<a>Link 3</a>
+			<a>Link 4</a>
+			<a>Link 5</a>
+			<a>Link 6</a>
+			<a>Link 7</a>
+			<a>Link 8</a>
+			<a>Link 9</a>
+			<a>Link 10</a>
+		</div>
+		<button>Cancel</button>
+	</dialog>
+-->
 </body>
 </html>

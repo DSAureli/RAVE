@@ -6,21 +6,45 @@
 	
 	Djenius =
 	{
-		setAnnotatable: function(node, id)
+		setAnnotatable: function(nodes, id)
 		{
-			if (!($.type(id) === "number" || (isString(id) && id.trim())))
+			if (!id || !(isString(id) && id.trim()))
 			{
-				console.error("'id' is an invalid unique identifier");
+				console.error("Argument 'id' is not a valid unique identifier");
 				return;
 			}
 			
-			if (node.length > 1)
+			if (nodes.length)
 			{
-				console.error("'node' parameter must contain only one element");
+				for (var node of nodes)
+				{
+					node.setAttribute("djenius_sel_id", id);
+				}
+			}
+			else
+			{
+				nodes.setAttribute("djenius_sel_id", id);
+			}
+		},
+		setGetAnnotationText_Handler: function(handler)
+		{
+			if (typeof handler != "function")
+			{
+				console.error("Argument 'handler' must be a function");
 				return;
 			}
 			
-			$(node).attr("djenius_sel_id", id);
+			getAnnotationText_Handler = handler;
+		},
+		setChooseAnnotation_Handler: function(handler)
+		{
+			if (typeof handler != "function")
+			{
+				console.error("Argument 'handler' must be a function");
+				return;
+			}
+			
+			chooseAnnotation_Handler = handler;
 		},
 		setIdleAnnotationColor: setIdleAnnotationColor,
 		setActiveAnnotationColor: setActiveAnnotationColor,
@@ -79,6 +103,32 @@
 			console.error("Array.prototype.removeAt error: negative index");
 	};
 	
+	function defer(fun, params, res, rej, fin)
+	{
+		var _resolve;
+		var _reject;
+		var promise = new Promise((resolve, reject) =>
+		{
+			_resolve = resolve;
+			_reject = reject;
+		});
+		
+		//promise.then(res).catch(rej).finally(fin);
+		promise.then(res).catch(rej).then(fin, fin);
+		
+		try
+		{
+			fun(params, _resolve, _reject);
+		}
+		catch(err)
+		{
+			console.error("Exception in function '" + fun.name + "'\n" + err);
+			_reject(err);
+		}
+		
+		return promise;
+	}
+	
 	//*********//
 	//  Color  //
 	//*********//
@@ -123,7 +173,7 @@
 			
 			newElem.remove();
 			
-			// if the new color is different from the previous one it's legal
+			// if the new color is different from the previous one it's valid
 			if (newCssColor != "transparent" && newCssColor != oldCssColor)
 			{
 				var rgbArray = newCssColor.split("(")[1].split(")")[0].split(",");
@@ -147,17 +197,280 @@
 	$("<style>").html(`
 		[djenius_sel_id] [djenius_ann_id]
 		{
-			transition: background-color 100ms linear;
+			cursor: pointer;
+			transition: all 100ms linear;
 		}
 		[djenius_sel_id] [djenius_ann_id]:hover
 		{
-			transition: background-color 100ms linear;
+			transition: all 100ms linear;
 		}
 	`).appendTo("head");
 	
 	setIdleAnnotationColor("rgb(140,140,140)");
 	//setActiveAnnotationColor("rgb(255,255,100)");
 	setActiveAnnotationColor("orange");
+	
+	//************//
+	//  Handlers  //
+	//************//
+	
+	$(`
+	<style>
+		[djenius_text_dialog]
+		{
+			border-width: 2px; 
+			padding: 0;
+			position: fixed;
+		}
+		@media only screen and (max-width: 767px)
+		{
+			[djenius_text_dialog]
+			{
+				top: 10%;
+			}
+		}
+		[djenius_text_dialog] header
+		{
+			text-align: center;
+			border-bottom: 2px solid;
+			padding: 1em;
+			-webkit-user-select: none;
+			user-select: none;
+		}
+		[djenius_text_dialog] textarea
+		{
+			border: 2px solid;
+			height: 10em;
+			margin: 0.5em;
+			resize: none;
+			width: 25em;
+		}
+		[djenius_text_dialog] .flex_container
+		{
+			border-top: 2px solid;
+			display: flex;
+		}
+		[djenius_text_dialog] .flex_container > *
+		{
+			flex: 1;
+		}
+		[djenius_text_dialog] button
+		{
+			border: none;
+			background: none;
+			padding: 1em;
+			transition: background 50ms linear;
+		}
+		[djenius_text_dialog] button:first-child
+		{
+			border-right: 1px solid;
+		}
+		[djenius_text_dialog] button:last-child
+		{
+			border-left: 1px solid;
+		}
+		[djenius_text_dialog] button:hover
+		{
+			background: #ddd;
+			transition: background 50ms linear;
+		}
+		[djenius_text_dialog] button:active
+		{
+			background: #bbb;
+			transition: background 50ms linear;
+		}
+	</style>
+	`).appendTo("head");
+	
+	var getAnnotationText_Handler = function(params, resolve, reject)
+	{
+		//resolve(window.prompt("Please enter annotation for selection", "default"));
+		
+		var dialog = $(`
+		<dialog djenius_text_dialog>
+			<header>Enter annotation</header>
+			<textarea></textarea>
+			<div class="flex_container">
+				<button cancel>Cancel</button>
+				<button ok>OK</button>
+			</div>
+		</dialog>
+		`)[0];
+		
+		$(dialog.querySelector("button[cancel]")).click(function()
+		{
+			reject("Operation cancelled by user");
+			dialog.close();
+			dialog.remove();
+		});
+		
+		$(dialog.querySelector("button[ok]")).click(function()
+		{
+			var anno = dialog.querySelector("textarea").value;
+			if (anno.trim())
+			{
+				resolve(anno);
+				dialog.close();
+				dialog.remove();
+			}
+		});
+		
+		document.body.appendChild(dialog);
+		dialog.showModal();
+	};
+	
+	$(`
+	<style>
+		[djenius_choice_dialog]
+		{
+			border-width: 2px; 
+			padding: 0;
+			position: fixed;
+			transition: opacity 100ms linear;
+			-webkit-user-select: none;
+			user-select: none;
+		}
+		[djenius_choice_dialog] header
+		{
+			text-align: center;
+			border-bottom: 2px solid;
+			padding: 1em;
+		}
+		[djenius_choice_dialog] .vertical-menu
+		{
+			max-height: 300px;
+			overflow-y: auto;
+			width: 400px;
+		}
+		[djenius_choice_dialog] .vertical-menu a
+		{
+			background: none;
+			display: flex;
+			transition: background 50ms linear;
+		}
+		[djenius_choice_dialog] .vertical-menu a:hover
+		{
+			background: #ddd;
+			transition: background 50ms linear;
+		}
+		[djenius_choice_dialog] .vertical-menu a:active
+		{
+			background: #bbb;
+			transition: background 50ms linear;
+		}
+		[djenius_choice_dialog] .vertical-menu .id
+		{
+			border-right: 1px solid;
+			flex: 1;
+			overflow: hidden;
+			padding: 0.75em;
+			text-align: center;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		[djenius_choice_dialog] .vertical-menu .text
+		{
+			flex: 6;
+			overflow: hidden;
+			padding: 0.75em;
+			padding-left: 1em;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		[djenius_choice_dialog] button
+		{
+			border: none;
+			border-top: 2px solid;
+			background: none;
+			padding: 1em;
+			transition: background 50ms linear;
+			width: 100%;
+		}
+		[djenius_choice_dialog] button:hover
+		{
+			background: silver;
+			transition: background 50ms linear;
+		}
+		[djenius_choice_dialog] button:active
+		{
+			background: darkgrey;
+			transition: background 50ms linear;
+		}
+	</style>
+	`).appendTo("head");
+	
+	var chooseAnnotation_Handler = function(params, resolve, reject)
+	{
+		//params = {spanIds,relSpans}
+		
+		var dialog = $(`
+		<dialog djenius_choice_dialog>
+			<header>Header</header>
+			<div class="vertical-menu"></div>
+			<button cancel>Cancel</button>
+		</dialog>
+		`)[0];
+		
+		console.log(params);
+		
+		var vertm = dialog.querySelector(".vertical-menu")
+		
+		for (let spanId of params.spanIds)
+		{
+			var idDiv = document.createElement("div");
+			idDiv.classList.add("id");
+			idDiv.appendChild(document.createTextNode(spanId));
+			
+			var annoText = params.relSpans
+				.filter(x => x.getAttribute("djenius_ann_id").split(",").includes(spanId))
+				.map(x => x.textContent.split("\n").join(" ").split("\t").join("")).join("");
+			
+			var textDiv = document.createElement("div");
+			textDiv.classList.add("text");
+			textDiv.appendChild(document.createTextNode(annoText));
+			
+			var entry = document.createElement("a");
+			$(entry).hover(function()
+			{
+				dialog.style.opacity = 0.85;
+				spanMouseEnterHandler(params.relSpans, [spanId]);
+			},
+			function()
+			{
+				dialog.style.opacity = 1;
+				spanMouseLeaveHandler(params.relSpans);
+			});
+			
+			$(entry).click(function()
+			{
+				spanMouseLeaveHandler(params.relSpans);
+				
+				dialog.close();
+				dialog.remove();
+				resolve(spanId);
+			});
+			
+			entry.appendChild(idDiv);
+			entry.appendChild(textDiv);
+			vertm.appendChild(entry);
+		}
+		
+		$(dialog.querySelector("button[cancel]")).click(function()
+		{
+			reject("Operation cancelled by user");
+			dialog.close();
+			dialog.remove();
+		});
+		
+		document.body.appendChild(dialog);
+		dialog.showModal();
+	};
+	
+	function showAnnotation_Handler(annoId)
+	{
+		console.log(annoId);
+		// ...
+	};
 	
 	//*****************//
 	//  newAnnotation  //
@@ -434,8 +747,11 @@
 		{
 			var commonIds = getNodeDjeniusIds(this).filter(x => spanIds.includes(x));
 			var alpha = 0.10 + commonIds.length * fraction;
+			var color = getCssColor(activeColor, alpha);
 			
-			$(this).css("backgroundColor", getCssColor(activeColor, alpha));
+			$(this).css("backgroundColor", color);
+			$(this).css("box-shadow", "0 -1px 0 " + color + ", 0 1px 0 " + color);
+			//$(this).css("box-shadow", "0 1px 0 " + color);
 		});
 	}
 	
@@ -446,8 +762,51 @@
 		$(relSpans).each(function()
 		{
 			var alpha = 0.10 + getNodeDjeniusIds(this).length * fraction;
-			$(this).css("backgroundColor", getCssColor(idleColor, alpha));
+			var color = getCssColor(idleColor, alpha);
+			$(this).css("backgroundColor", color);
+			$(this).css("box-shadow", "0 -1px 0 " + color + ", 0 1px 0 " + color);
+			//$(this).css("box-shadow", "0 1px 0 " + color);
 		});
+	}
+	
+	function spanClickHandler(span)
+	{
+		var spanIds = getNodeDjeniusIds(span);
+		
+		//anchor handling
+		// ...
+		
+		if (!spanIds.length)
+		{
+			//error
+		}
+		else if (spanIds.length == 1)
+		{
+			showAnnotation_Handler(/*id*/ /*test*/spanIds[0]/**/);
+		}
+		else
+		{
+			var relSpans = getRelatedSpans(span);
+			
+			defer(chooseAnnotation_Handler,
+			{
+				spanIds: spanIds,
+				relSpans: relSpans
+			},
+			function(result)
+			{
+				showAnnotation_Handler(result);
+			},
+			function(reason)
+			{
+				var errStr = "Choice failed";
+				
+				if (isString(reason) && reason.trim())
+					errStr += ": " + reason;
+				
+				console.error(errStr);
+			});
+		}
 	}
 	
 	function getRangesDifference(extRange, intRange)
@@ -466,8 +825,6 @@
 	function createSpan(range, id)
 	{
 		var newSpan = document.createElement("span");
-		
-		$(newSpan).css("cursor", "pointer");
 		$(newSpan).attr("djenius_ann_id", id);
 		
 		$(newSpan).hover
@@ -481,6 +838,11 @@
 				spanMouseLeaveHandler(getRelatedSpans(newSpan));
 			}
 		);
+		
+		$(newSpan).click(function()
+		{
+			spanClickHandler(newSpan);
+		});
 		
 		djeniusSpans.push(newSpan);
 		range.surroundContents(newSpan);
@@ -615,7 +977,7 @@
 		if (newDjeniusRanges.length)
 		{
 			window.getSelection().removeAllRanges(); //maybe save it if it fails to load the new ranges to server
-			highlightDjeniusRanges(newDjeniusRanges, djeniusAnnotations.length);
+			highlightDjeniusRanges(newDjeniusRanges, djeniusAnnotations.length.toString()); //just put a random id, even 0, then let the server choose a proper UUID
 			$(djeniusSpans[0]).trigger("mouseenter");
 			
 			//call function taken as argument that returns a string (ie. the comment) or something like null or undefined otherwise
@@ -623,30 +985,50 @@
 			//then finally add the new ones, properly adapted, to allNativeRanges
 			
 			//test
-			var annotation = window.prompt("Please enter comment on selection", "default");
-			if (annotation && annotation.trim())
+			defer(getAnnotationText_Handler, null, function(annotation)
 			{
-				djeniusAnnotations.push(
+				if (annotation && annotation.trim())
 				{
-					id: djeniusAnnotations.length,
-					//user: ... or editable: ...(true, false)
-					//public: ... or visibility: ...
-					ranges: newDjeniusRanges
-					//comment: ...
-				});
-				
-				//proper handling:
-				//send newDjeniusRanges to the server; ask server for all the annotations
-				//if an error occurs, display an error message; otherwise, update djeniusAnnotations
-			}
-			else
+					djeniusAnnotations.push(
+					{
+						id: djeniusAnnotations.length, //test //let the server do this
+						//user: ... or editable: ...(true, false)
+						//public: ... or visibility: ...
+						ranges: newDjeniusRanges
+						//comment: ...
+					});
+					
+					//proper handling:
+					//send newDjeniusRanges to the server; ask server for all the annotations
+					//if an error occurs, display an error message; otherwise, update djeniusAnnotations
+				}
+				else
+				{
+					// ...
+					//console.error("annotation failed");
+					throw "annotation text was empty";
+				}
+			},
+			function(reason)
 			{
-				// ...
-				console.error("annotation failed");
-			}
+				var errStr = "Annotation failed";
+				
+				if (isString(reason) && reason.trim())
+					errStr += ": " + reason;
+				
+				console.error(errStr);
+			},
+			function()
+			{
+				highlightDjeniusAnnotations(djeniusAnnotations);
+				console.log(djeniusAnnotations);
+			});
+			
 		}
-		
-		highlightDjeniusAnnotations(djeniusAnnotations);
-		console.log(djeniusAnnotations);
+		else
+		{
+			highlightDjeniusAnnotations(djeniusAnnotations);
+			console.log(djeniusAnnotations);
+		}
 	}
 })();
