@@ -63,7 +63,8 @@ Always implement default functions, but leave the chance to set custom ones
 (annotation new text (prompt), annotation text edit (prompt with old text), ...)
 expose spanMouseEnterHandler and spanMouseLeaveHandler for custom chooseAnnotation_Handler?
 
-!!!se ha fatto click E non ha selezionato testo (per nuove user selections totalmente interne ad uno span)
-
 <meta name="viewport" content="width=device-width, initial-scale=1">
 (proper scaling on mobile)
+
+REFACTORING
+replace var with let in functions

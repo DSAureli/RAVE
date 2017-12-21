@@ -423,7 +423,7 @@
 			
 			var annoText = params.relSpans
 				.filter(x => x.getAttribute("djenius_ann_id").split(",").includes(spanId))
-				.map(x => x.textContent.split("\n").join(" ").split("\t").join("")).join("");
+				.map(x => x.textContent.split("\n").join(" ").split("\t").join("")).join(" ");
 			
 			var textDiv = document.createElement("div");
 			textDiv.classList.add("text");
@@ -771,6 +771,13 @@
 	
 	function spanClickHandler(span)
 	{
+		var selArray = getSelectionRanges();
+		if (selArray && selArray.length && !selArray[0].collapsed)
+		{
+			// user selection has both ends inside span, let's not trigger click event
+			return;
+		}
+		
 		var spanIds = getNodeDjeniusIds(span);
 		
 		//anchor handling
