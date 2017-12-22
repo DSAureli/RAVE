@@ -1,25 +1,4 @@
-﻿Mantieni ben separati Creazione e Visualizzazione, poichè nel prodotto finale saranno divisi
-
-Creazione:			(ignoro gli <input>? non ce n'è bisogno, lo fa già da solo)
-Funzione che mi restituisce l'array dei blocchi di testo direttamente figli del div passato come parametro
-suddividi il range in sottorange ("mini range") sui blocchi di testo direttamente figli del div, chiama ricorsivamente sui figli non nodi text
-ora ho un array di "mini range" che hanno start e end giacenti nello stesso blocco text, ognuno con: path, start (index, offset) e end (index, offset)
-
-Visualizzazione:	(i nested link sono illegali in HTML)
-Scendo lungo il path nodo per nodo
-Wrappa il "minirange" con uno span:
-	- la classe dello span si occupa dell'evidenziatura e della trasformazione cursore in manina ("cursor: pointer")
-	- magari uniforma il colore del testo ("color: ?") in modo che il link nel commento sia sottolineato ma non con colore diverso
-		(per trovare il colore del testo, dato che potrebbe non essere nero, potresti aggiungere un nodo testo al padre dello span,
-		recuperarne l'attributo "color" con JQuery e rimuoverlo. Poi assegni quel color allo span)
-	
-	- mouseenter: svuota l'href del link (non eliminarlo!, trasferiscilo in un nuovo attributo djenius_link);
-	  aggiungi click event: compare un floating div con url del link e selezione azione (commento o link)
-	- mouseleave: ripristina href, rimuovi click event
-	(mouseenter e mouseleave perché se il link è selezionato solo per una parte la parte non selezionata deve essere un normale link)
-
-
-Aggiungi metodo per escludere dei div dalla possibilità di essere selezionati
+﻿Aggiungi metodo per escludere dei div dalla possibilità di essere selezionati
 setDjeniusIgnore
 
 Aggiungi metodo per dare la possibilità di scegliere se cambiare colore del testo nella parte di link selezionata
@@ -36,9 +15,6 @@ controlla che normalize sia ricorsivo sul sottoalbero
 si, è ricorsivo sul sottoalbero
 
 magari durante la scrittura del commento fai dim di tutta la pagina, tranne il div per il commento e il commento stesso (eventualmente dagli anche dell'ombra)
-
-IMPORTANTI:
-- gestione dei link interni ai range
 
 colori:
 dividi il colore pieno per il numero massimo di span che fanno overlap.
@@ -67,4 +43,4 @@ expose spanMouseEnterHandler and spanMouseLeaveHandler for custom chooseAnnotati
 (proper scaling on mobile)
 
 REFACTORING
-replace var with let in functions
+replace var with let in functions (maybe only in and inside loops?)

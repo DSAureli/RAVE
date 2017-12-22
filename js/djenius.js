@@ -374,6 +374,7 @@
 			overflow: hidden;
 			padding: 0.75em;
 			padding-left: 1em;
+			text-align: center;
 			text-overflow: ellipsis;
 			white-space: nowrap;
 		}
@@ -401,7 +402,7 @@
 	
 	var chooseAnnotation_Handler = function(params, resolve, reject)
 	{
-		//params = {spanIds,relSpans}
+		// params = {spanIds, relSpans, anchor}
 		
 		var dialog = $(`
 		<dialog djenius_choice_dialog>
@@ -414,6 +415,31 @@
 		console.log(params);
 		
 		var vertm = dialog.querySelector(".vertical-menu")
+		
+		if (params.anchor)
+		{
+			var idDiv = document.createElement("div");
+			idDiv.classList.add("id");
+			
+			var linkDiv = document.createElement("div");
+			linkDiv.classList.add("text");
+			linkDiv.style.color = "blue";
+			linkDiv.style.textDecoration = "underline";
+			linkDiv.appendChild(document.createTextNode(params.anchor.text));
+			
+			var entry = document.createElement("a");
+			
+			$(entry).click(function()
+			{
+				dialog.close();
+				dialog.remove();
+				resolve(null);
+			});
+			
+			entry.appendChild(idDiv);
+			entry.appendChild(linkDiv);
+			vertm.appendChild(entry);
+		}
 		
 		for (let spanId of params.spanIds)
 		{
@@ -433,17 +459,17 @@
 			$(entry).hover(function()
 			{
 				dialog.style.opacity = 0.85;
-				spanMouseEnterHandler(params.relSpans, [spanId]);
+				spanMouseEnterHandler(null, params.relSpans, [spanId]);
 			},
 			function()
 			{
 				dialog.style.opacity = 1;
-				spanMouseLeaveHandler(params.relSpans);
+				spanMouseLeaveHandler(null, params.relSpans);
 			});
 			
 			$(entry).click(function()
 			{
-				spanMouseLeaveHandler(params.relSpans);
+				spanMouseLeaveHandler(null, params.relSpans);
 				
 				dialog.close();
 				dialog.remove();
@@ -465,6 +491,26 @@
 		document.body.appendChild(dialog);
 		dialog.showModal();
 	};
+	
+	var chooseAnchorOrAnnotation_Handler = function(params, resolve, reject)
+	{
+		// params = {anchor, span, spanIds, relSpans}
+		
+		defer(chooseAnnotation_Handler,
+		{
+			spanIds: params.spanIds,
+			relSpans: params.relSpans,
+			anchor: params.anchor
+		},
+		function(result)
+		{
+			resolve(result);
+		},
+		function(reason)
+		{
+			reject(reason);
+		});
+	}
 	
 	function showAnnotation_Handler(annoId)
 	{
@@ -739,8 +785,49 @@
 		}).toArray();
 	}
 	
-	function spanMouseEnterHandler(relSpans, spanIds)
+	function spanMouseEnterHandler(span, relSpans, spanIds)
 	{
+		if (span)
+		{
+			var closestAnchor = span.closest("a");
+			$(closestAnchor).click(function(e)
+			{
+				e.preventDefault();
+				
+				defer(chooseAnchorOrAnnotation_Handler,
+				{
+					anchor: closestAnchor,
+					span: span,
+					spanIds: getNodeDjeniusIds(span),
+					relSpans: getRelatedSpans(span)
+				},
+				function(result)
+				{
+					if (result)
+					{
+						showAnnotation_Handler(result);
+					}
+					else
+					{
+						$(closestAnchor).off("click");
+						closestAnchor.click();
+					}
+				},
+				function(reason)
+				{
+					var errStr = "Choice failed";
+					
+					if (isString(reason) && reason.trim())
+						errStr += ": " + reason;
+					
+					console.error(errStr);
+				});
+			});
+		}
+		
+		relSpans = relSpans ? relSpans : getRelatedSpans(span);
+		spanIds = spanIds ? spanIds : getNodeDjeniusIds(span);
+		
 		var fraction = 0.90 / spanIds.length;
 		
 		$(relSpans).each(function()
@@ -755,8 +842,15 @@
 		});
 	}
 	
-	function spanMouseLeaveHandler(relSpans)
+	function spanMouseLeaveHandler(span, relSpans)
 	{
+		if (span)
+		{
+			var closestAnchor = span.closest("a");
+			$(closestAnchor).off("click");
+		}
+		
+		relSpans = relSpans ? relSpans : getRelatedSpans(span);
 		var fraction = 0.90 / djeniusAnnotations.length;
 		
 		$(relSpans).each(function()
@@ -779,9 +873,6 @@
 		}
 		
 		var spanIds = getNodeDjeniusIds(span);
-		
-		//anchor handling
-		// ...
 		
 		if (!spanIds.length)
 		{
@@ -838,11 +929,11 @@
 		(
 			function()
 			{
-				spanMouseEnterHandler(getRelatedSpans(newSpan), getNodeDjeniusIds(newSpan));
+				spanMouseEnterHandler(newSpan);
 			},
 			function()
 			{
-				spanMouseLeaveHandler(getRelatedSpans(newSpan));
+				spanMouseLeaveHandler(newSpan);
 			}
 		);
 		
