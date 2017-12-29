@@ -41,6 +41,3 @@ expose spanMouseEnterHandler and spanMouseLeaveHandler for custom chooseAnnotati
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 (proper scaling on mobile)
-
-REFACTORING
-replace var with let in functions (maybe only in and inside loops?)

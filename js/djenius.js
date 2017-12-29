@@ -16,7 +16,7 @@
 			
 			if (nodes.length)
 			{
-				for (var node of nodes)
+				for (let node of nodes)
 				{
 					node.setAttribute("djenius_sel_id", id);
 				}
@@ -65,8 +65,8 @@
 	
 	function iter(n)
 	{
-		var a = [];
-		for (var i = 0; i < n; i++)
+		let a = [];
+		for (let i = 0; i < n; i++)
 			a[i] = i;
 		return a;
 	}
@@ -78,10 +78,10 @@
 	
 	String.prototype.format = function()
 	{
-		var content = this;
-		for (var i=0; i < arguments.length; i++)
+		let content = this;
+		for (let i=0; i < arguments.length; i++)
 		{
-			var replacement = '{' + i + '}';
+			let replacement = '{' + i + '}';
 			content = content.split(replacement).join(arguments[i]);
 		}
 		return content;
@@ -89,7 +89,7 @@
 	
 	Array.prototype.pushArray = function(arr)
 	{
-		for (var i of arr)
+		for (let i of arr)
 			this.push(i);
 		
 		return arr.length;
@@ -105,9 +105,9 @@
 	
 	function defer(fun, params, res, rej, fin)
 	{
-		var _resolve;
-		var _reject;
-		var promise = new Promise((resolve, reject) =>
+		let _resolve;
+		let _reject;
+		let promise = new Promise((resolve, reject) =>
 		{
 			_resolve = resolve;
 			_reject = reject;
@@ -140,8 +140,8 @@
 		this.b = 0;
 	}
 	
-	var idleColor = new Color();
-	var activeColor = new Color();
+	let idleColor = new Color();
+	let activeColor = new Color();
 	
 	function getCssColor(color, alpha)
 	{
@@ -159,24 +159,24 @@
 	{
 		if (obj && obj instanceof Color && isString(str))
 		{
-			var newElem = document.createElement("span");
+			let newElem = document.createElement("span");
 			
 			// must attach the element to DOM, otherwise it will work only on Firefox
 			document.body.appendChild(newElem);
-			var style = window.getComputedStyle(newElem);
+			let style = window.getComputedStyle(newElem);
 			
 			$(newElem).css("color", getCssColor(obj));
-			var oldCssColor = style.getPropertyValue("color");
+			let oldCssColor = style.getPropertyValue("color");
 			
 			$(newElem).css("color", str);
-			var newCssColor = style.getPropertyValue("color");
+			let newCssColor = style.getPropertyValue("color");
 			
 			newElem.remove();
 			
 			// if the new color is different from the previous one it's valid
 			if (newCssColor != "transparent" && newCssColor != oldCssColor)
 			{
-				var rgbArray = newCssColor.split("(")[1].split(")")[0].split(",");
+				let rgbArray = newCssColor.split("(")[1].split(")")[0].split(",");
 				obj.r = Number(rgbArray[0].trim());
 				obj.g = Number(rgbArray[1].trim());
 				obj.b = Number(rgbArray[2].trim());
@@ -282,11 +282,11 @@
 	</style>
 	`).appendTo("head");
 	
-	var getAnnotationText_Handler = function(params, resolve, reject)
+	let getAnnotationText_Handler = function(params, resolve, reject)
 	{
 		//resolve(window.prompt("Please enter annotation for selection", "default"));
 		
-		var dialog = $(`
+		let dialog = $(`
 		<dialog djenius_text_dialog>
 			<header>Enter annotation</header>
 			<textarea></textarea>
@@ -306,7 +306,7 @@
 		
 		$(dialog.querySelector("button[ok]")).click(function()
 		{
-			var anno = dialog.querySelector("textarea").value;
+			let anno = dialog.querySelector("textarea").value;
 			if (anno.trim())
 			{
 				resolve(anno);
@@ -400,11 +400,11 @@
 	</style>
 	`).appendTo("head");
 	
-	var chooseAnnotation_Handler = function(params, resolve, reject)
+	let chooseAnnotation_Handler = function(params, resolve, reject)
 	{
 		// params = {spanIds, relSpans, anchor}
 		
-		var dialog = $(`
+		let dialog = $(`
 		<dialog djenius_choice_dialog>
 			<header>Header</header>
 			<div class="vertical-menu"></div>
@@ -414,20 +414,20 @@
 		
 		console.log(params);
 		
-		var vertm = dialog.querySelector(".vertical-menu")
+		let vertm = dialog.querySelector(".vertical-menu")
 		
 		if (params.anchor)
 		{
-			var idDiv = document.createElement("div");
+			let idDiv = document.createElement("div");
 			idDiv.classList.add("id");
 			
-			var linkDiv = document.createElement("div");
+			let linkDiv = document.createElement("div");
 			linkDiv.classList.add("text");
 			linkDiv.style.color = "blue";
 			linkDiv.style.textDecoration = "underline";
 			linkDiv.appendChild(document.createTextNode(params.anchor.text));
 			
-			var entry = document.createElement("a");
+			let entry = document.createElement("a");
 			
 			$(entry).click(function()
 			{
@@ -443,19 +443,19 @@
 		
 		for (let spanId of params.spanIds)
 		{
-			var idDiv = document.createElement("div");
+			let idDiv = document.createElement("div");
 			idDiv.classList.add("id");
 			idDiv.appendChild(document.createTextNode(spanId));
 			
-			var annoText = params.relSpans
+			let annoText = params.relSpans
 				.filter(x => x.getAttribute("djenius_ann_id").split(",").includes(spanId))
 				.map(x => x.textContent.split("\n").join(" ").split("\t").join("")).join(" ");
 			
-			var textDiv = document.createElement("div");
+			let textDiv = document.createElement("div");
 			textDiv.classList.add("text");
 			textDiv.appendChild(document.createTextNode(annoText));
 			
-			var entry = document.createElement("a");
+			let entry = document.createElement("a");
 			$(entry).hover(function()
 			{
 				dialog.style.opacity = 0.85;
@@ -492,7 +492,7 @@
 		dialog.showModal();
 	};
 	
-	var chooseAnchorOrAnnotation_Handler = function(params, resolve, reject)
+	let chooseAnchorOrAnnotation_Handler = function(params, resolve, reject)
 	{
 		// params = {anchor, span, spanIds, relSpans}
 		
@@ -531,7 +531,7 @@
 		}
 		else
 		{
-			var nodeRange = node.ownerDocument.createRange();
+			let nodeRange = node.ownerDocument.createRange();
 			nodeRange.selectNode(node);
 			
 			// start of this is before end of nodeRange && end of this is after start of nodeRange
@@ -547,10 +547,10 @@
 	
 	function getSelectionRanges()
 	{
-		var userSel = window.getSelection();
-		var selRanges = [];
+		let userSel = window.getSelection();
+		let selRanges = [];
 		
-		for (var i of iter(userSel.rangeCount))
+		for (let i of iter(userSel.rangeCount))
 		{
 			selRanges.push(userSel.getRangeAt(i));
 		}
@@ -562,7 +562,7 @@
 	{
 		// do not optimize, the right order must be ensured
 		
-		var nodes = [];
+		let nodes = [];
 		
 		$(node).contents().each(function()
 		{
@@ -577,7 +577,7 @@
 	
 	function getIntersectionRange(range_a, range_b)
 	{
-		var intRange = range_a.cloneRange();
+		let intRange = range_a.cloneRange();
 		
 		if (intRange.compareBoundaryPoints(Range.START_TO_START, range_b) < 1)
 			intRange.setStart(range_b.startContainer, range_b.startOffset);
@@ -593,8 +593,8 @@
 	
 	function getRelativePath(div, node)
 	{
-		var pathArray = [];
-		var $node = $(node);
+		let pathArray = [];
+		let $node = $(node);
 		
 		while (!$node.is(div))
 		{
@@ -608,25 +608,25 @@
 	
 	function getNewDjeniusRanges()
 	{
-		var newDjeniusRanges = [];
-		var selRanges = getSelectionRanges();
+		let newDjeniusRanges = [];
+		let selRanges = getSelectionRanges();
 		
 		// Djenius divs not descendant of other Djenius divs
 		$("[djenius_sel_id]").not("[djenius_sel_id] *").each(function(index, div)
 		{
 			$(div)[0].normalize();
 			
-			var textNodes = getDescendantTextNodes(div);
-			var djenius_sel_id = $(div).attr("djenius_sel_id");
+			let textNodes = getDescendantTextNodes(div);
+			let djenius_sel_id = $(div).attr("djenius_sel_id");
 			
-			for (var range of selRanges)
+			for (let range of selRanges)
 			{
-				for (var textNode of textNodes)
+				for (let textNode of textNodes)
 				{
-					var textNodeRange = document.createRange();
+					let textNodeRange = document.createRange();
 					textNodeRange.selectNodeContents(textNode);
 					
-					var intRange = getIntersectionRange(range, textNodeRange);
+					let intRange = getIntersectionRange(range, textNodeRange);
 					if (intRange && intRange.toString().trim())
 					{
 						newDjeniusRanges.push(
@@ -646,7 +646,7 @@
 	
 	function getTextNode($div, path)
 	{
-		for (var step of path)
+		for (let step of path)
 		{
 			$div = $($div).contents().eq(step);
 		}
@@ -656,15 +656,15 @@
 	
 	function getNativeRanges(ranges)
 	{
-		var nativeRanges = [];
+		let nativeRanges = [];
 		
-		for (var range of ranges)
+		for (let range of ranges)
 		{
-			var $djeniusNode = $("[djenius_sel_id='{0}']".format(range.djeniusSelID));
+			let $djeniusNode = $("[djenius_sel_id='{0}']".format(range.djeniusSelID));
 			$djeniusNode[0].normalize();
 			
-			var newRange = document.createRange();
-			var textNode = getTextNode($djeniusNode, range.path);
+			let newRange = document.createRange();
+			let textNode = getTextNode($djeniusNode, range.path);
 			newRange.setStart(textNode, range.startOffset);
 			newRange.setEnd(textNode, range.endOffset);
 			
@@ -674,28 +674,28 @@
 		return nativeRanges;
 	}
 	
-	var djeniusSpans = [];
+	let djeniusSpans = [];
 	
 	function removeSpan(span)
 	{
 		// unwrapping a span changes any user selection intersecting it,
 		// unless its start and end points are both outside the span
 		
-		var selRanges = getSelectionRanges();
+		let selRanges = getSelectionRanges();
 		
-		var spanRange = document.createRange();
+		let spanRange = document.createRange();
 		spanRange.selectNodeContents(span);
 		
-		var pairs = [];
+		let pairs = [];
 		
-		for (var range of selRanges)
+		for (let range of selRanges)
 		{
 			if (range.crossIntersectsNode(span))
 			{
-				var start = false;
-				var end = false;
+				let start = false;
+				let end = false;
 				
-				var tempRange = document.createRange();
+				let tempRange = document.createRange();
 				tempRange.setStart(spanRange.startContainer, spanRange.startOffset);
 				tempRange.setEnd(spanRange.endContainer, spanRange.endOffset);
 				
@@ -714,7 +714,7 @@
 				if (!start && !end)
 					continue;
 				
-				var tempSpan = document.createElement("span");
+				let tempSpan = document.createElement("span");
 				tempRange.surroundContents(tempSpan);
 				
 				pairs.push(
@@ -727,10 +727,10 @@
 			}
 		}
 		
-		var spanParent = $(span).parent()[0];
+		let spanParent = $(span).parent()[0];
 		$(span).contents().unwrap();
 		
-		for (var pair of pairs)
+		for (let pair of pairs)
 		{
 			if (pair.start)
 			{
@@ -742,7 +742,7 @@
 				pair.range.setEnd(pair.span.nextSibling, 0);
 			}
 			
-			var pairSpanParent = $(pair.span).parent()[0];
+			let pairSpanParent = $(pair.span).parent()[0];
 			$(pair.span).contents().unwrap();
 			$(pair.span).remove();
 			pairSpanParent.normalize();
@@ -753,7 +753,7 @@
 	
 	function removeHighlightings()
 	{
-		for (var span of djeniusSpans)
+		for (let span of djeniusSpans)
 		{
 			removeSpan(span);
 		}
@@ -769,13 +769,13 @@
 	
 	function getRelatedSpans(span)
 	{
-		var span_ids = getNodeDjeniusIds(span);
+		let span_ids = getNodeDjeniusIds(span);
 		
 		return $("[djenius_ann_id]").filter(function()
 		{
-			var node_ids = getNodeDjeniusIds(this);
+			let node_ids = getNodeDjeniusIds(this);
 			
-			for (var id of span_ids)
+			for (let id of span_ids)
 			{
 				if (node_ids.includes(id))
 					return true;
@@ -789,7 +789,7 @@
 	{
 		if (span)
 		{
-			var closestAnchor = span.closest("a");
+			let closestAnchor = span.closest("a");
 			$(closestAnchor).click(function(e)
 			{
 				e.preventDefault();
@@ -815,7 +815,7 @@
 				},
 				function(reason)
 				{
-					var errStr = "Choice failed";
+					let errStr = "Choice failed";
 					
 					if (isString(reason) && reason.trim())
 						errStr += ": " + reason;
@@ -828,13 +828,13 @@
 		relSpans = relSpans ? relSpans : getRelatedSpans(span);
 		spanIds = spanIds ? spanIds : getNodeDjeniusIds(span);
 		
-		var fraction = 0.90 / spanIds.length;
+		let fraction = 0.90 / spanIds.length;
 		
 		$(relSpans).each(function()
 		{
-			var commonIds = getNodeDjeniusIds(this).filter(x => spanIds.includes(x));
-			var alpha = 0.10 + commonIds.length * fraction;
-			var color = getCssColor(activeColor, alpha);
+			let commonIds = getNodeDjeniusIds(this).filter(x => spanIds.includes(x));
+			let alpha = 0.10 + commonIds.length * fraction;
+			let color = getCssColor(activeColor, alpha);
 			
 			$(this).css("backgroundColor", color);
 			$(this).css("box-shadow", "0 -1px 0 " + color + ", 0 1px 0 " + color);
@@ -846,17 +846,17 @@
 	{
 		if (span)
 		{
-			var closestAnchor = span.closest("a");
+			let closestAnchor = span.closest("a");
 			$(closestAnchor).off("click");
 		}
 		
 		relSpans = relSpans ? relSpans : getRelatedSpans(span);
-		var fraction = 0.90 / djeniusAnnotations.length;
+		let fraction = 0.90 / djeniusAnnotations.length;
 		
 		$(relSpans).each(function()
 		{
-			var alpha = 0.10 + getNodeDjeniusIds(this).length * fraction;
-			var color = getCssColor(idleColor, alpha);
+			let alpha = 0.10 + getNodeDjeniusIds(this).length * fraction;
+			let color = getCssColor(idleColor, alpha);
 			$(this).css("backgroundColor", color);
 			$(this).css("box-shadow", "0 -1px 0 " + color + ", 0 1px 0 " + color);
 			//$(this).css("box-shadow", "0 1px 0 " + color);
@@ -865,14 +865,14 @@
 	
 	function spanClickHandler(span)
 	{
-		var selArray = getSelectionRanges();
+		let selArray = getSelectionRanges();
 		if (selArray && selArray.length && !selArray[0].collapsed)
 		{
 			// user selection has both ends inside span, let's not trigger click event
 			return;
 		}
 		
-		var spanIds = getNodeDjeniusIds(span);
+		let spanIds = getNodeDjeniusIds(span);
 		
 		if (!spanIds.length)
 		{
@@ -884,7 +884,7 @@
 		}
 		else
 		{
-			var relSpans = getRelatedSpans(span);
+			let relSpans = getRelatedSpans(span);
 			
 			defer(chooseAnnotation_Handler,
 			{
@@ -897,7 +897,7 @@
 			},
 			function(reason)
 			{
-				var errStr = "Choice failed";
+				let errStr = "Choice failed";
 				
 				if (isString(reason) && reason.trim())
 					errStr += ": " + reason;
@@ -909,11 +909,11 @@
 	
 	function getRangesDifference(extRange, intRange)
 	{
-		var beforeRange = document.createRange();
+		let beforeRange = document.createRange();
 		beforeRange.setStart(extRange.startContainer, extRange.startOffset);
 		beforeRange.setEnd(intRange.startContainer, intRange.startOffset);
 		
-		var afterRange = document.createRange();
+		let afterRange = document.createRange();
 		afterRange.setStart(intRange.endContainer, intRange.endOffset);
 		afterRange.setEnd(extRange.endContainer, extRange.endOffset);
 		
@@ -922,7 +922,7 @@
 	
 	function createSpan(range, id)
 	{
-		var newSpan = document.createElement("span");
+		let newSpan = document.createElement("span");
 		$(newSpan).attr("djenius_ann_id", id);
 		
 		$(newSpan).hover
@@ -952,23 +952,23 @@
 	
 	function highlightIdRanges(idRanges)
 	{
-		var spanIdRanges = [];
+		let spanIdRanges = [];
 		
-		for (var idRange of idRanges)
+		for (let idRange of idRanges)
 		{
-			var nonIntRange = true;
+			let nonIntRange = true;
 			
-			for (var spanIdRange of spanIdRanges)
+			for (let spanIdRange of spanIdRanges)
 			{
-				var intRange = getIntersectionRange(idRange, spanIdRange);
+				let intRange = getIntersectionRange(idRange, spanIdRange);
 				if (intRange)
 				{
 					// internal diff //
 					
-					var diffRanges = getRangesDifference(spanIdRange, intRange);
+					let diffRanges = getRangesDifference(spanIdRange, intRange);
 					spanIdRanges.removeAt(spanIdRanges.indexOf(spanIdRange));
 					
-					for (var diffRange of diffRanges)
+					for (let diffRange of diffRanges)
 					{
 						if (!diffRange.isEmpty())
 						{
@@ -984,7 +984,7 @@
 					
 					diffRanges = getRangesDifference(idRange, intRange);
 					
-					for (var diffRange of diffRanges)
+					for (let diffRange of diffRanges)
 					{
 						if (!diffRange.isEmpty())
 						{
@@ -1007,11 +1007,11 @@
 		// ranges that begin immediately after another range are modified
 		// if a node is added in the latter range
 		
-		for (var spanIdRange of spanIdRanges)
+		for (let spanIdRange of spanIdRanges)
 		{
-			var needFix = null;
+			let needFix = null;
 			
-			for (var compRange of spanIdRanges)
+			for (let compRange of spanIdRanges)
 			{
 				if (compRange.compareBoundaryPoints(Range.END_TO_START, spanIdRange))
 					continue;
@@ -1020,7 +1020,7 @@
 				break;	//there sould be only one
 			}
 			
-			var newSpan = createSpan(spanIdRange, spanIdRange.id);
+			let newSpan = createSpan(spanIdRange, spanIdRange.id);
 			
 			if (needFix)
 			{
@@ -1033,10 +1033,10 @@
 	{
 		removeHighlightings();
 		
-		var idRanges = [];
-		for (var annotation of annotations)
+		let idRanges = [];
+		for (let annotation of annotations)
 		{
-			for (var range of getNativeRanges(annotation.ranges))
+			for (let range of getNativeRanges(annotation.ranges))
 			{
 				range.id = String(annotation.id);
 				idRanges.push(range);
@@ -1057,7 +1057,7 @@
 		]);
 	}
 	
-	var djeniusAnnotations = [];
+	let djeniusAnnotations = [];
 	
 	function newAnnotation(handler)
 	{
@@ -1070,7 +1070,7 @@
 		*/
 		
 		removeHighlightings();
-		var newDjeniusRanges = getNewDjeniusRanges();
+		let newDjeniusRanges = getNewDjeniusRanges();
 		
 		if (newDjeniusRanges.length)
 		{
@@ -1109,7 +1109,7 @@
 			},
 			function(reason)
 			{
-				var errStr = "Annotation failed";
+				let errStr = "Annotation failed";
 				
 				if (isString(reason) && reason.trim())
 					errStr += ": " + reason;
