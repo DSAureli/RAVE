@@ -1,9 +1,4 @@
-﻿Aggiungi metodo per escludere dei div dalla possibilità di essere selezionati
-setDjeniusIgnore
-
-Aggiungi metodo per dare la possibilità di scegliere se cambiare colore del testo nella parte di link selezionata
-
-l'offset tiene conto anche di ritorni a capo, spazi e tab presenti tra la chiusura del tag e il testo...
+﻿l'offset tiene conto anche di ritorni a capo, spazi e tab presenti tra la chiusura del tag e il testo...
 
 newAnnotation prende una funzione callback, da chiamare passando l'array di djenius range come parametro
 faccio tutto il calcolo in asincrono?
@@ -41,3 +36,7 @@ expose spanMouseEnterHandler and spanMouseLeaveHandler for custom chooseAnnotati
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 (proper scaling on mobile)
+
+TODO:
+- Add edit/remove annotation functions
+- Aggiungi metodo per escludere dei div dalla possibilità di essere selezionati (setDjeniusIgnore)

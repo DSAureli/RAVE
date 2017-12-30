@@ -8,7 +8,7 @@
 	{
 		setAnnotatable: function(nodes, id)
 		{
-			if (!id || !(isString(id) && id.trim()))
+			if (!id || !isValidString(id))
 			{
 				console.error("Argument 'id' is not a valid unique identifier");
 				return;
@@ -26,7 +26,7 @@
 				nodes.setAttribute("djenius_sel_id", id);
 			}
 		},
-		setGetAnnotationText_Handler: function(handler)
+		setGetAnnotationAttributes_Handler: function(handler)
 		{
 			if (typeof handler != "function")
 			{
@@ -34,7 +34,7 @@
 				return;
 			}
 			
-			getAnnotationText_Handler = handler;
+			getAnnotationAttributes_Handler = handler;
 		},
 		setChooseAnnotation_Handler: function(handler)
 		{
@@ -50,10 +50,12 @@
 		setActiveAnnotationColor: setActiveAnnotationColor,
 		newAnnotation: newAnnotation,
 		
+		getDjeniusAnnotationsCount: getDjeniusAnnotationsCount,
+		
 		//test
-		removeSpan: removeSpan
+		removeSpan: removeSpan,
+		getDjeniusAnnotationById: getDjeniusAnnotationById
 	};
-	
 	
 	/////////////////////
 	//  private space  //
@@ -74,6 +76,11 @@
 	function isString(obj)
 	{
 		return (typeof obj === "string" || obj instanceof String);
+	}
+	
+	function isValidString(obj)
+	{
+		return isString(obj) && obj.trim();
 	}
 	
 	String.prototype.format = function()
@@ -157,7 +164,7 @@
 	
 	function setAnnotationColor(obj, str)
 	{
-		if (obj && obj instanceof Color && isString(str))
+		if (obj && obj instanceof Color && isValidString(str))
 		{
 			let newElem = document.createElement("span");
 			
@@ -181,6 +188,10 @@
 				obj.g = Number(rgbArray[1].trim());
 				obj.b = Number(rgbArray[2].trim());
 			}
+		}
+		else
+		{
+			// ...
 		}
 	}
 	
@@ -282,7 +293,7 @@
 	</style>
 	`).appendTo("head");
 	
-	let getAnnotationText_Handler = function(params, resolve, reject)
+	let getAnnotationAttributes_Handler = function(params, resolve, reject)
 	{
 		//resolve(window.prompt("Please enter annotation for selection", "default"));
 		
@@ -309,7 +320,12 @@
 			let anno = dialog.querySelector("textarea").value;
 			if (anno.trim())
 			{
-				resolve(anno);
+				resolve(
+				{
+					id: undefined,
+					annotation: anno
+				});
+				
 				dialog.close();
 				dialog.remove();
 			}
@@ -512,10 +528,9 @@
 		});
 	}
 	
-	function showAnnotation_Handler(annoId)
+	function showAnnotation_Handler(annotation)
 	{
-		console.log(annoId);
-		// ...
+		console.log(annotation);
 	};
 	
 	//*****************//
@@ -805,7 +820,7 @@
 				{
 					if (result)
 					{
-						showAnnotation_Handler(result);
+						showAnnotation_Handler(getDjeniusAnnotationById(result));
 					}
 					else
 					{
@@ -817,7 +832,7 @@
 				{
 					let errStr = "Choice failed";
 					
-					if (isString(reason) && reason.trim())
+					if (isValidString(reason))
 						errStr += ": " + reason;
 					
 					console.error(errStr);
@@ -880,7 +895,7 @@
 		}
 		else if (spanIds.length == 1)
 		{
-			showAnnotation_Handler(/*id*/ /*test*/spanIds[0]/**/);
+			showAnnotation_Handler(/*test*/getDjeniusAnnotationById(spanIds[0])/**/);
 		}
 		else
 		{
@@ -893,13 +908,13 @@
 			},
 			function(result)
 			{
-				showAnnotation_Handler(result);
+				showAnnotation_Handler(getDjeniusAnnotationById(result));
 			},
 			function(reason)
 			{
 				let errStr = "Choice failed";
 				
-				if (isString(reason) && reason.trim())
+				if (isValidString(reason))
 					errStr += ": " + reason;
 				
 				console.error(errStr);
@@ -1059,59 +1074,72 @@
 	
 	let djeniusAnnotations = [];
 	
-	function newAnnotation(handler)
+	function getDjeniusAnnotationById(id)
 	{
-		/*
-		if (!($.isFunction(handler)))
-		{
-			//error message
-			return;
-		}
-		*/
-		
+		return djeniusAnnotations.find(x => x.id == id);
+	}
+	
+	function getDjeniusAnnotationsCount()
+	{
+		return djeniusAnnotations.length;
+	}
+	
+	function newAnnotation()
+	{
 		removeHighlightings();
 		let newDjeniusRanges = getNewDjeniusRanges();
 		
 		if (newDjeniusRanges.length)
 		{
 			window.getSelection().removeAllRanges(); //maybe save it if it fails to load the new ranges to server
-			highlightDjeniusRanges(newDjeniusRanges, djeniusAnnotations.length.toString()); //just put a random id, even 0, then let the server choose a proper UUID
+			highlightDjeniusRanges(newDjeniusRanges, /*random id*/ "0");
 			$(djeniusSpans[0]).trigger("mouseenter");
 			
-			//call function taken as argument that returns a string (ie. the comment) or something like null or undefined otherwise
-			//if the string isn't null then compare newNativeRanges with allNativeRanges and split/arrange them accordingly (handle overlapping)
-			//then finally add the new ones, properly adapted, to allNativeRanges
-			
-			//test
-			defer(getAnnotationText_Handler, null, function(annotation)
+			defer(getAnnotationAttributes_Handler, null, function(params)
 			{
-				if (annotation && annotation.trim())
+				// params = {id, ...}
+				
+				//id
+				//user: ... or editable: ...(true, false)
+				//public: ... or visibility: ...
+				//annotation
+				
+				//test
+				if (params && !isValidString(params.id))
+					params.id = getDjeniusAnnotationsCount().toString();
+				
+				if (!params)
 				{
-					djeniusAnnotations.push(
+					throw "resolve(...) argument is null or undefined";
+				}
+				else if (!isValidString(params.id))
+				{
+					throw "'id' attribute in resolve(...) argument is invalid.\nA valid 'id' attribute is mandatory.";
+				}
+				else
+				{
+					let newDjeniusAnnotation =
 					{
-						id: djeniusAnnotations.length, //test //let the server do this
-						//user: ... or editable: ...(true, false)
-						//public: ... or visibility: ...
 						ranges: newDjeniusRanges
-						//comment: ...
-					});
+					};
+					
+					Object.assign(newDjeniusAnnotation, params);
+					djeniusAnnotations.push(newDjeniusAnnotation);
 					
 					//proper handling:
 					//send newDjeniusRanges to the server; ask server for all the annotations
 					//if an error occurs, display an error message; otherwise, update djeniusAnnotations
-				}
-				else
-				{
-					// ...
-					//console.error("annotation failed");
-					throw "annotation text was empty";
+					
+					//ok, but don't do it here. Let the user handle it in the deferred handler, here let's just add
+					//the new object to djeniusAnnotations as already written, taking id as argument as well. The
+					//whole server check thing will be in charge of the library user's code
 				}
 			},
 			function(reason)
 			{
-				let errStr = "Annotation failed";
+				let errStr = "Annotation failed.\ngetAnnotationAttributes_Handler";
 				
-				if (isString(reason) && reason.trim())
+				if (isValidString(reason))
 					errStr += ": " + reason;
 				
 				console.error(errStr);
