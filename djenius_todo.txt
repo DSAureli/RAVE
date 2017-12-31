@@ -38,5 +38,8 @@ expose spanMouseEnterHandler and spanMouseLeaveHandler for custom chooseAnnotati
 (proper scaling on mobile)
 
 TODO:
-- Add edit/remove annotation functions
+- Add edit/remove annotation functions (nope, let the library user do this? And what about refreshing the highlightings?)
 - Aggiungi metodo per escludere dei div dalla possibilità di essere selezionati (setDjeniusIgnore)
+
+user: ... or editable: ...(true, false)
+public: ... or visibility: ...

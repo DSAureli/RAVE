@@ -26,7 +26,7 @@
 				nodes.setAttribute("djenius_sel_id", id);
 			}
 		},
-		setGetAnnotationAttributes_Handler: function(handler)
+		setGetAnnotationProperties_Handler: function(handler)
 		{
 			if (typeof handler != "function")
 			{
@@ -34,7 +34,7 @@
 				return;
 			}
 			
-			getAnnotationAttributes_Handler = handler;
+			getAnnotationProperties_Handler = handler;
 		},
 		setChooseAnnotation_Handler: function(handler)
 		{
@@ -293,7 +293,7 @@
 	</style>
 	`).appendTo("head");
 	
-	let getAnnotationAttributes_Handler = function(params, resolve, reject)
+	let getAnnotationProperties_Handler = function(params, resolve, reject)
 	{
 		//resolve(window.prompt("Please enter annotation for selection", "default"));
 		
@@ -322,7 +322,6 @@
 			{
 				resolve(
 				{
-					id: undefined,
 					annotation: anno
 				});
 				
@@ -1084,6 +1083,12 @@
 		return djeniusAnnotations.length;
 	}
 	
+	function uuidv4()
+	{
+		return ([1e7]+-1e3+-4e3+-8e3+-1e11)
+			.replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16))
+	}
+	
 	function newAnnotation()
 	{
 		removeHighlightings();
@@ -1095,35 +1100,17 @@
 			highlightDjeniusRanges(newDjeniusRanges, /*random id*/ "0");
 			$(djeniusSpans[0]).trigger("mouseenter");
 			
-			defer(getAnnotationAttributes_Handler, null, function(params)
+			defer(getAnnotationProperties_Handler, null, function(properties)
 			{
-				// params = {id, ...}
-				
-				//id
-				//user: ... or editable: ...(true, false)
-				//public: ... or visibility: ...
-				//annotation
-				
-				//test
-				if (params && !isValidString(params.id))
-					params.id = getDjeniusAnnotationsCount().toString();
-				
-				if (!params)
-				{
-					throw "resolve(...) argument is null or undefined";
-				}
-				else if (!isValidString(params.id))
-				{
-					throw "'id' attribute in resolve(...) argument is invalid.\nA valid 'id' attribute is mandatory.";
-				}
-				else
+				if (properties)
 				{
 					let newDjeniusAnnotation =
 					{
-						ranges: newDjeniusRanges
+						id: uuidv4(),
+						ranges: newDjeniusRanges,
+						properties: properties
 					};
 					
-					Object.assign(newDjeniusAnnotation, params);
 					djeniusAnnotations.push(newDjeniusAnnotation);
 					
 					//proper handling:
@@ -1134,10 +1121,14 @@
 					//the new object to djeniusAnnotations as already written, taking id as argument as well. The
 					//whole server check thing will be in charge of the library user's code
 				}
+				else
+				{
+					throw "resolve(...) argument is null or undefined";
+				}
 			},
 			function(reason)
 			{
-				let errStr = "Annotation failed.\ngetAnnotationAttributes_Handler";
+				let errStr = "Annotation failed.\ngetAnnotationProperties_Handler";
 				
 				if (isValidString(reason))
 					errStr += ": " + reason;
