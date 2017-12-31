@@ -1,8 +1,8 @@
 ﻿(function()
 {
-	////////////////////////
-	//  public interface  //
-	////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//  PUBLIC INTERFACE  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	Djenius =
 	{
@@ -50,20 +50,20 @@
 		setActiveAnnotationColor: setActiveAnnotationColor,
 		newAnnotation: newAnnotation,
 		
-		getDjeniusAnnotationsCount: getDjeniusAnnotationsCount,
+		getAnnotationsCount: getAnnotationsCount,
 		
 		//test
 		removeSpan: removeSpan,
-		getDjeniusAnnotationById: getDjeniusAnnotationById
+		getAnnotationById: getAnnotationById
 	};
 	
-	/////////////////////
-	//  private space  //
-	/////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//  PRIVATE SPACE  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	//*************//
-	//  Utilities  //
-	//*************//
+	//*************//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//  Utilities  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//*************//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	function iter(n)
 	{
@@ -136,9 +136,9 @@
 		return promise;
 	}
 	
-	//*********//
-	//  Color  //
-	//*********//
+	//**********/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//  Colors  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//**********/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	function Color()
 	{
@@ -221,9 +221,9 @@
 	//setActiveAnnotationColor("rgb(255,255,100)");
 	setActiveAnnotationColor("orange");
 	
-	//************//
-	//  Handlers  //
-	//************//
+	//************///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//  Handlers  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//************///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	$(`
 	<style>
@@ -532,9 +532,9 @@
 		console.log(annotation);
 	};
 	
-	//*****************//
-	//  newAnnotation  //
-	//*****************//
+	//*********//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//  Spans  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//*********//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	Range.prototype.crossIntersectsNode = function(node)
 	{
@@ -558,6 +558,445 @@
 	{
 		return (this.collapsed || !this.toString());
 	}
+	
+	let spansCollection = [];
+	
+	function removeSpan(span)
+	{
+		// unwrapping a span changes any user selection intersecting it,
+		// unless its start and end points are both outside the span
+		
+		let selRanges = getSelectionRanges();
+		
+		let spanRange = document.createRange();
+		spanRange.selectNodeContents(span);
+		
+		let pairs = [];
+		
+		for (let range of selRanges)
+		{
+			if (range.crossIntersectsNode(span))
+			{
+				let start = false;
+				let end = false;
+				
+				let tempRange = document.createRange();
+				tempRange.setStart(spanRange.startContainer, spanRange.startOffset);
+				tempRange.setEnd(spanRange.endContainer, spanRange.endOffset);
+				
+				if (spanRange.isPointInRange(range.startContainer, range.startOffset))
+				{
+					tempRange.setStart(range.startContainer, range.startOffset);
+					start = true;
+				}
+				
+				if (spanRange.isPointInRange(range.endContainer, range.endOffset))
+				{
+					tempRange.setEnd(range.endContainer, range.endOffset);
+					end = true;
+				}
+				
+				if (!start && !end)
+					continue;
+				
+				let tempSpan = document.createElement("span");
+				tempRange.surroundContents(tempSpan);
+				
+				pairs.push(
+				{
+					range: range,
+					span: tempSpan,
+					start: start,
+					end: end
+				});
+			}
+		}
+		
+		let spanParent = $(span).parent()[0];
+		$(span).contents().unwrap();
+		
+		for (let pair of pairs)
+		{
+			if (pair.start)
+			{
+				pair.range.setStartBefore(pair.span);
+			}
+			
+			if (pair.end)
+			{
+				pair.range.setEnd(pair.span.nextSibling, 0);
+			}
+			
+			let pairSpanParent = $(pair.span).parent()[0];
+			$(pair.span).contents().unwrap();
+			$(pair.span).remove();
+			pairSpanParent.normalize();
+		}
+		
+		spanParent.normalize();
+	}
+	
+	function removeHighlightings()
+	{
+		for (let span of spansCollection)
+		{
+			removeSpan(span);
+		}
+		
+		spansCollection = [];
+	}
+	
+	function getTextNode($div, path)
+	{
+		for (let step of path)
+		{
+			$div = $($div).contents().eq(step);
+		}
+		
+		return $div[0];
+	}
+	
+	function getNativeRanges(ranges)
+	{
+		let nativeRanges = [];
+		
+		for (let range of ranges)
+		{
+			let $djeniusNode = $("[djenius_sel_id='{0}']".format(range.djeniusSelID));
+			$djeniusNode[0].normalize();
+			
+			let newRange = document.createRange();
+			let textNode = getTextNode($djeniusNode, range.path);
+			newRange.setStart(textNode, range.startOffset);
+			newRange.setEnd(textNode, range.endOffset);
+			
+			nativeRanges.push(newRange);
+		}
+		
+		return nativeRanges;
+	}
+	
+	function getNodeDjeniusIds(span)
+	{
+		// filter(Boolean) removes empty strings from array
+		return $(span).attr("djenius_ann_id").split(",").filter(x => x.trim()).filter(Boolean);
+	}
+	
+	function getRelatedSpans(span)
+	{
+		let span_ids = getNodeDjeniusIds(span);
+		
+		return $("[djenius_ann_id]").filter(function()
+		{
+			let node_ids = getNodeDjeniusIds(this);
+			
+			for (let id of span_ids)
+			{
+				if (node_ids.includes(id))
+					return true;
+			}
+			
+			return false;
+		}).toArray();
+	}
+	
+	function spanMouseEnterHandler(span, relSpans, spanIds)
+	{
+		if (span)
+		{
+			let closestAnchor = span.closest("a");
+			$(closestAnchor).click(function(e)
+			{
+				e.preventDefault();
+				
+				defer(chooseAnchorOrAnnotation_Handler,
+				{
+					anchor: closestAnchor,
+					span: span,
+					spanIds: getNodeDjeniusIds(span),
+					relSpans: getRelatedSpans(span)
+				},
+				function(result)
+				{
+					if (result)
+					{
+						showAnnotation_Handler(getAnnotationById(result));
+					}
+					else
+					{
+						$(closestAnchor).off("click");
+						closestAnchor.click();
+					}
+				},
+				function(reason)
+				{
+					let errStr = "Choice failed";
+					
+					if (isValidString(reason))
+						errStr += ": " + reason;
+					
+					console.error(errStr);
+				});
+			});
+		}
+		
+		relSpans = relSpans ? relSpans : getRelatedSpans(span);
+		spanIds = spanIds ? spanIds : getNodeDjeniusIds(span);
+		
+		let fraction = 0.90 / spanIds.length;
+		
+		$(relSpans).each(function()
+		{
+			let commonIds = getNodeDjeniusIds(this).filter(x => spanIds.includes(x));
+			let alpha = 0.10 + commonIds.length * fraction;
+			let color = getCssColor(activeColor, alpha);
+			
+			$(this).css("backgroundColor", color);
+			$(this).css("box-shadow", "0 -1px 0 " + color + ", 0 1px 0 " + color);
+			//$(this).css("box-shadow", "0 1px 0 " + color);
+		});
+	}
+	
+	function spanMouseLeaveHandler(span, relSpans)
+	{
+		if (span)
+		{
+			let closestAnchor = span.closest("a");
+			$(closestAnchor).off("click");
+		}
+		
+		relSpans = relSpans ? relSpans : getRelatedSpans(span);
+		let fraction = 0.90 / annotationsCollection.length;
+		
+		$(relSpans).each(function()
+		{
+			let alpha = 0.10 + getNodeDjeniusIds(this).length * fraction;
+			let color = getCssColor(idleColor, alpha);
+			$(this).css("backgroundColor", color);
+			$(this).css("box-shadow", "0 -1px 0 " + color + ", 0 1px 0 " + color);
+			//$(this).css("box-shadow", "0 1px 0 " + color);
+		});
+	}
+	
+	function spanClickHandler(span)
+	{
+		let selArray = getSelectionRanges();
+		if (selArray && selArray.length && !selArray[0].collapsed)
+		{
+			// user selection has both ends inside span, let's not trigger click event
+			return;
+		}
+		
+		let spanIds = getNodeDjeniusIds(span);
+		
+		if (!spanIds.length)
+		{
+			//error
+		}
+		else if (spanIds.length == 1)
+		{
+			showAnnotation_Handler(/*test*/getAnnotationById(spanIds[0])/**/);
+		}
+		else
+		{
+			let relSpans = getRelatedSpans(span);
+			
+			defer(chooseAnnotation_Handler,
+			{
+				spanIds: spanIds,
+				relSpans: relSpans
+			},
+			function(result)
+			{
+				showAnnotation_Handler(getAnnotationById(result));
+			},
+			function(reason)
+			{
+				let errStr = "Choice failed";
+				
+				if (isValidString(reason))
+					errStr += ": " + reason;
+				
+				console.error(errStr);
+			});
+		}
+	}
+	
+	function getRangesDifference(extRange, intRange)
+	{
+		let beforeRange = document.createRange();
+		beforeRange.setStart(extRange.startContainer, extRange.startOffset);
+		beforeRange.setEnd(intRange.startContainer, intRange.startOffset);
+		
+		let afterRange = document.createRange();
+		afterRange.setStart(intRange.endContainer, intRange.endOffset);
+		afterRange.setEnd(extRange.endContainer, extRange.endOffset);
+		
+		return [beforeRange, afterRange];
+	}
+	
+	function createSpan(range, id)
+	{
+		let newSpan = document.createElement("span");
+		$(newSpan).attr("djenius_ann_id", id);
+		
+		$(newSpan).hover
+		(
+			function()
+			{
+				spanMouseEnterHandler(newSpan);
+			},
+			function()
+			{
+				spanMouseLeaveHandler(newSpan);
+			}
+		);
+		
+		$(newSpan).click(function()
+		{
+			spanClickHandler(newSpan);
+		});
+		
+		spansCollection.push(newSpan);
+		range.surroundContents(newSpan);
+		
+		$(newSpan).trigger("mouseleave");
+		
+		return newSpan;
+	}
+	
+	function highlightIdRanges(idRanges)
+	{
+		let spanIdRanges = [];
+		
+		for (let idRange of idRanges)
+		{
+			let nonIntRange = true;
+			
+			for (let spanIdRange of spanIdRanges)
+			{
+				let intRange = getIntersectionRange(idRange, spanIdRange);
+				if (intRange)
+				{
+					// internal diff //
+					
+					let diffRanges = getRangesDifference(spanIdRange, intRange);
+					spanIdRanges.removeAt(spanIdRanges.indexOf(spanIdRange));
+					
+					for (let diffRange of diffRanges)
+					{
+						if (!diffRange.isEmpty())
+						{
+							diffRange.id = spanIdRange.id
+							spanIdRanges.push(diffRange);
+						}
+					}
+					
+					intRange.id = spanIdRange.id + "," + idRange.id;
+					spanIdRanges.push(intRange);
+					
+					// external diff //
+					
+					diffRanges = getRangesDifference(idRange, intRange);
+					
+					for (let diffRange of diffRanges)
+					{
+						if (!diffRange.isEmpty())
+						{
+							diffRange.id = idRange.id;
+							idRanges.push(diffRange);
+						}
+					}
+					
+					nonIntRange = false;
+					break;
+				}
+			}
+			
+			if (nonIntRange && !idRange.isEmpty())
+			{
+				spanIdRanges.push(idRange);
+			}
+		}
+		
+		// ranges that begin immediately after another range are modified
+		// if a node is added in the latter range
+		
+		for (let spanIdRange of spanIdRanges)
+		{
+			let needFix = null;
+			
+			for (let compRange of spanIdRanges)
+			{
+				if (compRange.compareBoundaryPoints(Range.END_TO_START, spanIdRange))
+					continue;
+				
+				needFix = compRange;
+				break;	//there sould be only one
+			}
+			
+			let newSpan = createSpan(spanIdRange, spanIdRange.id);
+			
+			if (needFix)
+			{
+				needFix.setStartAfter(newSpan);
+			}
+		}
+	}
+	
+	function highlightAnnotations(annotations)
+	{
+		removeHighlightings();
+		
+		let idRanges = [];
+		for (let annotation of annotations)
+		{
+			for (let range of getNativeRanges(annotation.ranges))
+			{
+				range.id = String(annotation.id);
+				idRanges.push(range);
+			}
+		}
+		
+		highlightIdRanges(idRanges);
+	}
+	
+	function highlightRanges(djRanges, id)
+	{
+		highlightAnnotations(
+		[
+			{
+				id: id,
+				ranges: djRanges
+			}
+		]);
+	}
+	
+	//***************////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//  Annotations  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//***************////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	let annotationsCollection = [];
+	
+	function getAnnotationById(id)
+	{
+		return annotationsCollection.find(x => x.id == id);
+	}
+	
+	function getAnnotationsCount()
+	{
+		return annotationsCollection.length;
+	}
+	
+	function updateAnnotationsCollection(collection)
+	{
+		annotationsCollection = collection;
+		highlightAnnotations(annotationsCollection);
+	}
+	
+	//*****************//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//  newAnnotation  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//*****************//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	function getSelectionRanges()
 	{
@@ -658,431 +1097,6 @@
 		return newDjeniusRanges;
 	}
 	
-	function getTextNode($div, path)
-	{
-		for (let step of path)
-		{
-			$div = $($div).contents().eq(step);
-		}
-		
-		return $div[0];
-	}
-	
-	function getNativeRanges(ranges)
-	{
-		let nativeRanges = [];
-		
-		for (let range of ranges)
-		{
-			let $djeniusNode = $("[djenius_sel_id='{0}']".format(range.djeniusSelID));
-			$djeniusNode[0].normalize();
-			
-			let newRange = document.createRange();
-			let textNode = getTextNode($djeniusNode, range.path);
-			newRange.setStart(textNode, range.startOffset);
-			newRange.setEnd(textNode, range.endOffset);
-			
-			nativeRanges.push(newRange);
-		}
-		
-		return nativeRanges;
-	}
-	
-	let djeniusSpans = [];
-	
-	function removeSpan(span)
-	{
-		// unwrapping a span changes any user selection intersecting it,
-		// unless its start and end points are both outside the span
-		
-		let selRanges = getSelectionRanges();
-		
-		let spanRange = document.createRange();
-		spanRange.selectNodeContents(span);
-		
-		let pairs = [];
-		
-		for (let range of selRanges)
-		{
-			if (range.crossIntersectsNode(span))
-			{
-				let start = false;
-				let end = false;
-				
-				let tempRange = document.createRange();
-				tempRange.setStart(spanRange.startContainer, spanRange.startOffset);
-				tempRange.setEnd(spanRange.endContainer, spanRange.endOffset);
-				
-				if (spanRange.isPointInRange(range.startContainer, range.startOffset))
-				{
-					tempRange.setStart(range.startContainer, range.startOffset);
-					start = true;
-				}
-				
-				if (spanRange.isPointInRange(range.endContainer, range.endOffset))
-				{
-					tempRange.setEnd(range.endContainer, range.endOffset);
-					end = true;
-				}
-				
-				if (!start && !end)
-					continue;
-				
-				let tempSpan = document.createElement("span");
-				tempRange.surroundContents(tempSpan);
-				
-				pairs.push(
-				{
-					range: range,
-					span: tempSpan,
-					start: start,
-					end: end
-				});
-			}
-		}
-		
-		let spanParent = $(span).parent()[0];
-		$(span).contents().unwrap();
-		
-		for (let pair of pairs)
-		{
-			if (pair.start)
-			{
-				pair.range.setStartBefore(pair.span);
-			}
-			
-			if (pair.end)
-			{
-				pair.range.setEnd(pair.span.nextSibling, 0);
-			}
-			
-			let pairSpanParent = $(pair.span).parent()[0];
-			$(pair.span).contents().unwrap();
-			$(pair.span).remove();
-			pairSpanParent.normalize();
-		}
-		
-		spanParent.normalize();
-	}
-	
-	function removeHighlightings()
-	{
-		for (let span of djeniusSpans)
-		{
-			removeSpan(span);
-		}
-		
-		djeniusSpans = [];
-	}
-	
-	function getNodeDjeniusIds(span)
-	{
-		// filter(Boolean) removes empty strings from array
-		return $(span).attr("djenius_ann_id").split(",").filter(x => x.trim()).filter(Boolean);
-	}
-	
-	function getRelatedSpans(span)
-	{
-		let span_ids = getNodeDjeniusIds(span);
-		
-		return $("[djenius_ann_id]").filter(function()
-		{
-			let node_ids = getNodeDjeniusIds(this);
-			
-			for (let id of span_ids)
-			{
-				if (node_ids.includes(id))
-					return true;
-			}
-			
-			return false;
-		}).toArray();
-	}
-	
-	function spanMouseEnterHandler(span, relSpans, spanIds)
-	{
-		if (span)
-		{
-			let closestAnchor = span.closest("a");
-			$(closestAnchor).click(function(e)
-			{
-				e.preventDefault();
-				
-				defer(chooseAnchorOrAnnotation_Handler,
-				{
-					anchor: closestAnchor,
-					span: span,
-					spanIds: getNodeDjeniusIds(span),
-					relSpans: getRelatedSpans(span)
-				},
-				function(result)
-				{
-					if (result)
-					{
-						showAnnotation_Handler(getDjeniusAnnotationById(result));
-					}
-					else
-					{
-						$(closestAnchor).off("click");
-						closestAnchor.click();
-					}
-				},
-				function(reason)
-				{
-					let errStr = "Choice failed";
-					
-					if (isValidString(reason))
-						errStr += ": " + reason;
-					
-					console.error(errStr);
-				});
-			});
-		}
-		
-		relSpans = relSpans ? relSpans : getRelatedSpans(span);
-		spanIds = spanIds ? spanIds : getNodeDjeniusIds(span);
-		
-		let fraction = 0.90 / spanIds.length;
-		
-		$(relSpans).each(function()
-		{
-			let commonIds = getNodeDjeniusIds(this).filter(x => spanIds.includes(x));
-			let alpha = 0.10 + commonIds.length * fraction;
-			let color = getCssColor(activeColor, alpha);
-			
-			$(this).css("backgroundColor", color);
-			$(this).css("box-shadow", "0 -1px 0 " + color + ", 0 1px 0 " + color);
-			//$(this).css("box-shadow", "0 1px 0 " + color);
-		});
-	}
-	
-	function spanMouseLeaveHandler(span, relSpans)
-	{
-		if (span)
-		{
-			let closestAnchor = span.closest("a");
-			$(closestAnchor).off("click");
-		}
-		
-		relSpans = relSpans ? relSpans : getRelatedSpans(span);
-		let fraction = 0.90 / djeniusAnnotations.length;
-		
-		$(relSpans).each(function()
-		{
-			let alpha = 0.10 + getNodeDjeniusIds(this).length * fraction;
-			let color = getCssColor(idleColor, alpha);
-			$(this).css("backgroundColor", color);
-			$(this).css("box-shadow", "0 -1px 0 " + color + ", 0 1px 0 " + color);
-			//$(this).css("box-shadow", "0 1px 0 " + color);
-		});
-	}
-	
-	function spanClickHandler(span)
-	{
-		let selArray = getSelectionRanges();
-		if (selArray && selArray.length && !selArray[0].collapsed)
-		{
-			// user selection has both ends inside span, let's not trigger click event
-			return;
-		}
-		
-		let spanIds = getNodeDjeniusIds(span);
-		
-		if (!spanIds.length)
-		{
-			//error
-		}
-		else if (spanIds.length == 1)
-		{
-			showAnnotation_Handler(/*test*/getDjeniusAnnotationById(spanIds[0])/**/);
-		}
-		else
-		{
-			let relSpans = getRelatedSpans(span);
-			
-			defer(chooseAnnotation_Handler,
-			{
-				spanIds: spanIds,
-				relSpans: relSpans
-			},
-			function(result)
-			{
-				showAnnotation_Handler(getDjeniusAnnotationById(result));
-			},
-			function(reason)
-			{
-				let errStr = "Choice failed";
-				
-				if (isValidString(reason))
-					errStr += ": " + reason;
-				
-				console.error(errStr);
-			});
-		}
-	}
-	
-	function getRangesDifference(extRange, intRange)
-	{
-		let beforeRange = document.createRange();
-		beforeRange.setStart(extRange.startContainer, extRange.startOffset);
-		beforeRange.setEnd(intRange.startContainer, intRange.startOffset);
-		
-		let afterRange = document.createRange();
-		afterRange.setStart(intRange.endContainer, intRange.endOffset);
-		afterRange.setEnd(extRange.endContainer, extRange.endOffset);
-		
-		return [beforeRange, afterRange];
-	}
-	
-	function createSpan(range, id)
-	{
-		let newSpan = document.createElement("span");
-		$(newSpan).attr("djenius_ann_id", id);
-		
-		$(newSpan).hover
-		(
-			function()
-			{
-				spanMouseEnterHandler(newSpan);
-			},
-			function()
-			{
-				spanMouseLeaveHandler(newSpan);
-			}
-		);
-		
-		$(newSpan).click(function()
-		{
-			spanClickHandler(newSpan);
-		});
-		
-		djeniusSpans.push(newSpan);
-		range.surroundContents(newSpan);
-		
-		$(newSpan).trigger("mouseleave");
-		
-		return newSpan;
-	}
-	
-	function highlightIdRanges(idRanges)
-	{
-		let spanIdRanges = [];
-		
-		for (let idRange of idRanges)
-		{
-			let nonIntRange = true;
-			
-			for (let spanIdRange of spanIdRanges)
-			{
-				let intRange = getIntersectionRange(idRange, spanIdRange);
-				if (intRange)
-				{
-					// internal diff //
-					
-					let diffRanges = getRangesDifference(spanIdRange, intRange);
-					spanIdRanges.removeAt(spanIdRanges.indexOf(spanIdRange));
-					
-					for (let diffRange of diffRanges)
-					{
-						if (!diffRange.isEmpty())
-						{
-							diffRange.id = spanIdRange.id
-							spanIdRanges.push(diffRange);
-						}
-					}
-					
-					intRange.id = spanIdRange.id + "," + idRange.id;
-					spanIdRanges.push(intRange);
-					
-					// external diff //
-					
-					diffRanges = getRangesDifference(idRange, intRange);
-					
-					for (let diffRange of diffRanges)
-					{
-						if (!diffRange.isEmpty())
-						{
-							diffRange.id = idRange.id;
-							idRanges.push(diffRange);
-						}
-					}
-					
-					nonIntRange = false;
-					break;
-				}
-			}
-			
-			if (nonIntRange && !idRange.isEmpty())
-			{
-				spanIdRanges.push(idRange);
-			}
-		}
-		
-		// ranges that begin immediately after another range are modified
-		// if a node is added in the latter range
-		
-		for (let spanIdRange of spanIdRanges)
-		{
-			let needFix = null;
-			
-			for (let compRange of spanIdRanges)
-			{
-				if (compRange.compareBoundaryPoints(Range.END_TO_START, spanIdRange))
-					continue;
-				
-				needFix = compRange;
-				break;	//there sould be only one
-			}
-			
-			let newSpan = createSpan(spanIdRange, spanIdRange.id);
-			
-			if (needFix)
-			{
-				needFix.setStartAfter(newSpan);
-			}
-		}
-	}
-	
-	function highlightDjeniusAnnotations(annotations)
-	{
-		removeHighlightings();
-		
-		let idRanges = [];
-		for (let annotation of annotations)
-		{
-			for (let range of getNativeRanges(annotation.ranges))
-			{
-				range.id = String(annotation.id);
-				idRanges.push(range);
-			}
-		}
-		
-		highlightIdRanges(idRanges);
-	}
-	
-	function highlightDjeniusRanges(djRanges, id)
-	{
-		highlightDjeniusAnnotations(
-		[
-			{
-				id: id,
-				ranges: djRanges
-			}
-		]);
-	}
-	
-	let djeniusAnnotations = [];
-	
-	function getDjeniusAnnotationById(id)
-	{
-		return djeniusAnnotations.find(x => x.id == id);
-	}
-	
-	function getDjeniusAnnotationsCount()
-	{
-		return djeniusAnnotations.length;
-	}
-	
 	function uuidv4()
 	{
 		return ([1e7]+-1e3+-4e3+-8e3+-1e11)
@@ -1097,8 +1111,8 @@
 		if (newDjeniusRanges.length)
 		{
 			window.getSelection().removeAllRanges(); //maybe save it if it fails to load the new ranges to server
-			highlightDjeniusRanges(newDjeniusRanges, /*random id*/ "0");
-			$(djeniusSpans[0]).trigger("mouseenter");
+			highlightRanges(newDjeniusRanges, /*random id*/ "0");
+			$(spansCollection[0]).trigger("mouseenter");
 			
 			defer(getAnnotationProperties_Handler, null, function(properties)
 			{
@@ -1111,15 +1125,18 @@
 						properties: properties
 					};
 					
-					djeniusAnnotations.push(newDjeniusAnnotation);
+					annotationsCollection.push(newDjeniusAnnotation);
 					
 					//proper handling:
 					//send newDjeniusRanges to the server; ask server for all the annotations
-					//if an error occurs, display an error message; otherwise, update djeniusAnnotations
+					//if an error occurs, display an error message; otherwise, update annotationsCollection
 					
 					//ok, but don't do it here. Let the user handle it in the deferred handler, here let's just add
-					//the new object to djeniusAnnotations as already written, taking id as argument as well. The
+					//the new object to annotationsCollection as already written, taking id as argument as well. The
 					//whole server check thing will be in charge of the library user's code
+					
+					//defer sendtoserver_handler or something similar
+					//implement updateAnnotationsCollection or similar too (used for any change to the collection: add, edit, remove)
 				}
 				else
 				{
@@ -1137,15 +1154,14 @@
 			},
 			function()
 			{
-				highlightDjeniusAnnotations(djeniusAnnotations);
-				console.log(djeniusAnnotations);
+				highlightAnnotations(annotationsCollection);
+				console.log(annotationsCollection);
 			});
 			
 		}
 		else
 		{
-			highlightDjeniusAnnotations(djeniusAnnotations);
-			console.log(djeniusAnnotations);
+			highlightAnnotations(annotationsCollection);
 		}
 	}
 })();
