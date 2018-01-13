@@ -6,6 +6,8 @@
 	
 	Djenius =
 	{
+		ServerRequest: ServerRequest,
+		
 		setAnnotatable: function(nodes, id)
 		{
 			if (!id || !isValidString(id))
@@ -28,7 +30,7 @@
 		},
 		setGetAnnotationProperties_Handler: function(handler)
 		{
-			if (typeof handler != "function")
+			if (!isFunction(handler))
 			{
 				console.error("Argument 'handler' must be a function");
 				return;
@@ -38,7 +40,7 @@
 		},
 		setChooseAnnotation_Handler: function(handler)
 		{
-			if (typeof handler != "function")
+			if (!isFunction(handler))
 			{
 				console.error("Argument 'handler' must be a function");
 				return;
@@ -46,24 +48,32 @@
 			
 			chooseAnnotation_Handler = handler;
 		},
+		setShowAnnotation_Handler: function(handler)
+		{
+			if (!isFunction(handler))
+			{
+				console.error("Argument 'handler' must be a function");
+				return;
+			}
+			
+			showAnnotation_Handler = handler;
+		},
 		setIdleAnnotationColor: setIdleAnnotationColor,
 		setActiveAnnotationColor: setActiveAnnotationColor,
-		newAnnotation: newAnnotation,
 		
 		getAnnotationsCount: getAnnotationsCount,
 		
-		//test
-		removeSpan: removeSpan,
-		getAnnotationById: getAnnotationById
+		askServerForInitialCollection : askServerForInitialCollection,
+		newAnnotation: newAnnotation
 	};
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//  PRIVATE SPACE  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	//*************//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//¯¯¯¯¯¯¯¯¯¯¯¯¯//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//  Utilities  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//*************//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//_____________//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	function iter(n)
 	{
@@ -71,6 +81,11 @@
 		for (let i = 0; i < n; i++)
 			a[i] = i;
 		return a;
+	}
+	
+	function isFunction(fun)
+	{
+		return (typeof fun == "function");
 	}
 	
 	function isString(obj)
@@ -132,13 +147,13 @@
 			console.error("Exception in function '" + fun.name + "'\n" + err);
 			_reject(err);
 		}
-		
 		return promise;
+		
 	}
 	
-	//**********/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//¯¯¯¯¯¯¯¯¯¯/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//  Colors  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//**********/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//__________/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	function Color()
 	{
@@ -221,9 +236,9 @@
 	//setActiveAnnotationColor("rgb(255,255,100)");
 	setActiveAnnotationColor("orange");
 	
-	//************///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//¯¯¯¯¯¯¯¯¯¯¯¯///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//  Handlers  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//************///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//____________///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	$(`
 	<style>
@@ -527,14 +542,117 @@
 		});
 	}
 	
-	function showAnnotation_Handler(annotation)
+	var ServerRequest = 
 	{
-		console.log(annotation);
+		create: 0,
+		read: 1,
+		update: 2,
+		delete: 3
 	};
 	
-	//*********//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	let serverRequest_Handler = function(params, resolve, reject)
+	{
+		switch (params.request)
+		{
+			case ServerRequest.create:
+				annotationsCollection.push(params.data);
+				break;
+			case ServerRequest.read:
+				break;
+			case ServerRequest.update:
+				annotationsCollection.find(x => x.id == params.data.id).properties = params.data.properties;
+				break;
+			case ServerRequest.delete:
+				annotationsCollection.removeAt(annotationsCollection.findIndex(x => x.id == params.data));
+				break;
+		}
+		
+		resolve(annotationsCollection);
+	}
+	
+	// Keep the current shown annotation's reject callback, in order to ensure the promise fullfillment
+	// in case the library user forgets to do it by calling it before any other action on any annotation
+	let shownAnnotationReject;
+	
+	let showAnnotation_Handler = function(params, resolve, reject)
+	{
+		console.log(params);
+	};
+	
+	function showAnnotation(annotation)
+	{
+		defer(function(params, resolve, reject)
+		{
+			if (isFunction(shownAnnotationReject))
+			{
+				shownAnnotationReject();
+			}
+			
+			shownAnnotationReject = reject;
+			showAnnotation_Handler(params, resolve, reject);
+		},
+		annotation,
+		function(properties)
+		{
+			// properties == null -> delete
+			// properties != null -> update
+			
+			if (properties === undefined)
+			{
+				throw "\nshowAnnotation_Handler: resolve(...) argument is undefined";
+			}
+			else
+			{
+				let request;
+				let data;
+				
+				if (properties)
+				{
+					request = ServerRequest.update;
+					data =
+					{
+						id: annotation.id,
+						properties: properties
+					}
+				}
+				else
+				{
+					request = ServerRequest.delete;
+					data = annotation.id;
+				}
+				
+				defer(serverRequest_Handler,
+				{
+					request: request,
+					data: data
+				},
+				function(result)
+				{
+					updateAnnotationsCollection(result);
+				},
+				function(reason)
+				{
+					let errStr = "\nshowAnnotation_Handler";
+					
+					if (isValidString(reason))
+						errStr += ": " + reason;
+					
+					throw errstr;
+				});
+			}
+		},
+		function(reason)
+		{
+			if (isValidString(reason))
+			{
+				console.error("Action on annotation failed." + reason);
+			}
+		});
+	}
+	
+	//¯¯¯¯¯¯¯¯¯//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//  Spans  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//*********//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//_________//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	Range.prototype.crossIntersectsNode = function(node)
 	{
@@ -720,7 +838,7 @@
 				{
 					if (result)
 					{
-						showAnnotation_Handler(getAnnotationById(result));
+						showAnnotation(getAnnotationById(result));
 					}
 					else
 					{
@@ -792,10 +910,11 @@
 		if (!spanIds.length)
 		{
 			//error
+			// ...
 		}
 		else if (spanIds.length == 1)
 		{
-			showAnnotation_Handler(/*test*/getAnnotationById(spanIds[0])/**/);
+			showAnnotation(/*test*/getAnnotationById(spanIds[0])/**/);
 		}
 		else
 		{
@@ -808,7 +927,7 @@
 			},
 			function(result)
 			{
-				showAnnotation_Handler(getAnnotationById(result));
+				showAnnotation(getAnnotationById(result));
 			},
 			function(reason)
 			{
@@ -972,9 +1091,9 @@
 		]);
 	}
 	
-	//***************////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//  Annotations  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//***************////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//_______________////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	let annotationsCollection = [];
 	
@@ -994,9 +1113,30 @@
 		highlightAnnotations(annotationsCollection);
 	}
 	
-	//*****************//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	function askServerForInitialCollection()
+	{
+		defer(serverRequest_Handler,
+		{
+			request: ServerRequest.read
+		},
+		function(result)
+		{
+			updateAnnotationsCollection(result);
+		},
+		function(reason)
+		{
+			let errStr = "\naskServerForInitialCollection";
+			
+			if (isValidString(reason))
+				errStr += ": " + reason;
+			
+			console.error(errstr);
+		});
+	}
+	
+	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//  newAnnotation  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//*****************//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//_________________//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	function getSelectionRanges()
 	{
@@ -1013,7 +1153,7 @@
 	
 	function getDescendantTextNodes(node)
 	{
-		// do not optimize, the right order must be ensured
+		// do not optimize, the right order must be guaranteed
 		
 		let nodes = [];
 		
@@ -1100,7 +1240,7 @@
 	function uuidv4()
 	{
 		return ([1e7]+-1e3+-4e3+-8e3+-1e11)
-			.replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16))
+			.replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
 	}
 	
 	function newAnnotation()
@@ -1125,18 +1265,25 @@
 						properties: properties
 					};
 					
-					annotationsCollection.push(newDjeniusAnnotation);
-					
-					//proper handling:
-					//send newDjeniusRanges to the server; ask server for all the annotations
-					//if an error occurs, display an error message; otherwise, update annotationsCollection
-					
-					//ok, but don't do it here. Let the user handle it in the deferred handler, here let's just add
-					//the new object to annotationsCollection as already written, taking id as argument as well. The
-					//whole server check thing will be in charge of the library user's code
-					
-					//defer sendtoserver_handler or something similar
-					//implement updateAnnotationsCollection or similar too (used for any change to the collection: add, edit, remove)
+					defer(serverRequest_Handler,
+					{
+						request: ServerRequest.create,
+						data: newDjeniusAnnotation
+					},
+					function(result)
+					{
+						annotationsCollection = result;
+					},
+					function(reason)
+					{
+						//error
+						// ...
+					},
+					function()
+					{
+						highlightAnnotations(annotationsCollection);
+						console.log(annotationsCollection);
+					});
 				}
 				else
 				{
@@ -1151,13 +1298,10 @@
 					errStr += ": " + reason;
 				
 				console.error(errStr);
-			},
-			function()
-			{
+				
 				highlightAnnotations(annotationsCollection);
 				console.log(annotationsCollection);
 			});
-			
 		}
 		else
 		{
