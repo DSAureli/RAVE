@@ -8,7 +8,7 @@
 	{
 		ServerRequest: ServerRequest,
 		
-		setAnnotatable: function(nodes, id)
+		setAnnotatable: function(node, id)
 		{
 			if (!id || !isValidString(id))
 			{
@@ -16,16 +16,32 @@
 				return;
 			}
 			
-			if (nodes.length)
+			if (node && node.nodeType)
 			{
-				for (let node of nodes)
-				{
-					node.setAttribute("djenius_sel_id", id);
-				}
+				node.setAttribute("djenius_sel_id", id);
 			}
 			else
 			{
-				nodes.setAttribute("djenius_sel_id", id);
+				console.error("Argument 'node' is not a valid DOM element");
+				return;
+			}
+		},
+		setIgnore : function(node, id)
+		{
+			if (!id || !isValidString(id))
+			{
+				console.error("Argument 'id' is not a valid unique identifier");
+				return;
+			}
+			
+			if (node && node.nodeType)
+			{
+				node.setAttribute("djenius_ignore", "");
+			}
+			else
+			{
+				console.error("Argument 'node' is not a valid DOM element");
+				return;
 			}
 		},
 		setGetAnnotationProperties_Handler: function(handler)
@@ -232,8 +248,7 @@
 		}
 	`).appendTo("head");
 	
-	setIdleAnnotationColor("rgb(140,140,140)");
-	//setActiveAnnotationColor("rgb(255,255,100)");
+	setIdleAnnotationColor("rgb(150,150,150)");
 	setActiveAnnotationColor("orange");
 	
 	//¯¯¯¯¯¯¯¯¯¯¯¯///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1205,7 +1220,8 @@
 		let selRanges = getSelectionRanges();
 		
 		// Djenius divs not descendant of other Djenius divs
-		$("[djenius_sel_id]").not("[djenius_sel_id] *").each(function(index, div)
+		$("[djenius_sel_id]").not("[djenius_sel_id] *").not("[djenius_ignore]")
+		.each(function(index, div)
 		{
 			$(div)[0].normalize();
 			

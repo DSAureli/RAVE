@@ -202,7 +202,7 @@
 	<script>
 		$(function()
 		{
-			Djenius.setAnnotatable($("#test_djenius_div"), String(1));
+			Djenius.setAnnotatable($("#test_djenius_div")[0], String(1));
 			$("#test_djenius_button").click(Djenius.newAnnotation);
 			
 			$("#test_sel").click(function()

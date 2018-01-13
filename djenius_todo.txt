@@ -39,12 +39,3 @@ expose spanMouseEnterHandler and spanMouseLeaveHandler for custom chooseAnnotati
 
 user: ... or editable: ...(true, false)
 public: ... or visibility: ...
-
-TODO:
-
-- Aggiungi metodo per escludere dei div dalla possibilità di essere selezionati (setDjeniusIgnore)
-
-- wrappa la chiamata alla funzione all'interno di defer con una funzione anonima, che poi chiama accept con il valore di ritorno della funzione
-  se non ha avuto errori, o chiama reject con l'errore. In tal modo l'utilizzatore di handler non deve chiamare accept/reject, ma solo tornare
-  un valore (rende trasparente l'uso delle promise)
-  NO! Così neghi la possibilità di asincronia nella funzione impostata come handler
