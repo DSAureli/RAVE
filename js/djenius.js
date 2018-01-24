@@ -1,9 +1,5 @@
 ﻿(function()
 {
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//  PUBLIC INTERFACE  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
 	Djenius =
 	{
 		ServerRequest: ServerRequest,
@@ -82,10 +78,6 @@
 		askServerForInitialCollection : askServerForInitialCollection,
 		newAnnotation: newAnnotation
 	};
-	
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//  PRIVATE SPACE  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	//¯¯¯¯¯¯¯¯¯¯¯¯¯//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//  Utilities  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -195,7 +187,21 @@
 	
 	function setAnnotationColor(obj, str)
 	{
-		if (obj && obj instanceof Color && isValidString(str))
+		if (!(obj && obj instanceof Color))
+		{
+			let errStr = "setAnnotationColor(obj, str):" + 
+			"obj is not instance of Color";
+			
+			throw errStr;
+		}
+		else if (!isValidString(str))
+		{
+			let errStr = "setAnnotationColor(obj, str):" + 
+			"str is not a valid string";
+			
+			throw errStr;
+		}
+		else
 		{
 			let newElem = document.createElement("span");
 			
@@ -219,21 +225,50 @@
 				obj.g = Number(rgbArray[1].trim());
 				obj.b = Number(rgbArray[2].trim());
 			}
-		}
-		else
-		{
-			// ...
+			else
+			{
+				let errStr = "setAnnotationColor(obj, str):" + 
+				"str is not a valid color identifier";
+			
+				throw errStr;
+			}
 		}
 	}
 	
 	function setIdleAnnotationColor(str)
 	{
-		setAnnotationColor(idleColor, str);
+		try
+		{
+			setAnnotationColor(idleColor, str);
+		}
+		catch(err)
+		{
+			let errStr = "setIdleAnnotationColor(str) failed.\n" + 
+			"defer(getAnnotationProperties_Handler, ...)";
+			
+			if (isValidString(err))
+				errStr += ":\n" + reason;
+			
+			console.error(errStr);
+		}
 	}
 	
 	function setActiveAnnotationColor(str)
 	{
-		setAnnotationColor(activeColor, str);
+		try
+		{
+			setAnnotationColor(activeColor, str);
+		}
+		catch(err)
+		{
+			let errStr = "setIdleAnnotationColor(str) failed.\n" + 
+			"defer(getAnnotationProperties_Handler, ...)";
+			
+			if (isValidString(err))
+				errStr += ":\n" + reason;
+			
+			console.error(errStr);
+		}
 	}
 	
 	$("<style>").html(`
@@ -614,7 +649,7 @@
 			
 			if (properties === undefined)
 			{
-				throw "\nshowAnnotation_Handler: resolve(...) argument is undefined";
+				throw "showAnnotation_Handler: resolve(...) argument is undefined";
 			}
 			else
 			{
@@ -650,18 +685,21 @@
 					let errStr = "\nshowAnnotation_Handler";
 					
 					if (isValidString(reason))
-						errStr += ": " + reason;
+						errStr += ":\n" + reason;
 					
-					throw errstr;
+					throw errStr;
 				});
 			}
 		},
 		function(reason)
 		{
+			let errStr = "Action on annotation failed.\n" + 
+			"defer(showAnnotation_Handler, ...)";
+			
 			if (isValidString(reason))
-			{
-				console.error("Action on annotation failed." + reason);
-			}
+				errStr += ":\n" + reason;
+			
+			console.error(errStr);
 		});
 	}
 	
@@ -863,10 +901,11 @@
 				},
 				function(reason)
 				{
-					let errStr = "Choice failed";
+					let errStr = "Choice failed.\n" + 
+					"defer(chooseAnchorOrAnnotation_Handler, ...)";
 					
 					if (isValidString(reason))
-						errStr += ": " + reason;
+						errStr += ":\n" + reason;
 					
 					console.error(errStr);
 				});
@@ -946,10 +985,11 @@
 			},
 			function(reason)
 			{
-				let errStr = "Choice failed";
+				let errStr = "Choice failed.\n" + 
+				"defer(chooseAnnotation_Handler, ...)";
 				
 				if (isValidString(reason))
-					errStr += ": " + reason;
+					errStr += ":\n" + reason;
 				
 				console.error(errStr);
 			});
@@ -1140,12 +1180,13 @@
 		},
 		function(reason)
 		{
-			let errStr = "\naskServerForInitialCollection";
+			let errStr = "Initial collection retrieval failed.\n" + 
+			"defer(serverRequest_Handler, ...)";
 			
 			if (isValidString(reason))
-				errStr += ": " + reason;
+				errStr += ":\n" + reason;
 			
-			console.error(errstr);
+			console.error(errStr);
 		});
 	}
 	
@@ -1292,13 +1333,17 @@
 					},
 					function(reason)
 					{
-						//error
-						// ...
+						let errStr = "defer(serverRequest_Handler, ...)";
+						
+						if (isValidString(reason))
+							errStr += ":\n" + reason;
+						
+						throw errStr;
 					},
 					function()
 					{
 						highlightAnnotations(annotationsCollection);
-						console.log(annotationsCollection);
+						//console.log(annotationsCollection);
 					});
 				}
 				else
@@ -1308,12 +1353,14 @@
 			},
 			function(reason)
 			{
-				let errStr = "Annotation failed.\ngetAnnotationProperties_Handler";
+				let errStr = "Annotation failed.\n" + 
+				"defer(getAnnotationProperties_Handler, ...)";
 				
 				if (isValidString(reason))
-					errStr += ": " + reason;
+					errStr += ":\n" + reason;
 				
 				console.error(errStr);
+				
 				
 				highlightAnnotations(annotationsCollection);
 				console.log(annotationsCollection);
