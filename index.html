@@ -5,10 +5,10 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 	<link rel="icon" href="favicon.ico">
-	<link rel="stylesheet" href="http://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.css"/>
 	<link rel="stylesheet" href="css/main.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-	<script src="http://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.js"></script>
 	<script src="js/util.js"></script>
 	<script src="js/login.js"></script>
 	<script src="js/djenius.js"></script>
@@ -134,34 +134,61 @@
 		</div>
 	</footer>
 	
-	
 	<!-- MODAL -->
 	<div id="modal_login" class="ui basic modal">
 		<div class="ui column">
 			<h2 class="ui orange header">
-				Log-in to your account
+				<p>Log-in to your account</p>
 				<i class="remove icon link"></i>
 			</h2>
+			
+		
 			<form class="ui form">
 				<div class="ui inverted segment">
+
+					<div class="registration field hidden">
+						<div class="ui left icon input">
+							<i class="user icon"></i>
+							<input type="text" name="userName" placeholder="Username (at least 3 characters)">
+						</div>
+					</div>
+
 					<div class="field">
 						<div class="ui left icon input">
 							<i class="at icon"></i>
 							<input type="text" name="email" placeholder="E-mail address">
 						</div>
 					</div>
+
+					<div class="registration field hidden">
+						<div class="ui left icon input">
+							<i class="at icon"></i>
+							<input type="text" name="emailCheck" placeholder="Confirm e-mail address">
+						</div>
+					</div>
+
 					<div class="field">
 						<div class="ui left icon input">
 							<i class="lock icon"></i>
-							<input type="password" name="password" placeholder="Password">
+							<input type="password" name="password" placeholder="Password (at least 6 characters)">
 						</div>
 					</div>
+
+					<div class="registration field hidden">
+						<div class="ui left icon input">
+							<i class="lock icon"></i>
+							<input type="password" name="passwordCheck" placeholder="Confirm password">
+						</div>
+					</div>
+
 					<div class="ui fluid orange submit button">Login</div>
+
 				</div>
-				<div class="ui inverted error message"></div>
+				<!--<div class="ui inverted error mini message"></div>-->
 			</form>
+		
 			<div class="ui inverted center aligned message segment">
-				New to us? <a href="#" style="text-color:orange">Sign Up</a>
+				<p>New to us? &nbsp</p> <a id="signUp" href="#" style="text-color:orange">Sign Up</a>
 			</div>
 		</div>
 	</div>

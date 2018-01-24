@@ -212,6 +212,17 @@ a:hover
 	border: 1px solid black;
 }
 
+.thumb
+{
+	display: inline-block;
+	float: left;
+	margin-right: 1em;
+	font-family: Verdana, Geneva, sans-serif;
+	font-size: 9;
+	line-height: 1em;
+	text-align: center;
+}
+
 /* FOOTER */
 .ui.footer.segment
 {
@@ -303,10 +314,22 @@ a:hover
 }
 #modal_login form .button:hover:not(:active)
 {
-	background-color: rgb(260, 131, 46);
+	background-color: rgb(260,131,46);
 }
 #modal_login .error.message
 {
 	box-shadow: none;
 	color: red;
+}
+#modal_login .hidden
+{
+	display: none;
+}
+#modal_login .message.segment p, #modal_login .message.segment a
+{
+	display: inline;
+}
+#modal_login h2 p, #modal_login h2 i
+{
+	display: inline;
 }

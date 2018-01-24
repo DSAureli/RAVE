@@ -5,9 +5,6 @@
 ## TODO
 
 * eval Introduction position presence/position
-* fix automatic selection in dropdown at the changing of section (?)
-* "sales" and "critical reception" are duplicated
-* mouse scroll does not work on dropdown if mouse pointer is not exactly over the dropdown scrollbar (it scrolls the page instead) (tested on Firefox)
 * make all the queries at once and save sections in memory (toeval) (maybe not)
 * handle ambiguous list of wiki search results
 * handle no result case (for now the old search results keep being displayed)

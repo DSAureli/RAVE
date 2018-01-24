@@ -1,3 +1,22 @@
+// TODO: fix the duplication of history entry on the refresh.
+
+String.prototype.format = function()
+{
+	var content = this;
+	for (var i=0; i < arguments.length; i++)
+	{
+		var replacement = '{' + i + '}';
+		content = content.split(replacement).join(arguments[i]);
+	}
+	return content;
+};
+
+String.prototype.replaceAll = function(search, replacement) 
+{
+    var target = this;
+    return target.split(search).join(replacement);
+};
+
 function respCheck()
 {
 	// Sometimes CSS media queries and JQuery window.width work differently,
@@ -17,7 +36,24 @@ function respCheck()
 	}
 }
 
-var query;
+function virtualClickOnDropElement(value)
+{
+	$("#dropdown_sections").find("[data-value=" + value + "]").trigger('click');
+}
+
+var query = null;
+var oldQuery;
+
+var firstCall = true;	// necessary in order to avoid onChange activation
+var oldDrop;
+
+function historyNav(index, section)
+{
+	updateContent(index, section);
+	oldDrop = $("#menu_sections").html();
+	var url = '?' + query + '&' + index + '&' + section;
+	history.pushState({old:oldDrop, word:query, val:index, text:section}, null, url);
+}
 
 function updateContent(index, section)
 {
@@ -50,6 +86,7 @@ function updateContent(index, section)
 			{
 				// ...
 			});
+			
 		},
 		error: function(error)
 		{
@@ -60,6 +97,7 @@ function updateContent(index, section)
 		{
 			$("#column_wiki").dimmer("hide");
 			$("#column_wiki .loader").addClass("disabled");
+			$("#content_wiki img.thumbimage").attr("class", "ui medium rounded image");
 		}
 	});
 	
@@ -103,9 +141,34 @@ function updateContent(index, section)
 	});
 }
 
-function submitQuery()
+function submitQuery(refresh)
 {
-	query = $("#search").val();
+	
+	var refresh;
+	var urlSections = window.location.href;
+	var urlCheck = urlSections.indexOf('?')
+	if ( refresh && urlCheck>-1 ) // in case of refresh or bookmark
+	{
+		urlSections = urlSections.split("?");
+		urlSections = urlSections[1].split("&");
+		query = decodeURIComponent(urlSections[0]);
+		refresh = true;
+	}
+	else if(refresh && urlCheck==-1 )
+		return;
+	else
+	{
+		query = $("#search").val();
+		$.trim(query);
+		if (/\S/.test(query))			// avoid empty search
+			refresh = false;
+		else 
+		{
+			alert("Please insert at least one keyword");
+			return;
+		}
+	}
+
 	$("#title").text(query);
 	
 	$.ajax(
@@ -127,11 +190,10 @@ function submitQuery()
 			
 			$.each(apiResult.parse.sections, (i, section) =>
 			{
-				if (section.line != "References" && section.line != "External links")
+				if (section.line != "References" && section.line != "External links" && section.toclevel==1)
 					$("#menu_sections").append('<div class="item" data-value="{0}">{1}</div>'.format(section.index, section.line));
 			});
 			
-			// "Abstract" section (ie the one before the "Contents" table) missing!
 		},
 		error: outputError(),
 		complete: function()
@@ -139,16 +201,40 @@ function submitQuery()
 			$("#dropdown_sections").dropdown(
 			{
 				action: "activate",
-				onChange: updateContent
+				onChange:
+				function(value, text, $choice)
+				{
+					historyNav(value,text);
+					firstCall = false;
+				}
 			});
 			
-			$("#dropdown_sections").dropdown("set selected", 0);	// introduction is the default selected section
-			var val = $("#dropdown_sections").dropdown("get value");
-			var text = $("#dropdown_sections").dropdown("get text");
-			updateContent(val, text);
+			if(refresh == false)
+			{
+				virtualClickOnDropElement('0');
+				/* A fake click is necessary to select the correct element of dropdown on each new search.
+				   We need this trick because "set selected" and "set value" don't help with the firing of onChange. */
+
+				var val = $("#dropdown_sections").dropdown("get value");				
+				var text = $("#dropdown_sections").dropdown("get text");
+				if(firstCall)
+					historyNav(val, text);
+				firstCall = true;
+			}
+			// Add the content in case of refresh or bookmark
+			else	
+			{
+				var index = urlSections[1];
+				var section = decodeURIComponent(urlSections[2]);
+				virtualClickOnDropElement(index);
+				updateContent(urlSections[1], section);
+			}
+			oldDrop = $("#menu_sections").html();
+			
 		}
 	});
 }
+
 
 $(document).ready(function()
 {
@@ -157,17 +243,23 @@ $(document).ready(function()
 	
 	respCheck();
 	$(window).resize(respCheck);
+
+	submitQuery(true);	// in case of refresh or bookmark
 	
 	$("#search").keyup(function(event)
 	{
 		if (event.which == 13)
-			submitQuery();
+		{
+			submitQuery(false);
+		}
 	});
+	
+	// Also bind the search icon anchor to submitQuery
 	
 	$("#searchButton").click(function(event)
 	{
 		event.preventDefault();	// prevent link behavior
-		submitQuery();
+		submitQuery(false);
 	});
 	
 	$("#djenius_button").click(function()
@@ -182,10 +274,23 @@ $(document).ready(function()
 	});
 	
 	// Also bind the search icon anchor to submitQuery
+	// ...
 	
-	//
-	$("#search").val("we");
-	submitQuery();
+	window.addEventListener('popstate', function(e)
+	{
+		var index = e.state.val;
+		var section = e.state.text;
+		query = e.state.word;
+		$("#title").text(query);
+
+		updateContent(index,section);
+		
+		$("#menu_sections").empty();
+		$("#menu_sections").append(e.state.old);
+		$("#dropdown_sections").dropdown("set text", section);
+		if(section!="Introduction")
+			virtualClickOnDropElement(index);
+	});
 });
 
 function outputError(errorMessage)
