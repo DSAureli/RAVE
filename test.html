@@ -1,0 +1,702 @@
+<html>
+<head>
+	<title>test</title>
+	<meta charset="UTF-8">
+	
+	<!--!!!-->
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!---->
+	
+	<!--
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	-->
+	
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<!--<script src="js/util.js"></script>
+	<script>function submitQuery() {}</script>
+	<script src="js/genius2.js"></script>-->
+	<!--<script src="https://genius.codes"></script>-->
+	<script>
+	$(function()
+	{
+		$(".int").css("background-color", "yellow");
+		$(".int").click(function()
+		{
+			console.log("dio");
+		});
+		
+		$(".int").mouseenter(function()
+		{
+			$(this).css("background-color", "orange");
+		}).mouseleave(function()
+		{
+			$(this).css("background-color", "yellow");
+		});
+		
+		$(".ext").css("background-color", "yellow");
+		$(".ext").click(function()
+		{
+			console.log("dio");
+		});
+		
+		$(".ext").mouseenter(function()
+		{
+			$(this).css("background-color", "orange");
+		}).mouseleave(function()
+		{
+			$(this).css("background-color", "yellow");
+		});
+		
+		$("#buttondedio").click(function()
+		{
+			console.log("buttondedio");
+		});
+		
+		$(".ext").children().eq(0).click(function(e)
+		{
+			e.preventDefault();
+		});
+	});
+	</script>
+	
+	<style>
+		#colore
+		{
+			color: green;
+		}
+		/*
+		#color_span
+		{
+			color:red;
+			text-decoration: underline;
+			text-decoration-color: red;
+		}
+		*/
+	</style>
+	<script>
+		$(function()
+		{
+			$("#color_button").click(function()
+			{
+				var parent = $("#color_span").parent();
+				
+				while (parent.is("a") /*&& !parent.is(div)*/)
+					parent = parent.parent();
+				
+				if (parent)
+				{
+					var newP = $("<p></p>");
+					parent.append(newP);
+					var color = newP.css("color");
+					console.log(color);
+					newP.remove();
+				}
+				
+				$("#color_span").css("color", color);
+				$("#color_span").css("text-decoration", "underline");
+				$("#color_span").css("text-decoration-color", color);
+			});
+		});
+	</script>
+	<script>
+		function getDescendantTextBlocks(node)
+		{
+			// do not optimize, the right order must be ensured
+			
+			var blocks = [];
+			var nodes = [];
+			
+			// .not("br") also excludes text nodes...
+			$(node).contents().filter(function()
+			{
+				return !($(this).is("br"));
+			}
+			).each(function()
+			{
+				if (this.nodeType == Node.TEXT_NODE)
+				{
+					nodes.push(this);
+				}
+				else if (nodes.length)
+				{
+					blocks.push(nodes);
+					nodes = [];
+					blocks.push(getDescendantTextBlocks(this));
+				}
+			});
+			
+			if (nodes.length)
+				blocks.push(nodes);
+			
+			return blocks;
+		}
+		
+		$(function()
+		{
+			$("#text_button").click(function()
+			{
+				console.log(getDescendantTextBlocks($("#text_div")));
+			});
+		});
+	</script>
+</head>
+
+<body>
+	<div id="container" class="genius_sel">
+		<div id="one">
+			One
+			Two
+		</div>
+		Three
+		Four
+		<div id="two">
+			Five
+			Six
+		</div>
+	</div>
+	<br>
+	<a href="extern">This<a href="intern">is a</a>link</a>
+	<br>
+	<span class="ext"><a href="boh">This is <span class="int">another</span> link</a></span>
+	<br>
+	<a href="buttona"><input id="buttondedio" type="button" value="button"></a>
+	<br>
+	<br>
+	<input id="genius" type="button" value="genius">
+	<br>
+	<br>
+	<h4>
+		Test per la gestione colori del testo
+	</h4>
+	<br>
+	<div id="colore">
+		Questo è un testo<br>
+		<a>Questo è un link senza href</a><br>
+		<a href="we"><span id="color_span">Questo è un li</span>nk con href pieno</a><br>
+	</div>
+	<input id="color_button" type="button" value="change color">
+	<br>
+	<br>
+	<h4>
+		Test per la gestione colori del testo
+	</h4>
+	<br>
+	<div id="text_div">
+		testo direttamente figlio
+		altro testo senza br prima<br>
+		altro testo con br prima<br>
+		<p>
+			testo dentro p
+			testo dentro p senza br prima<br>
+			testo dentro p con br prima
+		</p>
+		testo dopo p
+	</div>
+	<input id="text_button" type="button" value="get descendant text blocks">
+	
+	<br>
+	<br>
+	
+	<script src="js/djenius.js"></script>
+	<!--<script src="js/util.js"></script>-->
+	<script>
+		$(function()
+		{
+			Djenius.setAnnotatable($("#test_djenius_div")[0], String(1));
+			$("#test_djenius_button").click(Djenius.newAnnotation);
+			
+			$("#test_sel").click(function()
+			{
+				console.log(window.getSelection().getRangeAt(0));
+			});
+			
+			$("#test_unwrap").click(function()
+			{
+				var spans = $("#test_djenius_div span");
+				var spanParents = spans.parent();
+				
+				spans.contents().unwrap();
+				
+				spanParents.each(function()
+				{
+					this.normalize();
+				});
+			});
+			
+			$("#test_remove_span").click(function()
+			{
+				Djenius.removeSpan($("#test_djenius_div span")[0]);
+			});
+		});
+	</script>
+	<div id="test_djenius_div">
+		blocco div 1.1<br>
+		blocco div 1.2<br>
+		<p>
+			blocco div > p 1.1<br>
+			blocco div > p 1.2<br>
+			<a href="we">blocco div > p > a</a>
+		</p>
+		blocco div 2<br>
+		<a href="">blocco div > a</a><br>
+		blocco div 3
+	</div>
+	<input id="test_djenius_button" type="button" value="test djenius">
+	<input id="test_sel" type="button" value="test sel">
+	<input id="test_unwrap" type="button" value="unwrap">
+	<input id="test_remove_span" type="button" value="test removeSpan">
+	
+	<br>
+	<br>
+	
+	<script>
+		$(function()
+		{
+			var div = $("#test_normalize_div");
+			div.append(document.createTextNode("Text 1"));
+			div.append(document.createTextNode("Text 2"));
+			
+			var pnode = $("<p></p>");
+			pnode.append(document.createTextNode("Pnode 1"));
+			pnode.append(document.createTextNode("Pnode 2"));
+			div.append(pnode);
+			
+			div.append(document.createTextNode("Text 3"));
+			div.append(document.createTextNode("Text 4"));
+			
+			$("#test_normalize_button").click(function()
+			{
+				div[0].normalize();
+			});
+		});
+	</script>
+	<div id="test_normalize_div"></div>
+	<input id="test_normalize_button" type="button" value="normalize">
+	
+	<br>
+	<br>
+	
+	<script>
+		$(function()
+		{
+			$("#test_bubble #p1").click(function()
+			{
+				console.log("P1");
+			});
+			
+			$("#test_bubble #p2").click(function()
+			{
+				console.log("P2");
+			});
+		});
+	</script>
+	<div id="test_bubble">
+		<p id="p1">
+			Testo1
+			<p id="p2">
+				Testo 2
+			</p>
+			Testo3
+		</p>
+	</div>
+	
+	<br>
+	<br>
+	
+	<script>
+		$(function()
+		{
+			$("#test_bubble2 #span1").click(function()
+			{
+				console.log("span1");
+			});
+			
+			$("#test_bubble2 #span2").click(function()
+			{
+				console.log("span2");
+			});
+		});
+	</script>
+	<div id="test_bubble2">
+		Testo <span id="span1">Span1 <span id="span2">Span2</span> Span1</span> Testo
+	</div>
+	
+	<br>
+	<br>
+	
+	<script>
+		$(function()
+		{
+			$("#test_bubble3 a span").click(function()
+			{
+				console.log("span");
+			});
+		});
+	</script>
+	<div id="test_bubble3">
+		Testo <a href="">A <span>Span</span> A</a> Testo
+	</div>
+	
+	<br>
+	<br>
+	
+	<script>
+		$(function()
+		{
+			$("#test_pointinrange_button1").click(function()
+			{
+				var range = document.createRange();
+				range.selectNode($("#test_pointinrange_div")[0]);
+				var bool = range.isPointInRange($("#test_pointinrange_p1")[0], 1);
+				console.log(bool);
+			});
+			
+			$("#test_pointinrange_button2").click(function()
+			{
+				var range = document.createRange();
+				range.selectNode($("#test_pointinrange_div")[0]);
+				var bool = range.isPointInRange($("#test_pointinrange_p2")[0], 1);
+				console.log(bool);
+			});
+		});
+	</script>
+	<div id="test_pointinrange_div">
+		<p id="test_pointinrange_p1">we</p>
+	</div>
+	<p id="test_pointinrange_p2">we</p>
+	<input id="test_pointinrange_button1" type="button" value="test isPointInRange 1">
+	<input id="test_pointinrange_button2" type="button" value="test isPointInRange 2">
+	
+	<br>
+	<br>
+	
+	<script>
+		$(function()
+		{
+			$("#test_add_span_button").click(function()
+			{
+				var userSel = window.getSelection();
+				var userRange = userSel.getRangeAt(0);
+				
+				console.log(userRange);
+				
+				var text = $("#test_add_span").contents()[0];
+				var range = document.createRange();
+				range.setStart(text, 5);
+				range.setEnd(text, 9);
+				var newSpan = document.createElement("span");
+				range.surroundContents(newSpan);
+				
+				console.log(userRange);
+			});
+		});
+	</script>
+	<div id="test_add_span">Text Text Text</div>
+	<input id="test_add_span_button" type="button" value="test add span">
+	
+	<br>
+	<br>
+	
+	<script>
+		$(function()
+		{
+			$("#test_color_button").click(function()
+			{
+				var newElem = document.createElement("span");
+				$(newElem).css("color", "wewewe");
+				
+				$("#test_color").append(newElem);
+				
+				var cs = window.getComputedStyle(newElem);
+				console.log(cs.getPropertyValue("color"));
+				
+				// Edge returns "transparent" with transparent, other colors work consistently everywhere (I hope)
+			});
+		});
+	</script>
+	<div id="test_color"></div>
+	<input id="test_color_button" type="button" value="test color">
+	
+	<br>
+	<br>
+	
+	<script>
+		$(function()
+		{
+			$("#test_class").addClass("myclass");
+			var meh;
+			
+			$("#test_new_class_button").click(function()
+			{
+				meh = $("<style type='text/css'>").html(".myclass {background-color: orange;}").appendTo("head");
+			});
+			
+			$("#test_edit_class_button").click(function()
+			{
+				meh.html(".myclass {background-color: green;}");
+			});
+		});
+	</script>
+	<div id="test_class">text text text</div>
+	<input id="test_new_class_button" type="button" value="test new class">
+	<input id="test_edit_class_button" type="button" value="test edit class">
+	
+	<br>
+	<br>
+	
+	<style>
+		#test_trans
+		{
+			transition: background-color 200ms linear;
+		}
+		#test_trans:hover
+		{
+			transition: background-color 200ms linear;
+		}
+	</style>
+	<script>
+		$(function()
+		{
+			$("#test_trans").hover
+			(
+				function()
+				{
+					$("#test_trans").css("background-color", "orange");
+				},
+				function()
+				{
+					$("#test_trans").css("background-color", "lightgrey");
+				}
+			);
+		});
+	</script>
+	<div id="test_trans">test trans</div>
+	
+	<br>
+	<br>
+	
+	<script>
+		function defer(fun, res, rej, fin)
+		{
+			var _resolve;
+			var _reject;
+			var promise = new Promise((resolve, reject) =>
+			{
+				_resolve = resolve;
+				_reject = reject;
+			});
+			
+			fun(_resolve, _reject);
+			//promise.then(res).catch(rej).finally(fin);
+			promise.then(res).catch(rej).then(fin, fin);
+		}
+		
+		function external(resolve, reject)
+		{
+			$("#test_promise_button").click(function()
+			{
+				var text = $("#test_promise_entry").val();
+				
+				if (text)
+				{
+					resolve(text);
+				}
+				else
+				{
+					reject("empty input");
+				}
+			});
+			
+			$("#reject_promise_button").click(function()
+			{
+				reject();
+			});
+		}
+		
+		$(function()
+		{
+			$("#new_promise_button").click(function()
+			{
+				defer(external, function(str)
+				{
+					console.log("str: " + str);
+				},
+				function(err)
+				{
+					str = "promise rejected";
+					
+					if (err)
+						str += " with error: " + err;
+					
+					console.error(str);
+				},
+				function()
+				{
+					console.log("finally")
+				});
+			});
+		});
+	</script>
+	<input id="new_promise_button" type="button" value="new promise">
+	<input id="test_promise_entry" type="text">
+	<input id="test_promise_button" type="button" value="test promise">
+	<input id="reject_promise_button" type="button" value="reject promise">
+	
+	
+	
+<!--
+	<style>
+		dialog
+		{
+			border-width: 2px; 
+			padding: 0;
+		}
+		header
+		{
+			text-align: center;
+			border-bottom: 2px solid;
+			padding: 1em;
+			-webkit-user-select: none;
+			user-select: none;
+		}
+		textarea
+		{
+			border: 2px solid;
+			height: 10em;
+			margin: 0.5em;
+			resize: none;
+			width: 25em;
+		}
+		.flex_container
+		{
+			border-top: 2px solid;
+			display: flex;
+		}
+		.flex_container > *
+		{
+			flex: 1;
+		}
+		button
+		{
+			border: none;
+			background: none;
+			padding: 1em;
+			transition: background 50ms linear;
+		}
+		button:first-child
+		{
+			border-right: 1px solid;
+		}
+		button:last-child
+		{
+			border-left: 1px solid;
+		}
+		button:hover
+		{
+			background: silver;
+			transition: background 50ms linear;
+		}
+		button:active
+		{
+			background: darkgrey;
+			transition: background 50ms linear;
+		}
+	</style>
+	<dialog open>
+		<header>Header</header>
+		<textarea></textarea>
+		<div class="flex_container">
+			<button>Cancel</button>
+			<button>OK</button>
+		</div>
+	</dialog>
+	
+	
+	
+	<style>
+		dialog
+		{
+			border-width: 2px; 
+			padding: 0;
+			-webkit-user-select: none;
+			user-select: none;
+		}
+		header
+		{
+			text-align: center;
+			border-bottom: 2px solid;
+			padding: 1em;
+		}
+		
+		.vertical-menu
+		{
+			max-height: 300px;
+			overflow-y: auto;
+			width: 400px;
+		}
+		.vertical-menu a
+		{
+			background: none;
+			display: flex;
+			padding: 0.75em;
+			transition: background 50ms linear;
+		}
+		.vertical-menu a:hover
+		{
+			background: #ddd;
+			transition: background 50ms linear;
+		}
+		.vertical-menu a:active
+		{
+			background: #bbb;
+			transition: background 50ms linear;
+		}
+		/**/
+		.vertical-menu .id
+		{
+			border-right: 1px solid;
+			flex: 1;
+			overflow: hidden;
+			padding-right: 0.75em;
+			text-align: center;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		.vertical-menu .text
+		{
+			flex: 6;
+			overflow: hidden;
+			padding-left: 1em;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		/**/
+		button
+		{
+			border-top: 2px solid;
+			background: none;
+			padding: 1em;
+			transition: background 50ms linear;
+			width: 100%;
+		}
+	</style>
+	<dialog open>
+		<header>Header</header>
+		<div class="vertical-menu">
+			<a>Home</a>
+			<a><div class="id">0101</div><div class="text">Link 1Link 1Link 1Link 1Link 1Link 1Link 1Link 1Link 1Link 1Link 1</div></a>
+			<a>Link 2</a>
+			<a>Link 3</a>
+			<a>Link 4</a>
+			<a>Link 5</a>
+			<a>Link 6</a>
+			<a>Link 7</a>
+			<a>Link 8</a>
+			<a>Link 9</a>
+			<a>Link 10</a>
+		</div>
+		<button>Cancel</button>
+	</dialog>
+-->
+</body>
+</html>

@@ -78,11 +78,11 @@ function updateContent(index, section)
 		success: function(apiResult)
 		{
 			$("#content_wiki").html(apiResult.parse.text["*"]);
-			$("#content_wiki").find("a").each(function(index, elem)
+			$("#content_wiki").find("a").each(function()
 			{
-				elem.href = "//en.wikipedia.org" + elem.pathname;
+				this.href = "//en.wikipedia.org" + this.pathname;
 			});
-			$("#content_wiki").find("img").each(function(index, elem)
+			$("#content_wiki").find("img").each(function()
 			{
 				// ...
 			});
@@ -115,7 +115,16 @@ function updateContent(index, section)
 			{
 				if (item.issue != "0")
 				{
-					$("#content_crossref").append("<div class='ui segment'><p>Title: {0}</br>Publisher: {1}</br> Type: {2}</br> <a href='{3}'>Get this content</a></p></div>".format(item.title[0], item.publisher, item.type, item.URL));
+					var newDiv = $("<div></div>").addClass("ui segment").append
+					(
+						$("<p></p>").html("Title: {0}</br>Publisher: {1}</br>Type: {2}</br>".format(item.title[0], item.publisher, item.type)).append
+						(
+							$("<a></a>").attr("href", item.URL).text("Get this content")
+						)
+					);
+					
+					Djenius.setAnnotatable(newDiv, item.DOI);
+					$("#content_crossref").append(newDiv);
 				}
 			});
 		},
@@ -230,6 +239,7 @@ function submitQuery(refresh)
 $(document).ready(function()
 {
 	$("body").on("dragstart", false);
+	$("#modal_login").modal({duration: 300, transition: "fade down"});
 	
 	respCheck();
 	$(window).resize(respCheck);
@@ -251,6 +261,20 @@ $(document).ready(function()
 		event.preventDefault();	// prevent link behavior
 		submitQuery(false);
 	});
+	
+	$("#djenius_button").click(function()
+	{
+		//set djenius_column loading animation on
+		// ...
+		
+		Djenius.newAnnotation();
+		
+		//set djenius_column loading animation off
+		// ...
+	});
+	
+	// Also bind the search icon anchor to submitQuery
+	// ...
 	
 	window.addEventListener('popstate', function(e)
 	{
