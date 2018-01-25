@@ -203,6 +203,8 @@
 		$(function()
 		{
 			Djenius.setAnnotatable($("#test_djenius_div")[0], String(1));
+			Djenius.setIgnore($("#test_ignore")[0]);
+			
 			$("#test_djenius_button").click(Djenius.newAnnotation);
 			
 			$("#test_sel").click(function()
@@ -233,7 +235,7 @@
 		blocco div 1.1<br>
 		blocco div 1.2<br>
 		<p>
-			blocco div > p 1.1<br>
+			<span id="test_ignore">blocco div > p 1.1</span><br>
 			blocco div > p 1.2<br>
 			<a href="we">blocco div > p > a</a>
 		</p>

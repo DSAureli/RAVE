@@ -22,14 +22,8 @@
 				return;
 			}
 		},
-		setIgnore : function(node, id)
+		setIgnore : function(node)
 		{
-			if (!id || !isValidString(id))
-			{
-				console.error("Argument 'id' is not a valid unique identifier");
-				return;
-			}
-			
 			if (node && node.nodeType)
 			{
 				node.setAttribute("djenius_ignore", "");
@@ -1213,7 +1207,7 @@
 		
 		let nodes = [];
 		
-		$(node).contents().each(function()
+		$(node).not("[djenius_ignore]").contents().each(function()
 		{
 			if (this.nodeType == Node.TEXT_NODE)
 				nodes.push(this);
@@ -1261,7 +1255,7 @@
 		let selRanges = getSelectionRanges();
 		
 		// Djenius divs not descendant of other Djenius divs
-		$("[djenius_sel_id]").not("[djenius_sel_id] *").not("[djenius_ignore]")
+		$("[djenius_sel_id]").not("[djenius_sel_id] *")
 		.each(function(index, div)
 		{
 			$(div)[0].normalize();
