@@ -22,7 +22,7 @@
 				return;
 			}
 		},
-		setIgnore : function(node)
+		setIgnore: function(node)
 		{
 			if (node && node.nodeType)
 			{
@@ -33,6 +33,16 @@
 				console.error("Argument 'node' is not a valid DOM element");
 				return;
 			}
+		},
+		setNewUserSelection_Handler: function(handler)
+		{
+			if (!isFunction(handler))
+			{
+				console.error("Argument 'handler' must be a function");
+				return;
+			}
+			
+			newUserSelection_Handler = handler;
 		},
 		setGetAnnotationProperties_Handler: function(handler)
 		{
@@ -66,11 +76,9 @@
 		},
 		setIdleAnnotationColor: setIdleAnnotationColor,
 		setActiveAnnotationColor: setActiveAnnotationColor,
-		
-		getAnnotationsCount: getAnnotationsCount,
-		
-		askServerForInitialCollection : askServerForInitialCollection,
-		newAnnotation: newAnnotation
+		askServerForInitialCollection: askServerForInitialCollection,
+		newAnnotation: newAnnotation,
+		getAnnotationsCount: getAnnotationsCount
 	};
 	
 	//¯¯¯¯¯¯¯¯¯¯¯¯¯//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -237,8 +245,7 @@
 		}
 		catch(err)
 		{
-			let errStr = "setIdleAnnotationColor(str) failed.\n" + 
-			"defer(getAnnotationProperties_Handler, ...)";
+			let errStr = "setIdleAnnotationColor(str) failed.\n";
 			
 			if (isValidString(err))
 				errStr += ":\n" + reason;
@@ -255,8 +262,7 @@
 		}
 		catch(err)
 		{
-			let errStr = "setIdleAnnotationColor(str) failed.\n" + 
-			"defer(getAnnotationProperties_Handler, ...)";
+			let errStr = "setIdleAnnotationColor(str) failed.\n";
 			
 			if (isValidString(err))
 				errStr += ":\n" + reason;
@@ -283,6 +289,70 @@
 	//¯¯¯¯¯¯¯¯¯¯¯¯///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//  Handlers  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//____________///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	let newUserSelection_Handler = function(params, resolve, reject)
+	{
+		console.log(params);
+	};
+	
+	var selectionEndTimeout = null;
+	
+	document.onselectionchange = function()
+	{
+		if (selectionEndTimeout)
+		{
+			clearTimeout(selectionEndTimeout);
+		}
+		
+		selectionEndTimeout = setTimeout(function()
+		{
+			document.dispatchEvent(new CustomEvent("selectionEnd",
+			{
+				bubbles: true,
+				cancelable: true
+			}));
+		},
+		500);
+	};
+	
+	let newUserSelectionResolve;
+	
+	document.addEventListener("selectionEnd", function()
+	{
+		selectionEndTimeout = null;
+		let intRanges = getNewDjeniusRanges(true);
+		
+		if (intRanges.length)
+		{
+			defer(function(params, resolve, reject)
+			{
+				if (isFunction(newUserSelectionResolve))
+				{
+					newUserSelectionResolve();
+				}
+				
+				newUserSelectionResolve = resolve;
+				newUserSelection_Handler(params, resolve, reject);
+			},
+			{
+				ranges: intRanges
+			},
+			function(result)
+			{
+				// nothing
+			},
+			function(reason)
+			{
+				let errStr = "newUserSelection_Handler failed.\n" + 
+				"defer(newUserSelection_Handler, ...)";
+				
+				if (isValidString(reason))
+					errStr += ":\n" + reason;
+				
+				console.error(errStr);
+			});
+		}
+	});
 	
 	$(`
 	<style>
@@ -614,13 +684,13 @@
 		resolve(annotationsCollection);
 	}
 	
-	// Keep the current shown annotation's reject callback, in order to ensure the promise fullfillment
-	// in case the library user forgets to do it by calling it before any other action on any annotation
+	// Keep the current shown annotation's reject callback, in order to ensure the promise fullfillment,
+	// in case the library user forgets to do it, by calling it before any other action on any annotation
 	let shownAnnotationReject;
 	
 	let showAnnotation_Handler = function(params, resolve, reject)
 	{
-		console.log(params);
+		console.log(params.annotation);
 	};
 	
 	function showAnnotation(annotation)
@@ -629,13 +699,15 @@
 		{
 			if (isFunction(shownAnnotationReject))
 			{
-				shownAnnotationReject();
+				shownAnnotationReject(null);
 			}
 			
 			shownAnnotationReject = reject;
 			showAnnotation_Handler(params, resolve, reject);
 		},
-		annotation,
+		{
+			annotation: annotation
+		},
 		function(properties)
 		{
 			// properties == null -> delete
@@ -687,13 +759,16 @@
 		},
 		function(reason)
 		{
-			let errStr = "Action on annotation failed.\n" + 
-			"defer(showAnnotation_Handler, ...)";
-			
-			if (isValidString(reason))
-				errStr += ":\n" + reason;
-			
-			console.error(errStr);
+			if (reason !== null)
+			{
+				let errStr = "Action on annotation failed.\n" + 
+				"defer(showAnnotation_Handler, ...)";
+				
+				if (isValidString(reason))
+					errStr += ":\n" + reason;
+				
+				console.error(errStr);
+			}
 		});
 	}
 	
@@ -1249,16 +1324,17 @@
 		return pathArray;
 	}
 	
-	function getNewDjeniusRanges()
+	function getNewDjeniusRanges(intmdResult)
 	{
+		let intRanges = [];
 		let newDjeniusRanges = [];
+		
 		let selRanges = getSelectionRanges();
 		
-		// Djenius divs not descendant of other Djenius divs
-		$("[djenius_sel_id]").not("[djenius_sel_id] *")
-		.each(function(index, div)
+		// Djenius divs not descendants of other Djenius divs
+		$("[djenius_sel_id]").not("[djenius_sel_id] *").each(function(index, div)
 		{
-			$(div)[0].normalize();
+			div.normalize();
 			
 			let textNodes = getDescendantTextNodes(div);
 			let djenius_sel_id = $(div).attr("djenius_sel_id");
@@ -1273,17 +1349,27 @@
 					let intRange = getIntersectionRange(range, textNodeRange);
 					if (intRange && intRange.toString().trim())
 					{
-						newDjeniusRanges.push(
+						if (intmdResult)
 						{
-							djeniusSelID: djenius_sel_id,
-							path: getRelativePath(div, textNode),
-							startOffset: intRange.startOffset,
-							endOffset: intRange.endOffset
-						});
+							intRanges.push(intRange);
+						}
+						else
+						{
+							newDjeniusRanges.push(
+							{
+								djeniusSelID: djenius_sel_id,
+								path: getRelativePath(div, textNode),
+								startOffset: intRange.startOffset,
+								endOffset: intRange.endOffset
+							});
+						}
 					}
 				}
 			}
 		});
+		
+		if (intmdResult)
+			return intRanges;
 		
 		return newDjeniusRanges;
 	}

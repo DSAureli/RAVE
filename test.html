@@ -229,6 +229,25 @@
 			{
 				Djenius.removeSpan($("#test_djenius_div span")[0]);
 			});
+			
+			$("#test_get_rect").click(function()
+			{
+				let rectList = window.getSelection().getRangeAt(0).getClientRects();
+				let rect = rectList[0];
+				
+				let div = $("<div></div>")
+					.css("background-color", "blue")
+					.css("position", "absolute")
+					.css("top", rect.top + window.scrollY)
+					.css("left", rect.left + window.scrollX)
+					.css("height", rect.height)
+					.css("width", rect.width);
+				
+				$("body").append(div);
+				
+				console.log(rectList);
+				console.log($("#test_ignore")[0].getBoundingClientRect());
+			});
 		});
 	</script>
 	<div id="test_djenius_div">
@@ -247,6 +266,7 @@
 	<input id="test_sel" type="button" value="test sel">
 	<input id="test_unwrap" type="button" value="unwrap">
 	<input id="test_remove_span" type="button" value="test removeSpan">
+	<input id="test_get_rect" type="button" value="getRect">
 	
 	<br>
 	<br>
