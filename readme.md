@@ -1,6 +1,8 @@
-# RAVE...
+# RAVE
 
-... where bakers make bread and programmers swear
+Rave stands for "Resources annotator, Visualizer and Enhancer".
+This web app aims to visualize and annotate contents from Wikipedia and Crossref. A login system with a database for
+annotations is included.
 
 ## TODO
 
