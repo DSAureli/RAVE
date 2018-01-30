@@ -1,0 +1,65 @@
+<html>
+<head>
+	<title>test touch</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	
+	<script>
+		$(function()
+		{
+			var selectionEndTimeout = null;
+			document.onselectionchange = userSelectionChanged;
+			
+			function userSelectionChanged()
+			{
+				if (selectionEndTimeout)
+				{
+					clearTimeout(selectionEndTimeout);
+					// ...
+				}
+				
+				selectionEndTimeout = setTimeout(function()
+				{
+					$(window).trigger('selectionEnd');
+				}, 500);
+			}
+			
+			function getSelectionText()
+			{
+				var text = "";
+				if (window.getSelection)
+				{
+					text = window.getSelection().toString();
+				}
+				else if (document.selection && document.selection.type != "Control")
+				{
+					text = document.selection.createRange().text;
+				}
+				return text;
+			}
+			
+			$(window).on('selectionEnd', function()
+			{
+				selectionEndTimeout = null;
+				
+				// ...
+				
+				var selectedText = getSelectionText();
+				
+				if(selectedText != '')
+				{
+					console.log(selectedText);
+				}
+			});
+		});
+	</script>
+</head>
+
+<body>
+Testo testo testo testo testo testo testo testo testo testo testo<br>
+testo testo testo testo testo testo testo testo testo testo testo<br>
+testo testo testo testo testo testo testo testo testo testo testo<br>
+testo testo testo testo testo testo testo testo testo testo testo<br>
+</body>
+</html>

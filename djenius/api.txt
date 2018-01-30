@@ -1,0 +1,88 @@
+//
+// CREATE
+//
+
+serverRequest_Handler receives
+{
+	request: ServerRequest.create,
+	data: newDjeniusAnnotation
+}
+and sends
+{
+	user,
+	page,
+	version,
+	data
+}
+with POST method
+
+newDjeniusAnnotation
+{
+	id,
+	ranges,
+	properties
+}
+properties
+{
+	annotation,
+	public
+}
+
+
+
+//
+// READ
+//
+
+serverRequest_Handler receives
+{
+	request: ServerRequest.read
+}
+and sends
+{
+	user,
+	page
+}
+with GET method
+
+
+
+//
+// UPDATE
+//
+
+serverRequest_Handler receives
+{
+	request: ServerRequest.update;
+	data:
+	{
+		id: annotation.id,
+		properties: properties
+	}
+}
+and sends
+{
+	user,
+	page,
+	data
+}
+with PUT method
+
+
+
+//
+// DELETE
+//
+
+serverRequest_Handler receives
+{
+	request = ServerRequest.delete;
+	data = annotation.id;
+}
+and sends
+{
+	user,
+	page,
+	data
+}
+with DELETE method

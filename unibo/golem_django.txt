@@ -1,0 +1,41 @@
+/home/web/site1767/data$			virtualenv -p python3 venv
+/home/web/site1767/data$			. ./venv/bin/activate
+/home/web/site1767/data$			pip install Django
+/home/web/site1767//data$			django-admin startproject rave
+/home/web/site1767/data/rave$		python manage.py runserver
+/home/web/site1767/data/rave$		python manage.py startapp rave_app
+[edit /home/web/site1767/data/rave/rave_app/views.py]
+[create /home/web/site1767/data/rave/rave_app/urls.py]
+[edit /home/web/site1767/data/rave/rave/urls.py]
+[edit /home/web/site1767/data/rave/rave/setings.py] -> ALLOWED_HOSTS = ["*"]
+
+[wsgi.wsgi]
+"""
+WSGI config for rave project.
+
+It exposes the WSGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/
+"""
+
+import os
+import sys
+import site
+
+site.addsitedir("/home/web/site1767/data/venv/lib/python3.4/site-packages")
+site.addsitedir("/home/web/site1767/data/venv/lib/python3.4/site-packages/django")
+
+sys.path.append("/home/web/site1767/data/rave")
+sys.path.append("/home/web/site1767/data/rave/rave")
+sys.path.append("/home/web/site1767/data/rave/rave_app")
+
+activate_env = os.path.expanduser("/home/web/site1767/data/venv/bin/activate_this.py")
+exec(compile(open(activate_env).read(), activate_env, 'exec'), dict(__file__=activate_env))
+
+from django.core.wsgi import get_wsgi_application
+
+#os.environ.setdefault("DJANGO_SETTINGS_MODULE", "rave.settings")
+os.environ["DJANGO_SETTINGS_MODULE"] = "rave.settings"
+
+application = get_wsgi_application()

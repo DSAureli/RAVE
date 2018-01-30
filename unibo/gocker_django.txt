@@ -1,0 +1,86 @@
+/home/web/site1767/data$			virtualenv -p python3 venv
+/home/web/site1767/data$			. ./venv/bin/activate
+/home/web/site1767/data$			pip install Django
+/home/web/site1767//data$			django-admin startproject rave
+/home/web/site1767/data/rave$		python manage.py runserver
+/home/web/site1767/data/rave$		python manage.py startapp rave_app
+
+
+
+[edit /home/web/site1767/data/rave/rave_app/views.py]
+from django.shortcuts import render
+
+# Create your views here.
+from django.http import HttpResponse
+
+def index(request):
+    return HttpResponse("Hello, world. You're at the rave_app index.")
+
+
+
+[create /home/web/site1767/data/rave/rave_app/urls.py]
+from django.conf.urls import url
+
+from . import views
+
+urlpatterns = [
+        url(r'^$', views.index, name='index'),
+]
+
+
+
+[edit /home/web/site1767/data/rave/rave/urls.py]
+from django.conf.urls import include, url
+from django.contrib import admin
+
+urlpatterns = [
+        url(r'^rave_app/', include('rave_app.urls')),
+        url(r'^admin/', admin.site.urls),
+]
+
+
+
+[edit /home/web/site1767/data/rave/rave/settings.py] -> ALLOWED_HOSTS = ["*"]
+
+
+
+[wsgi.wsgi]
+import os
+import sys
+import site
+
+#site.addsitedir("/var/www/data/venv/lib/python3.4/site-packages")
+#site.addsitedir("/var/www/data/venv/lib/python3.4/site-packages/django")
+
+sys.path.append("/var/www/data/rave")
+sys.path.append("/var/www/data/rave/rave")
+sys.path.append("/var/www/data/rave/rave_app")
+
+activate_env = os.path.expanduser("/var/www/data/venv/bin/activate_this.py")
+exec(compile(open(activate_env).read(), activate_env, 'exec'), dict(__file__=activate_env))
+
+from django.core.wsgi import get_wsgi_application
+os.environ["DJANGO_SETTINGS_MODULE"] = "rave.settings"
+application = get_wsgi_application()
+
+[oppure]
+import os
+import sys
+import site
+
+site.addsitedir('/var/www/data/venv/lib/python3.4/site-packages')
+
+sys.path.append('/var/www/data/rave')
+sys.path.append('/var/www/data/rave/rave')
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'rave.settings'
+
+# activate venv
+activate_env = os.path.expanduser('/var/www/data/venv/bin/activate_this.py')
+exec(open(activate_env).read(),dict(__file__=activate_env))
+
+# launch django
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
+
+[?]
