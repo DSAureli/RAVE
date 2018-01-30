@@ -1,28 +1,11 @@
 // TODO: fix the duplication of history entry on the refresh.
 
-String.prototype.format = function()
-{
-	var content = this;
-	for (var i=0; i < arguments.length; i++)
-	{
-		var replacement = '{' + i + '}';
-		content = content.split(replacement).join(arguments[i]);
-	}
-	return content;
-};
-
-String.prototype.replaceAll = function(search, replacement) 
-{
-    var target = this;
-    return target.split(search).join(replacement);
-};
-
-function respCheck()
+function updateResponsiveness()
 {
 	// Sometimes CSS media queries and JQuery window.width work differently,
 	// so we better check for CSS properties instead of window.width
 	
-	if ($("#column_wiki").css("order") == "1" )
+	if ($("#column_wiki").css("order") == "1")
 	{
 		$("#header_login").detach().insertAfter("#header_home");
 		$("#title").removeClass("left floated").addClass("center aligned");
@@ -195,7 +178,10 @@ function submitQuery(refresh)
 			});
 			
 		},
-		error: outputError(),
+		error: function(error)
+		{
+			console.error(error)
+		},
 		complete: function()
 		{
 			$("#dropdown_sections").dropdown(
@@ -241,8 +227,8 @@ $(document).ready(function()
 	$("body").on("dragstart", false);
 	$("#modal_login").modal({duration: 300, transition: "fade down"});
 	
-	respCheck();
-	$(window).resize(respCheck);
+	updateResponsiveness();
+	$(window).resize(updateResponsiveness);
 
 	submitQuery(true);	// in case of refresh or bookmark
 	
@@ -292,8 +278,3 @@ $(document).ready(function()
 			virtualClickOnDropElement(index);
 	});
 });
-
-function outputError(errorMessage)
-{
-	console.log(errorMessage);
-}

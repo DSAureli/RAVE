@@ -93,9 +93,9 @@
 		return a;
 	}
 	
-	function isFunction(fun)
+	function isFunction(obj)
 	{
-		return (typeof fun == "function");
+		return (typeof obj == "function");
 	}
 	
 	function isString(obj)
@@ -108,6 +108,21 @@
 		return isString(obj) && obj.trim();
 	}
 	
+	Array.prototype.pushArray = function(arr)
+	{
+		for (let i of arr)
+			this.push(i);
+		return arr.length;
+	};
+	
+	Array.prototype.removeAt = function(index)
+	{
+		if (index > -1)
+			return this.splice(index, 1);
+		else
+			console.error("Array.prototype.removeAt: negative index");
+	};
+	
 	String.prototype.format = function()
 	{
 		let content = this;
@@ -117,22 +132,6 @@
 			content = content.split(replacement).join(arguments[i]);
 		}
 		return content;
-	};
-	
-	Array.prototype.pushArray = function(arr)
-	{
-		for (let i of arr)
-			this.push(i);
-		
-		return arr.length;
-	};
-	
-	Array.prototype.removeAt = function(index)
-	{
-		if (index > -1)
-			return this.splice(index, 1);
-		else
-			console.error("Array.prototype.removeAt error: negative index");
 	};
 	
 	function defer(fun, params, res, rej, fin)

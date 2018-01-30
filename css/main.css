@@ -40,7 +40,6 @@ a:hover
 .dropdown
 {
 	-webkit-user-select: none;
-	-ms-user-select: none; /*this is only for IE, remove?*/
 	user-select: none;
 }
 
