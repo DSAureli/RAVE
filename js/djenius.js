@@ -270,7 +270,9 @@
 		}
 	}
 	
-	$("<style>").html(`
+	document.addEventListener("DOMContentLoaded", function(event)
+	{
+		$("<style>").html(`
 		[djenius_sel_id] [djenius_ann_id]
 		{
 			cursor: pointer;
@@ -280,10 +282,11 @@
 		{
 			transition: all 100ms linear;
 		}
-	`).appendTo("head");
-	
-	setIdleAnnotationColor("rgb(150,150,150)");
-	setActiveAnnotationColor("orange");
+		`).appendTo("head");
+		
+		setIdleAnnotationColor("rgb(150,150,150)");
+		setActiveAnnotationColor("orange");
+	});
 	
 	//¯¯¯¯¯¯¯¯¯¯¯¯///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//  Handlers  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -991,9 +994,8 @@
 			let alpha = 0.10 + commonIds.length * fraction;
 			let color = getCssColor(activeColor, alpha);
 			
-			$(this).css("backgroundColor", color);
-			$(this).css("box-shadow", "0 -1px 0 " + color + ", 0 1px 0 " + color);
-			//$(this).css("box-shadow", "0 1px 0 " + color);
+			this.style.backgroundColor = color;
+			this.style.boxShadow = "0 -1px 0 " + color + ", 0 1px 0 " + color;
 		});
 	}
 	
@@ -1006,15 +1008,15 @@
 		}
 		
 		relSpans = relSpans ? relSpans : getRelatedSpans(span);
-		let fraction = 0.90 / annotationsCollection.length;
+		let fraction = 0.90 / (annotationsCollection.length || 1);
 		
 		$(relSpans).each(function()
 		{
 			let alpha = 0.10 + getNodeDjeniusIds(this).length * fraction;
 			let color = getCssColor(idleColor, alpha);
-			$(this).css("backgroundColor", color);
-			$(this).css("box-shadow", "0 -1px 0 " + color + ", 0 1px 0 " + color);
-			//$(this).css("box-shadow", "0 1px 0 " + color);
+			
+			this.style.backgroundColor = color;
+			this.style.boxShadow = "0 -1px 0 " + color + ", 0 1px 0 " + color;
 		});
 	}
 	
