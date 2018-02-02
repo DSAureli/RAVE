@@ -1,0 +1,22 @@
+schede delle sezioni in fondo se in sezione Abstract, dropdown se in altra sezione
+i riferimenti di crossref fanno riferimento alla sezione (o solo al nome della pagina se in Abstract)
+o a pagina + sezione + selezione se testo selezionato (troppo discriminante per la ricerca, forse è
+meglio una parola sola)
+
+oppure crossref si integra sottoforma di commenti speciali, presentati in modo diverso (colore diverso)
+e riportanti parte dell'abstract della risorsa ed un link ad essa.
+
+Il problema a questo punto è: con che criterio metto i commenti? Che parole chiave scelgo?
+
+- Quelle che compaiono di più nel testo? (devo discriminare articoli e congiunzioni)
+- libreria di analisi semantica?
+
+
+
+testo wikipedia -> libreria analisi semantica -> keyword
+
+colonna centrale: testo, con commenti arancioni (crossref) e gialli (utenti)
+colonna sinistra -> riferimenti crossref sottoforma di commenti
+colonna destra -> commenti utenti
+
+font old-style serif per colonna centrale, moderno per laterali

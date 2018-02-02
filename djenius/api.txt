@@ -1,3 +1,7 @@
+Gio: "mi raccomando nelle ajax al server specifica sempre application/json come dataType"
+
+
+
 //
 // CREATE
 //
@@ -9,7 +13,6 @@ serverRequest_Handler receives
 }
 and sends
 {
-	user,
 	page,
 	version,
 	data
@@ -40,7 +43,6 @@ serverRequest_Handler receives
 }
 and sends
 {
-	user,
 	page
 }
 with GET method
@@ -62,7 +64,6 @@ serverRequest_Handler receives
 }
 and sends
 {
-	user,
 	page,
 	data
 }
@@ -81,7 +82,6 @@ serverRequest_Handler receives
 }
 and sends
 {
-	user,
 	page,
 	data
 }
