@@ -12,7 +12,7 @@
 	<script src="js/util.js"></script>
 	<script src="js/login.js"></script>
 	<script src="js/djenius.js"></script>
-	<script src="js/script.js"></script>
+	<script src="js/main.js"></script>
 </head>
 
 <body class="blurring dimmable">
@@ -20,7 +20,7 @@
 	<header class="ui stackable inverted fixed menu">
 		<div class="ui container">
 			<div id="header_home_container">
-				<a id="header_home" class="ui item" href="#">
+				<a id="header_home" class="ui item" href="/">
 					<div class="ui item">
 						<img src="img/logo.png">
 						RAVE
@@ -28,8 +28,8 @@
 				</a>
 			</div>
 			<div id="header_input" class="ui inverted transparent input item">
-				<input id="search" placeholder="Search..." type="text">
-				<a href=""><i id="searchButton" class="search icon"></i></a>
+				<input id="search_bar" placeholder="Search..." type="text">
+				<a id="search_button" href=""><i class="search icon"></i></a>
 			</div>
 			<a id="header_login" class="ui item" href="login.html">
 				<div>
@@ -45,10 +45,10 @@
 		<div class="ui clearing basic segment">
 			<h1 id="title" class="ui left floated header">RAVE</h1>
 			<div id="dropdown_sections" class="ui selection dropdown">
-				<input name="section" value="0" type="hidden">
+				<input name="section" type="hidden">
 				<i class="dropdown icon"></i>
-				<div id="defaultDrop" class="default text">Section</div>
-				<div id="menu_sections" class="menu">
+				<div class="default text">Section</div>
+				<div class="menu">
 					<!--JS-->
 				</div>
 			</div>
