@@ -17,3 +17,4 @@ annotations is included.
 * genius (modal on smartphones)
 * footer
 * update jQuery and SemanticUI
+* rifai l'icona con i colori definitivi

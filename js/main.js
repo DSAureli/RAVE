@@ -25,6 +25,11 @@ function pushHistoryState(page, section)
 
 function updateContent(page, sectionIndex, sectionName)
 {
+	$("#content_wiki_container .loader").removeClass("disabled");
+	$("#content_wiki_container").dimmer("show");
+	$("#column_crossref .loader").removeClass("disabled");
+	$("#column_crossref").dimmer("show");
+	
 	/* WIKIPEDIA */
 	$.ajax(
 	{
@@ -57,8 +62,8 @@ function updateContent(page, sectionIndex, sectionName)
 		},
 		complete: function()
 		{
-			$("#column_wiki").dimmer("hide");
-			$("#column_wiki .loader").addClass("disabled");
+			$("#content_wiki_container").dimmer("hide");
+			$("#content_wiki_container .loader").addClass("disabled");
 			$("#content_wiki img.thumbimage").attr("class", "ui medium rounded image");				// ?
 		}
 	});
@@ -85,7 +90,7 @@ function updateContent(page, sectionIndex, sectionName)
 						)
 					);
 					
-					Djenius.setAnnotatable(newDiv, item.DOI);
+					//Djenius.setAnnotatable(newDiv, item.DOI);
 					$("#content_crossref").append(newDiv);
 				}
 			});
@@ -153,20 +158,15 @@ function loadPage(page, section)
 {
 	// Switch loading visuals on
 	
-	$("#column_wiki").dimmer("show");
-	$("#column_wiki .loader").removeClass("disabled");
-	$("#column_crossref").dimmer("show");
-	$("#column_crossref .loader").removeClass("disabled");
-	
-	$("#dropdown_sections").dropdown({action: "nothing"});
-	$("#dropdown_sections").dropdown("change values");
-	$("#dropdown_sections").addClass("disabled");
+	$("#main_dropdown").dropdown({action: "nothing"});
+	$("#main_dropdown").dropdown("change values");
+	$("#main_dropdown").addClass("disabled");
 	
 	// Load page
 	
 	if (isValidString(page))
 	{
-		$("#dropdown_sections").addClass("loading");
+		$("#main_dropdown").addClass("loading");
 		
 		// Populate dropdown
 		
@@ -186,7 +186,7 @@ function loadPage(page, section)
 				let values = getDropdownValues(result.parse.sections, section);
 				let firstTime = true;
 				
-				$("#dropdown_sections").dropdown(
+				$("#main_dropdown").dropdown(
 				{
 					action: "activate",
 					values: values,
@@ -207,7 +207,7 @@ function loadPage(page, section)
 				let sectionIndex = values.map(x => x.selected).indexOf(true);
 				updateContent(page, sectionIndex, values[sectionIndex].name);
 				
-				$("#dropdown_sections").removeClass("disabled");
+				$("#main_dropdown").removeClass("disabled");
 			},
 			error: function(xhr, status, error)
 			{
@@ -215,7 +215,7 @@ function loadPage(page, section)
 			},
 			complete: function(xhr, status)
 			{
-				$("#dropdown_sections").removeClass("loading");
+				$("#main_dropdown").removeClass("loading");
 			}
 		});
 	}
@@ -227,12 +227,6 @@ function loadPage(page, section)
 		//switch loading visuals off
 		//inside ajax functions
 		// ...
-		
-		
-		$("#column_wiki").dimmer("hide");
-		$("#column_wiki .loader").addClass("disabled");
-		$("#column_crossref").dimmer("hide");
-		$("#column_crossref .loader").addClass("disabled");
 	}
 }
 
@@ -260,7 +254,7 @@ function handleLoad(link, push)
 	}
 	
 	document.title = title;
-	$("#title").text(first);
+	$("#main_title").text(first);
 	
 	loadPage(page, section);
 }
@@ -292,18 +286,19 @@ function updateResponsiveness()
 {
 	// Sometimes CSS media queries and JQuery window.width work differently,
 	// so we better check for CSS properties instead of window.width
+	let resp_str = $("#resp_check").css("content").replaceAll("\"", "");
+	// Edge always sees content as an empty string
+	let resp_str_edge = $("#resp_check").css("flex-grow");
 	
-	if ($("#column_wiki").css("order") == "1")
+	if (resp_str == "Tablet" || resp_str == "Desktop" || resp_str_edge != "0")
 	{
-		$("#header_login").detach().insertAfter("#header_home");
-		$("#title").removeClass("left floated").addClass("center aligned");
-		$("#dropdown_sections").css("float", "none").css("display", "flex");
+		$("#header_input").detach().insertAfter("#header_home");
+		$("#column_wiki").addClass("segment");
 	}
 	else
 	{
-		$("#header_login").detach().insertAfter("#header_input");
-		$("#title").removeClass("center aligned").addClass("left floated");
-		$("#dropdown_sections").css("display", "block").css("float", "right");
+		$("#header_input").detach().insertAfter("#header_flex");
+		$("#column_wiki").removeClass("segment");
 	}
 }
 
@@ -351,8 +346,25 @@ $(document).ready(function()
 
 
 
+// Polyfill for Edge
 
-
+if (!window.URLSearchParams)
+{
+	window.URLSearchParams = class URLSearchParams
+	{
+		constructor(str)
+		{
+			this.str = str;
+		}
+		get(name)
+		{
+			var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(this.str);
+			if (results == null)
+				return null;
+			return decodeURI(results[1]) || 0;
+		}
+	}
+}
 
 
 

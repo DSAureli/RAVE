@@ -1,54 +1,7 @@
 $(document).ready(function()
 {
-	var reg = false;
-	
-	$("#header_login").click(function(e)
-	{
-		e.preventDefault();
-		$("#modal_login").modal("show");
-	});
-	
-	$("#modal_login .remove.icon.link").click(function(e)
-	{
-		$("#modal_login").modal("hide");
-		$("#modal_login .ui.inverted.error.message").empty();
-		$("#modal_login .registration").addClass("hidden");
-		$("#modal_login input[type='text']").form("clear");
-		$("#modal_login input[type='password']").form("clear");
-		
-		//reset login as default
-		reg = false;
-		$("#modal_login h2 p").text("Login to your account");
-		$("#modal_login .submit.button").text("Login");
-		$("#modal_login .segment.message p").text("New to us?");
-		$("#modal_login .segment.message a").text("Sign Up");
-	});
-	
-	$("#signUp").click(function(e)
-	{
-		e.preventDefault();
-		reg = !reg;
-		$("#modal_login .hidden").removeClass("hidden");
-		$("#modal_login .form").form("add rule", "userName", ["empty", "length[3]"]);
-		$("#modal_login .form").form("add rule", "emailCheck",  "match[email]");
-		$("#modal_login .form").form("add rule", "passwordCheck",  "match[password]");
-		if(reg==true)
-		{
-			$("#modal_login h2 p").text("Register a new account");
-			$("#modal_login .submit.button").text("Subscribe");
-			$("#modal_login .segment.message p").text("Already registered?");
-			$("#modal_login .segment.message a").text("Do the login");
-			$("#modal_login .hidden").removeClass("hidden");
-		}
-		else
-		{
-			$("#modal_login h2 p").text("Login to your account");
-			$("#modal_login .submit.button").text("Login");
-			$("#modal_login .segment.message p").text("New to us?");
-			$("#modal_login .segment.message a").text("Sign Up");
-			$("#modal_login .registration").addClass("hidden");
-		}
-	});
+	// ($("#login_menu > a.active")[0].id == "login_tab")
+	// returns true if login is active, false if registration is active
 	
 	$(".ui.form").form(
 	{
@@ -56,7 +9,7 @@ $(document).ready(function()
 		{
 			email:
 			{
-				identifier  : 'email',
+				identifier   : 'email',
 				rules:
 				[
 					{
@@ -69,10 +22,10 @@ $(document).ready(function()
 					}
 				]
 			},
-
+			
 			password:
 			{
-				identifier  : 'password',
+				identifier   : 'password',
 				rules:
 				[
 					{
@@ -88,17 +41,100 @@ $(document).ready(function()
 		},
 		onInvalid: function()
 		{
-			$(".field.error input").css({"border-color": "#9F3A38", "color": "#9F3A38"});
-			$(".field.error .icon").css( "color", "#9F3A38");
+			// ...
 		},
 		onValid: function()
 		{
-			$(".field:not(.error) input").css({"border-color": "#8d8d8e", "color": "white"});
-			$(".field:not(.error) .icon").css("color", "#9F3A38");
-			$(".field:not(.error) .icon").removeAttr("style");
+			// ...
 		}
 	});
 	
+	$("#login_menu > a").click(function(e)
+	{
+		if (!$(this).hasClass("active"))
+		{
+			$("#login_menu > a.active").removeClass("active");
+			$(this).addClass("active");
+			
+			$("#login_form > .registration.field").animate(
+			{
+				height: "toggle",
+				margin: "toggle"
+			},
+			200,
+			function()
+			{
+				$("#login_form > .registration.field input").val("");
+			});
+			
+			$("#login_form .field.error").removeClass("error");
+			
+			if ($("#login_error").height())
+			{
+				$("#login_error").animate(
+				{
+					height: 0,
+					margin: 0,
+				},
+				200,
+				function()
+				{
+					$("#login_error").empty();
+					$("#login_error")
+						.css("height", "auto")
+						.css("margin", "2em 0")
+						.css("display", "");
+				});
+			}
+			
+			if (this.id == "login_tab")
+			{
+				$("#login_segment").animate({top: 0}, 200);
+				$("#login_button_text").animate({opacity: 0}, 100, function()
+				{
+					$(this).text("Log in").animate({opacity: 1}, 100);
+				});
+				
+				$("#login_form").form("remove rule", "username");
+				$("#login_form").form("remove rule", "emailCheck");
+				$("#login_form").form("remove rule", "passwordCheck");
+			}
+			else
+			{
+				$("#login_form").form("add rule", "username", ["empty", "length[3]"]);
+				$("#login_form").form("add rule", "emailCheck", "match[email]");
+				$("#login_form").form("add rule", "passwordCheck", "match[password]");
+				
+				$("#login_segment").animate({top: -78}, 200);
+				$("#login_button_text").animate({opacity: 0}, 100, function()
+				{
+					$(this).text("Sign up").animate({opacity: 1}, 100);
+				});
+			}
+		}
+	});
 	
-	
+	$("#header_login").click(function(e)
+	{
+		$("#login_modal").modal(
+		{
+			blurring: true,
+			duration: 200,
+			onShow: function()
+			{
+				$("#login_form > .registration.field").hide();
+			},
+			onHidden : function()
+			{
+				//$("#login_form")[0].reset();
+				$("#login_form > .field input[type='password']").val("");
+				
+				$("#login_form .field.error").removeClass("error");
+				$("#login_error").empty();
+				
+				$("#login_tab").click();
+			}
+		})
+		.modal("show");
+	});
 });
