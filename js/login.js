@@ -116,9 +116,11 @@ $(document).ready(function()
 	
 	$("#header_login").click(function(e)
 	{
+		let blur = window.device ? true : false;
+		
 		$("#login_modal").modal(
 		{
-			blurring: true,
+			blurring: blur,
 			duration: 200,
 			onShow: function()
 			{

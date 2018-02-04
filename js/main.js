@@ -37,6 +37,7 @@ function updateContent(page, sectionIndex, sectionName)
 		data:
 		{
 			action: "parse",
+			redirects: true,
 			page: page,
 			section: sectionIndex,
 			prop: "text",
@@ -176,8 +177,9 @@ function loadPage(page, section)
 			data:
 			{
 				action: "parse",
-				prop: "sections",
 				page: page,
+				redirects: true,
+				prop: "sections",
 				format: "json"
 			},
 			dataType: "jsonp",
@@ -292,13 +294,23 @@ function updateResponsiveness()
 	
 	if (resp_str == "Tablet" || resp_str == "Desktop" || resp_str_edge != "0")
 	{
+		window.device = 1;
+		
 		$("#header_input").detach().insertAfter("#header_home");
 		$("#column_wiki").addClass("segment");
+		
+		$("#column_crossref").addClass("blurring");
+		$("#content_wiki_container").addClass("blurring");
 	}
 	else
 	{
+		window.device = 0;
+		
 		$("#header_input").detach().insertAfter("#header_flex");
 		$("#column_wiki").removeClass("segment");
+		
+		$("#column_crossref").removeClass("blurring");
+		$("#content_wiki_container").removeClass("blurring");
 	}
 }
 
