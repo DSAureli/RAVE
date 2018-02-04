@@ -31,42 +31,11 @@ function updateContent(page, sectionIndex, sectionName)
 	$("#column_crossref").dimmer("show");
 	
 	/* WIKIPEDIA */
-	$.ajax(
+	loadWiki(page, sectionIndex).done(function()
 	{
-		url: "http://en.wikipedia.org/w/api.php",
-		data:
-		{
-			action: "parse",
-			redirects: true,
-			page: page,
-			section: sectionIndex,
-			prop: "text",
-			format: "json"
-		},
-		dataType: "jsonp",
-		success: function(apiResult)
-		{
-			$("#content_wiki").html(apiResult.parse.text["*"]);
-			$("#content_wiki").find("a").each(function()
-			{
-				this.href = "//en.wikipedia.org" + this.pathname;
-			});
-			$("#content_wiki").find("img").each(function()
-			{
-				// ...
-			});
-		},
-		error: function(error)
-		{
-			console.log(error);
-			$("#content_wiki").html(error);
-		},
-		complete: function()
-		{
-			$("#content_wiki_container").dimmer("hide");
-			$("#content_wiki_container .loader").addClass("disabled");
-			$("#content_wiki img.thumbimage").attr("class", "ui medium rounded image");				// ?
-		}
+		$("#content_wiki_container").dimmer("hide");
+		$("#content_wiki_container .loader").addClass("disabled");
+		//$("#content_wiki img.thumbimage").attr("class", "ui medium rounded image"); ???
 	});
 	
 	/* CROSSREF */
@@ -177,8 +146,8 @@ function loadPage(page, section)
 			data:
 			{
 				action: "parse",
-				page: page,
 				redirects: true,
+				page: page,
 				prop: "sections",
 				format: "json"
 			},

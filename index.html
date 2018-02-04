@@ -12,6 +12,7 @@
 	<script src="js/util.js"></script>
 	<script src="js/login.js"></script>
 	<!--<script src="js/djenius.js"></script>-->
+	<script src="js/wiki.js"></script>
 	<script src="js/main.js"></script>
 </head>
 
@@ -50,7 +51,7 @@
 		<div id="grid_container" class="ui equal width stackable grid container">
 			
 			<!--CROSSREF-->
-			<div id="column_crossref" class="ui tablet computer only center aligned blurring column">
+			<div id="column_crossref" class="ui tablet computer only center aligned column">
 				<div class="ui inverted dimmer">
 					<div class="ui disabled text loader">Loading</div>
 				</div>
@@ -75,7 +76,7 @@
 						</div>
 					</div>
 				</div>
-				<div id="content_wiki_container" class="ui blurring">
+				<div id="content_wiki_container" class="ui">
 					<div class="ui inverted dimmer">
 						<div class="ui disabled text loader">Loading</div>
 					</div>
@@ -114,7 +115,7 @@
 		</div>
 	</footer>
 	
-	<!-- MODAL -->
+	<!-- LOGIN -->
 	<div id="login_modal" class="ui basic modal">
 		<div id="login_segment" class="ui inverted basic segment">
 			<div id="login_menu" class="ui inverted menu">
@@ -165,6 +166,13 @@
 					</span>
 				</div>
 			</form>
+		</div>
+	</div>
+	
+	<!-- IMAGE -->
+	<div id="image_modal" class="ui basic fullscreen modal">
+		<div>
+			<img src=""></img>
 		</div>
 	</div>
 </body>

@@ -136,7 +136,6 @@ $(document).ready(function()
 				
 				$("#login_tab").click();
 			}
-		})
-		.modal("show");
+		}).modal("show");
 	});
 });

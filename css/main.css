@@ -265,6 +265,10 @@ header
 	{
 		flex: 1;
 	}
+	#content_wiki a:hover
+	{
+		cursor: pointer;
+	}
 	#djenius_segment
 	{
 		margin-top: 0;
@@ -304,7 +308,7 @@ footer
 	padding: 2.5em 0 2em 0 !important;
 }
 
-/* MODAL */
+/* LOGIN */
 
 #login_modal
 {
@@ -395,6 +399,25 @@ footer
 	justify-content: center;
 	align-items: center;
 	color: #1B1C1D;
+}
+
+/* IMAGE */
+
+#image_modal,
+#image_modal div
+{
+	visibility: hidden !important;
+}
+#image_modal div
+{
+	display: flex;
+	justify-content: center;
+}
+#image_modal img
+{
+	max-height: 90vh;
+	max-width: 90vw;
+	box-shadow: 0 0 5px black;
 }
 
 
