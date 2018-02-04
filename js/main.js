@@ -261,25 +261,36 @@ function updateResponsiveness()
 	// Edge always sees content as an empty string
 	let resp_str_edge = $("#resp_check").css("flex-grow");
 	
-	if (resp_str == "Tablet" || resp_str == "Desktop" || resp_str_edge != "0")
-	{
-		window.device = 1;
-		
-		$("#header_input").detach().insertAfter("#header_home");
-		$("#column_wiki").addClass("segment");
-		
-		$("#column_crossref").addClass("blurring");
-		$("#content_wiki_container").addClass("blurring");
-	}
-	else
+	if (resp_str == "Mobile" || resp_str_edge == "0")
 	{
 		window.device = 0;
 		
-		$("#header_input").detach().insertAfter("#header_flex");
+		if (!$("#search_bar").is(":focus"))
+			$("#header_input").detach().insertAfter("#header_flex");
 		$("#column_wiki").removeClass("segment");
 		
 		$("#column_crossref").removeClass("blurring");
 		$("#content_wiki_container").removeClass("blurring");
+	}
+	else
+	{
+		if (resp_str == "Tablet" || resp_str_edge == "1")
+		{
+			window.device = 1;
+			
+			if (!$("#search_bar").is(":focus"))
+				$("#header_input").detach().insertAfter("#header_home");
+		}
+		else
+		{
+			window.device = 2;
+			
+			$("#header_input").detach().insertAfter("#header_home");
+		}
+		
+		$("#column_wiki").addClass("segment");
+		$("#column_crossref").addClass("blurring");
+		$("#content_wiki_container").addClass("blurring");
 	}
 }
 
