@@ -102,22 +102,15 @@ function getDropdownValues(sections, selected)
 		}
 	}
 	
-	if (selected)
-	{
-		let select = values.filter(value => value.value == selected);
+	let select = values.filter(value => value.value == selected);
 		
-		if (select.length)
-		{
-			select[0].selected = true;
-		}
-		else
-		{
-			throw "section not found";
-		}
+	if (select.length)
+	{
+		select[0].selected = true;
 	}
 	else
 	{
-		values[0].selected = true;
+		throw "section not found";
 	}
 	
 	return values;
@@ -140,6 +133,11 @@ function loadPage(page, section)
 		
 		// Populate dropdown
 		
+		if (!section)
+		{
+			section = 0;
+		}
+		
 		$.ajax(
 		{
 			url: "http://en.wikipedia.org/w/api.php",
@@ -154,7 +152,8 @@ function loadPage(page, section)
 			dataType: "jsonp",
 			success: function(result, status, xhr)
 			{
-				let values = getDropdownValues(result.parse.sections, section);
+				let sections = result.parse.sections;
+				let values = getDropdownValues(sections, section);
 				let firstTime = true;
 				
 				$("#main_dropdown").dropdown(
@@ -175,9 +174,7 @@ function loadPage(page, section)
 					}
 				});
 				
-				let sectionIndex = values.map(x => x.selected).indexOf(true);
-				updateContent(page, sectionIndex, values[sectionIndex].name);
-				
+				updateContent(page, section, sections[section].line);
 				$("#main_dropdown").removeClass("disabled");
 			},
 			error: function(xhr, status, error)
