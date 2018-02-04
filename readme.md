@@ -6,15 +6,12 @@ annotations is included.
 
 ## TODO
 
-* eval Introduction position presence/position
-* handle ambiguous list of wiki search results
+* handle disambiguation pages
 * handle no result case
-* redirect page not shown in Edge (test with "Kara no Kyoukai")
-* maybe add search bar suggestion dropdown (would be cool)
-* improve Wiki presentation
-* improve Crossref results and presentation
 * login system
 * genius (modal on smartphones)
+* improve Crossref results and presentation
 * footer
 * update jQuery and SemanticUI
-* rifai l'icona con i colori definitivi
+* remake icon with definitive colors once decided
+* maybe add search bar suggestion dropdown (would be cool)

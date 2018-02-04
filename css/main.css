@@ -181,7 +181,7 @@ header
 }
 #main_header
 {
-	margin-bottom: 3em;
+	margin-bottom: 2em;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -415,8 +415,9 @@ footer
 }
 #image_modal img
 {
-	max-height: 90vh;
-	max-width: 90vw;
+	max-height: 89vh;
+	max-width: 89vw;
+	background: white;
 	box-shadow: 0 0 5px black;
 }
 

@@ -19,27 +19,220 @@ function pushHistoryState(page, section)
 }
 
 
-//function loadhomepage
-// ...
 
-
-function updateContent(page, sectionIndex, sectionName)
+function loadHome()
 {
-	$("#content_wiki_container .loader").removeClass("disabled");
-	$("#content_wiki_container").dimmer("show");
-	$("#column_crossref .loader").removeClass("disabled");
-	$("#column_crossref").dimmer("show");
-	
-	/* WIKIPEDIA */
-	loadWiki(page, sectionIndex).done(function()
+	// ...
+}
+
+
+
+function handleImgClick()
+{
+	function first(obj)
 	{
-		$("#content_wiki_container").dimmer("hide");
-		$("#content_wiki_container .loader").addClass("disabled");
-		//$("#content_wiki img.thumbimage").attr("class", "ui medium rounded image"); ???
+		for (let x in obj)
+			return x;
+	}
+	
+	$.ajax(
+	{
+		url: "http://en.wikipedia.org/w/api.php",
+		data:
+		{
+			action: "query",
+			titles: $(this).attr("img-src"),
+			prop: "imageinfo",
+			iiprop: "url",
+			format: "json"
+		},
+		dataType: "jsonp",
+		success: function(result)
+		{
+			$("#image_modal img")[0].onload = function()
+			{
+				$("#image_modal").modal(
+				{
+					duration: 200,
+					onShow: function()
+					{
+						$("#image_modal img").css("visibility", "visible");
+					},
+					onHidden : function()
+					{
+						$("#image_modal img").css("visibility", "hidden");
+						$("#image_modal img")[0].src = "";
+					}
+				}).modal("show");
+			};
+			
+			let pages = result.query.pages;
+			let imageinfo = pages[first(pages)].imageinfo;
+			
+			$("#image_modal img")[0].src = imageinfo[first(imageinfo)].url;
+		}
+	});
+}
+
+
+
+function filterWiki(result)
+{
+	var html = $(result.parse.text["*"]);
+	
+	// "look it up in Wiktionary"
+	$(html).find(".mbox-small").remove();
+	// "needs additional citations"
+	$(html).find(".ambox").remove();
+	// template related
+	$(html).find(".plainlinks.hlist.navbar").remove();
+	// table of content
+	$(html).find(".toc").remove();
+	// vertical navbox
+	$(html).find(".vertical-navbox").remove();
+	// section headline
+	$(html).find(".mw-headline").remove();
+	// "for other uses"
+	$(html).find(".hatnote.navigation-not-searchable").remove();
+	// "infobox"
+	$(html).find(".infobox").remove();
+	// edit link beside section title
+	$(html).find(".mw-editsection").remove();
+	// sup numbers
+	$(html).find(".reference").remove();
+	// citation needed and similar
+	$(html).find("sup.noprint").remove();
+	// end page references
+	$(html).find(".mw-references-wrap").remove();
+	// other references
+	$(html).find("*[id|=cite_note]").remove();
+	// disambiguation box
+	$(html).find("#disambigbox").remove();
+	// errors
+	$(html).find(".error").remove();
+	$(html).find(".hatnote").remove();
+	// external links
+	$(html).find(".external.free").remove();
+	// redirects
+	$(html).find(".mw-redirect").remove();
+	
+	// image
+	$(html).find(".thumb.tleft, .thumb.tright, .floatleft, .floatright").css(
+	{
+		"display": "flex",
+		"justify-content": "center",
+		"margin": "1em",
+		"padding": "1em"
 	});
 	
-	/* CROSSREF */
-	$.ajax(
+	// image caption
+	$(html).find(".thumbinner").css(
+	{
+		"text-align": "center",
+		"font-style": "italic"
+	});
+	
+	// reduce list left padding
+	$(html).find("ul,ol").css("padding", "1em");
+	
+	// multi-column
+	$(html).find(".div-col").css(
+	{
+		"column-count": "1",
+		"margin": "2.5em 0em"
+	});
+	
+	// generic dl
+	$(html).find("dl").css("margin", "1em");
+	// dl for math formulas
+	$(html).find("dl").has(".mwe-math-element").css("text-align", "center");
+	
+	// let semantic handle tables
+	$(html).find(".wikitable, table").addClass("ui orange table");
+	$(html).find(".wikitable, table").css("margin-bottom", "2em");
+	$(html).find(".wikitable caption, table caption").css(
+	{
+		"margin-bottom": "1em",
+		"font-weight": "bold"
+	});
+	
+	// scroll table overflow
+	let wrapper = $("<div></div>").css("overflow", "auto");
+	$(html).find(".wikitable, table").wrap(wrapper);
+	
+	html[0].normalize();
+	return html[0];
+}
+
+
+
+function loadWiki(page, sectionIndex)
+{
+	return $.ajax(
+	{
+		url: "http://en.wikipedia.org/w/api.php",
+		data:
+		{
+			action: "parse",
+			redirects: true,
+			page: page,
+			section: sectionIndex,
+			prop: "text",
+			format: "json"
+		},
+		dataType: "jsonp",
+		success: function(result)
+		{
+			$("#content_wiki").html(filterWiki(result));
+			
+			$("#content_wiki a").each(function()
+			{
+				//this.href = "//en.wikipedia.org" + this.pathname;
+				
+				let hrefArray = this.href.split("/");
+				let page = hrefArray[hrefArray.indexOf("wiki") + 1];
+				
+				if ($(this).has("img").length)
+				{
+					$(this).attr("img-src", page);
+					$(this).removeAttr("href");
+					
+					$(this).click(handleImgClick);
+				}
+				else
+				{
+					this.href = "?page=" + page.replaceAll("_", " ");
+				}
+			});
+			
+			$("#content_wiki a").click(function(e)
+			{
+				e.preventDefault();
+				
+				if (isValidString(this.href))
+				{
+					handleLoad(this, true);
+				}
+			});
+			
+			$("#content_wiki img").each(function()
+			{
+				this.src = this.src.replace("file://", "https://upload.wikimedia.org");
+			});
+		},
+		error: function(error)
+		{
+			console.log(error);
+			$("#content_wiki").html(error);
+		},
+	});
+}
+
+
+
+function loadCrossref(page, sectionName)
+{
+	return $.ajax(
 	{
 		url: "https://api.crossref.org/works?query="+ page.split(" ").join("+") + "+" + sectionName.split(" ").join("+") + "&rows=10&sort=score",
 		dataType: "text",
@@ -69,14 +262,33 @@ function updateContent(page, sectionIndex, sectionName)
 		{
 			console.log(error);
 			$("#content_crossref").html(error);
-		},
-		complete: function()
-		{
-			$("#column_crossref").dimmer("hide");
-			$("#column_crossref .loader").addClass("disabled");
 		}
 	});
 }
+
+
+
+function updateContent(page, sectionIndex, sectionName)
+{
+	$("#content_wiki_container .loader").removeClass("disabled");
+	$("#content_wiki_container").dimmer("show");
+	$("#column_crossref .loader").removeClass("disabled");
+	$("#column_crossref").dimmer("show");
+	
+	loadWiki(page, sectionIndex).done(function()
+	{
+		$("#content_wiki_container").dimmer("hide");
+		$("#content_wiki_container .loader").addClass("disabled");
+		//$("#content_wiki img.thumbimage").attr("class", "ui medium rounded image"); ???
+	});
+	
+	loadCrossref(page, sectionName).done(function()
+	{
+		$("#column_crossref").dimmer("hide");
+		$("#column_crossref .loader").addClass("disabled");
+	});
+}
+
 
 
 function getDropdownValues(sections, selected)
@@ -86,13 +298,21 @@ function getDropdownValues(sections, selected)
 	sections.unshift(
 	{
 		index: "0",
-		line: "Abstract",
+		line: "Summary",
 		toclevel: 1
 	});
 	
 	for (section of sections)
 	{
-		if (section.line != "References" && section.line != "External links" && section.toclevel == 1)
+		if (section.line != "References" &&
+			section.line != "External links" &&
+			section.line != "Further reading" &&
+			section.line != "Bibliography" &&
+			section.line != "See also" &&
+			section.line != "Notes" &&
+			section.line != "Notes and references" &&
+			section.line != "Media" &&
+			section.toclevel == 1)
 		{
 			values.push(
 			{
@@ -115,6 +335,7 @@ function getDropdownValues(sections, selected)
 	
 	return values;
 }
+
 
 
 function loadPage(page, section)
@@ -199,6 +420,7 @@ function loadPage(page, section)
 }
 
 
+
 function handleLoad(link, push)
 {
 	// Retrieve params from URL
@@ -228,26 +450,59 @@ function handleLoad(link, push)
 }
 
 
+
 window.addEventListener("popstate", function(event)
 {
 	handleLoad(event.target.location, false);
 });
 
 
+
 function startSearch()
 {
 	let search = $("#search_bar").val();
 	
-	if (isValidString(search))
-	{
-		let link = $("<a>").attr("href", "?page=" + search)[0];
-		handleLoad(link, true);
-	}
-	else
+	if (!isValidString(search))
 	{
 		// ...
 	}
+	
+	$.ajax(
+	{
+		url: "http://en.wikipedia.org/w/api.php",
+		data:
+		{
+			action: "query",
+			list: "search",
+			srsearch: search,
+			format: "json"
+		},
+		dataType: "jsonp",
+		success: function(result, status, xhr)
+		{
+			let results = result.query.search;
+			
+			if (results.length)
+			{
+				let link = $("<a>").attr("href", "?page=" + results[0].title)[0];
+				handleLoad(link, true);
+			}
+			else
+			{
+				//no result
+				// ...
+				
+				$("#main_title").text("RAVE");
+				$("#content_wiki").text("no result");
+			}
+		},
+		error: function(xhr, status, error)
+		{
+			console.error(error);
+		}
+	});
 }
+
 
 
 function updateResponsiveness()
@@ -292,6 +547,7 @@ function updateResponsiveness()
 }
 
 
+
 $(document).ready(function()
 {
 	// Init //
@@ -301,6 +557,11 @@ $(document).ready(function()
 	
 	updateResponsiveness();
 	$(window).resize(updateResponsiveness);
+	
+	$("#search_bar").focusout(function(event)
+	{
+		updateResponsiveness();
+	});
 	
 	$("#search_bar").keyup(function(event)
 	{
@@ -313,7 +574,7 @@ $(document).ready(function()
 	$("#search_button").click(function(event)
 	{
 		event.preventDefault();
-		startSearch()
+		startSearch();
 	});
 	
 	$("#djenius_button").click(function()
@@ -334,9 +595,7 @@ $(document).ready(function()
 
 
 
-
 // Polyfill for Edge
-
 if (!window.URLSearchParams)
 {
 	window.URLSearchParams = class URLSearchParams
@@ -354,23 +613,3 @@ if (!window.URLSearchParams)
 		}
 	}
 }
-
-
-
-
-// TOMOVE
-/*
-let links = document.querySelectorAll("nav-bar > nav > a");
-for (let link of links)
-{
-	link.addEventListener("click", function(event)
-	{
-		event.preventDefault();
-		
-		if (!this.classList.contains("active"))
-		{
-			handleLoad(link, true);
-		}
-	});
-}
-*/

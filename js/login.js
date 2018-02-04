@@ -121,7 +121,7 @@ $(document).ready(function()
 		$("#login_modal").modal(
 		{
 			blurring: blur,
-			duration: 200,
+			duration: 300,
 			onShow: function()
 			{
 				$("#login_form > .registration.field").hide();
