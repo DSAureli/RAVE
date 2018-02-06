@@ -162,7 +162,7 @@ header
 	flex: 1;
 	padding: 1em 0 2em 0;
 }
-#main_container .segment
+#main_container .segment:not(.basic)
 {
 	border-top: 2px solid #F57300;
 }
@@ -177,7 +177,7 @@ header
 }
 #main_container .dimmer
 {
-	z-index: 999;
+	z-index: 998;
 }
 #main_header
 {
@@ -194,6 +194,7 @@ header
 {
 	width: 100%;
 	font-size: 1rem;
+	z-index: 999 !important;
 }
 #main_dropdown.active,
 #main_dropdown > .menu
