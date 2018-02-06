@@ -79,7 +79,8 @@
 		askServerForInitialCollection: askServerForInitialCollection,
 		newAnnotation: newAnnotation,
 		getAnnotationsCount: getAnnotationsCount,
-		resetAnnotations: resetAnnotations
+		resetAnnotations: resetAnnotations,
+		setBatchLocalAnnotate: setBatchLocalAnnotate
 	};
 	
 	//¯¯¯¯¯¯¯¯¯¯¯¯¯//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1495,6 +1496,8 @@
 			.replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
 	}
 	
+	let batchLocalAnnotate = false;
+	
 	function createAnnotation(newDjeniusRanges, _class, properties)
 	{
 		let newId = uuidv4();
@@ -1506,6 +1509,12 @@
 			ranges: newDjeniusRanges,
 			properties: properties
 		};
+		
+		if (batchLocalAnnotate)
+		{
+			annotationsCollection.push(newDjeniusAnnotation);
+			return;
+		}
 		
 		defer(serverRequest_Handler,
 		{
@@ -1528,7 +1537,6 @@
 		function()
 		{
 			highlightAnnotations(annotationsCollection);
-			//console.log(annotationsCollection);
 		});
 	}
 	
@@ -1541,16 +1549,16 @@
 		{
 			window.getSelection().removeAllRanges(); //maybe save it if it fails to load the new ranges to server
 			
-			tempClass = _class;
-			highlightRanges(newDjeniusRanges, /*random id*/ "0");
-			$(spansCollection[0]).trigger("mouseenter");
-			
 			if (properties)
 			{
 				createAnnotation(newDjeniusRanges, _class, properties);
 			}
 			else
 			{
+				tempClass = _class;
+				highlightRanges(newDjeniusRanges, /*random id*/ "0");
+				$(spansCollection[0]).trigger("mouseenter");
+				
 				defer(getAnnotationProperties_Handler, null, function(properties)
 				{
 					if (properties)
@@ -1572,7 +1580,6 @@
 					
 					console.error(errStr);
 					
-					
 					highlightAnnotations(annotationsCollection);
 					console.log(annotationsCollection);
 				});
@@ -1592,5 +1599,15 @@
 	{
 		removeHighlightings();
 		annotationsCollection = [];
+	}
+	
+	function setBatchLocalAnnotate(bool)
+	{
+		batchLocalAnnotate = bool;
+		
+		if (!bool)
+		{
+			highlightAnnotations(annotationsCollection);
+		}
 	}
 })();

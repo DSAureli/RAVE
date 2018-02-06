@@ -12,7 +12,6 @@ annotations is included.
 * Add "go to top" button
 * Login system
 * Use Djenius (modal on smartphones)
-* Improve Djenius performance (function that blocks annotations showing for batch annotation additions)
 * Versioning system
 * Improve Crossref results and presentation
 * Footer
