@@ -27,6 +27,71 @@ function loadHome()
 
 
 
+function createKeywordAnnotations()
+{
+	Djenius.setBatchLocalAnnotate(true);
+	
+	// For each p in wiki content
+	$("#content_wiki > .mw-parser-output > p").each(function(index, p)
+	{
+		let $p = $(p);
+		
+		/*
+		if (window.device == 2)
+		{
+			$p.addClass("blurring");
+		}
+		
+		$p.dimmer({"variation": "inverted"}).dimmer("show");
+		*/
+		Djenius.setAnnotatable(p, "p" + String(index));
+		
+		// Retrieve keywords
+		let text = $p.text();
+		let keyws = getKeywords(text,4).slice(0,4);
+		
+		// Wrap keywords in spans
+		keyws.forEach(function(keyw)
+		{
+			let repl = "<span rave-keyword>" + keyw + "</span>";
+			$p.html($p.html().replace(keyw, repl));
+		});
+		
+		// Add annotations
+		let sel = window.getSelection();
+		$p.find("[rave-keyword]").each(function(index, span)
+		{
+			let range = document.createRange();
+			range.setStartBefore(span);
+			
+			let temp = span;
+			while (!temp.nextSibling)
+			{
+				temp = temp.parentNode;
+			}
+			range.setEnd(temp.nextSibling, 0);
+			sel.addRange(range);
+			
+			let text = $(span).text();
+			$(span).contents().unwrap();
+			
+			Djenius.newAnnotation("crossref",
+			{
+				crossref: true,
+				annotation: text
+			});
+			
+			sel.removeAllRanges();
+		});
+		
+		//$p.dimmer("hide");
+	});
+	
+	Djenius.setBatchLocalAnnotate(false);
+}
+
+
+
 function handleImgClick()
 {
 	function first(obj)
@@ -113,8 +178,9 @@ function filterWiki(result)
 	$(html).find(".hatnote").remove();
 	// external links
 	$(html).find(".external.free").remove();
-	// redirects
-	$(html).find(".mw-redirect").remove();
+	
+	// whitelist:
+	// .mw-redirect
 	
 	// image
 	$(html).find(".thumb.tleft, .thumb.tright, .floatleft, .floatright").css(
@@ -217,7 +283,11 @@ function loadWiki(page, sectionIndex)
 			
 			$("#content_wiki img").each(function()
 			{
-				this.src = this.src.replace("file://", "https://upload.wikimedia.org");
+				let rplc = "https://";
+				if (!this.src.includes("upload.wikimedia.org"))
+					rplc += "upload.wikimedia.org";
+					
+				this.src = this.src.replace("file://", rplc);
 			});
 		},
 		error: function(error)
@@ -272,21 +342,26 @@ function updateContent(page, sectionIndex, sectionName)
 {
 	$("#content_wiki_container .loader").removeClass("disabled");
 	$("#content_wiki_container").dimmer("show");
-	$("#column_crossref .loader").removeClass("disabled");
-	$("#column_crossref").dimmer("show");
+	//$("#column_crossref .loader").removeClass("disabled");
+	//$("#column_crossref").dimmer("show");
+	
+	Djenius.resetAnnotations();
 	
 	loadWiki(page, sectionIndex).done(function()
 	{
 		$("#content_wiki_container").dimmer("hide");
 		$("#content_wiki_container .loader").addClass("disabled");
-		//$("#content_wiki img.thumbimage").attr("class", "ui medium rounded image"); ???
+		
+		setTimeout(createKeywordAnnotations(), 2000);
 	});
 	
+	/*
 	loadCrossref(page, sectionName).done(function()
 	{
 		$("#column_crossref").dimmer("hide");
 		$("#column_crossref .loader").addClass("disabled");
 	});
+	*/
 }
 
 
@@ -458,6 +533,17 @@ window.addEventListener("popstate", function(event)
 
 
 
+function initDjenius()
+{
+	Djenius.setIdleAnnotationColor("crossref", "#66ccff");
+	Djenius.setActiveAnnotationColor("crossref", "#66ccff");
+	
+	Djenius.setIdleAnnotationColor("user", "rgb(252,198,46)");
+	Djenius.setActiveAnnotationColor("user", "rgb(252,198,46)");
+}
+
+
+
 function startSearch()
 {
 	let search = $("#search_bar").val();
@@ -505,6 +591,24 @@ function startSearch()
 
 
 
+function toggleBlurring(enable)
+{
+	if (enable)
+	{
+		$("#column_crossref").addClass("blurring");
+		$("#content_wiki_container").addClass("blurring");
+		$("#content_wiki > .mw-parser-output > p").addClass("blurring");
+	}
+	else
+	{
+		$("#column_crossref").removeClass("blurring");
+		$("#content_wiki_container").removeClass("blurring");
+		$("#content_wiki > .mw-parser-output > p").removeClass("blurring");
+	}
+}
+
+
+
 function updateResponsiveness()
 {
 	// Sometimes CSS media queries and JQuery window.width work differently,
@@ -519,10 +623,9 @@ function updateResponsiveness()
 		
 		if (!$("#search_bar").is(":focus"))
 			$("#header_input").detach().insertAfter("#header_flex");
-		$("#column_wiki").removeClass("segment");
 		
-		$("#column_crossref").removeClass("blurring");
-		$("#content_wiki_container").removeClass("blurring");
+		$("#column_wiki").removeClass("segment");
+		toggleBlurring(false);
 	}
 	else
 	{
@@ -532,17 +635,18 @@ function updateResponsiveness()
 			
 			if (!$("#search_bar").is(":focus"))
 				$("#header_input").detach().insertAfter("#header_home");
+			
+			toggleBlurring(false);
 		}
 		else
 		{
 			window.device = 2;
 			
 			$("#header_input").detach().insertAfter("#header_home");
+			toggleBlurring(true);
 		}
 		
 		$("#column_wiki").addClass("segment");
-		$("#column_crossref").addClass("blurring");
-		$("#content_wiki_container").addClass("blurring");
 	}
 }
 
@@ -577,12 +681,14 @@ $(document).ready(function()
 		startSearch();
 	});
 	
+	initDjenius();
+	
 	$("#djenius_button").click(function()
 	{
 		//set djenius_column loading animation on
 		// ...
 		
-		//Djenius.newAnnotation();
+		Djenius.newAnnotation();
 		
 		//set djenius_column loading animation off
 		// ...

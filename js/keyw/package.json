@@ -1,0 +1,20 @@
+{
+  "name": "keyw",
+  "version": "1.0.0",
+  "description": "Get keywords from string",
+  "main": "index.js",
+  "scripts": {
+    "build": "browserify index.js --s getKeywords -o keyw.js",
+    "build-min": "browserify index.js --s getKeywords | uglifyjs -c > keyw.min.js"
+  },
+  "author": "DSAureli",
+  "license": "ISC",
+  "devDependencies": {
+    "browserify": "^15.2.0",
+    "uglify-js": "^3.3.9"
+  },
+  "dependencies": {
+    "retext": "^5.0.0",
+    "retext-keywords": "^4.0.1"
+  }
+}

@@ -1,0 +1,59 @@
+<html>
+<head>
+	<title>test keyw</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<style>
+	.keyword
+	{
+		background: yellow;
+	}
+	</style>
+	
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="keyw.min.js"></script>
+	
+	<script>
+		$(function()
+		{
+			let keys = keyw($("body").text());
+			console.log(keys);
+			
+			keys.forEach(function(key)
+			{
+				let repl = "<span class='keyword'>" + key + "</span>";
+				$("body").html($("body").html().replace(key, repl));
+			});
+			
+			var sel = window.getSelection();
+			
+			$(".keyword").each(function(index, keyword)
+			{
+				let range = document.createRange();
+				range.setStartBefore(keyword);
+				//range.setEndAfter(keyword);
+				range.setEnd(keyword.nextSibling, 0);
+				sel.addRange(range);
+			});
+			
+			$(".keyword").contents().unwrap();
+		});
+	</script>
+</head>
+
+<body>
+3D printing refers to processes in which material is joined or solidified under 
+computer control to create a three-dimensional object, with material being added 
+together (such as liquid molecules or powder grains being fused together). 3D 
+printing is used in both rapid prototyping and additive manufacturing (AM). 
+Objects can be of almost any shape or geometry and typically are produced using 
+digital model data from a 3D model or another electronic data source such as an 
+Additive Manufacturing File (AMF) file (usually in sequential layers). 
+Stereolithography (STL) is one of the most common file types that is used for 3D 
+printing. Thus, unlike material removed from a stock in the conventional 
+machining process, 3D printing or AM builds a three-dimensional object from 
+computer-aided design (CAD) model or AMF file, usually by successively adding 
+material layer by layer.
+</body>
+</html>
