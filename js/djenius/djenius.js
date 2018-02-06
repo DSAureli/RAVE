@@ -78,7 +78,8 @@
 		setActiveAnnotationColor: setActiveAnnotationColor,
 		askServerForInitialCollection: askServerForInitialCollection,
 		newAnnotation: newAnnotation,
-		getAnnotationsCount: getAnnotationsCount
+		getAnnotationsCount: getAnnotationsCount,
+		resetAnnotations: resetAnnotations
 	};
 	
 	//¯¯¯¯¯¯¯¯¯¯¯¯¯//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -169,10 +170,36 @@
 		this.r = 0;
 		this.g = 0;
 		this.b = 0;
+		
+		this.sum = function(color)
+		{
+			if (!color || !(color instanceof Color))
+				throw "argument is not instance of Color";
+			
+			let newColor = new Color();
+			newColor.r = this.r + color.r;
+			newColor.g = this.g + color.g;
+			newColor.b = this.b + color.b;
+			return newColor;
+		}
+		
+		this.sub = function(num)
+		{
+			if (!num)
+				throw "argument is invalid";
+			
+			let newColor = new Color();
+			newColor.r = this.r / num;
+			newColor.g = this.g / num;
+			newColor.b = this.b / num;
+			return newColor;
+		}
 	}
 	
-	let idleColor = new Color();
-	let activeColor = new Color();
+	//let idleColor = new Color();
+	//let activeColor = new Color();
+	let idleColors = {};
+	let activeColors = {};
 	
 	function getCssColor(color, alpha)
 	{
@@ -186,65 +213,77 @@
 		}
 	}
 	
-	function setAnnotationColor(obj, str)
+	function setAnnotationColor(obj, id, str)
 	{
-		if (!(obj && obj instanceof Color))
+		if (!obj)
 		{
-			let errStr = "setAnnotationColor(obj, str):" + 
-			"obj is not instance of Color";
+			let errStr = "setAnnotationColor(obj, id, str):\n" + 
+			"'obj' is not a valid object";
 			
 			throw errStr;
 		}
-		else if (!isValidString(str))
+		
+		if (!isValidString(id))
 		{
-			let errStr = "setAnnotationColor(obj, str):" + 
-			"str is not a valid string";
+			let errStr = "setAnnotationColor(obj, id, str):\n" + 
+			"'id' is not a valid id";
 			
 			throw errStr;
+		}
+		
+		if (!isValidString(str))
+		{
+			let errStr = "setAnnotationColor(obj, id, str):\n" + 
+			"'str' is not a valid string";
+			
+			throw errStr;
+		}
+		
+		if (!obj[id] || !(obj[id] instanceof Color))
+		{
+			obj[id] = new Color();
+		}
+		
+		let newElem = document.createElement("span");
+		
+		// must attach the element to DOM, otherwise it will work only on Firefox
+		document.body.appendChild(newElem);
+		let style = window.getComputedStyle(newElem);
+		
+		$(newElem).css("color", getCssColor(obj[id]));
+		let oldCssColor = style.getPropertyValue("color");
+		
+		$(newElem).css("color", str);
+		let newCssColor = style.getPropertyValue("color");
+		
+		newElem.remove();
+		
+		// if the new color is different from the previous one it's valid
+		if (newCssColor != "transparent" && newCssColor != oldCssColor)
+		{
+			let rgbArray = newCssColor.split("(")[1].split(")")[0].split(",");
+			obj[id].r = Number(rgbArray[0].trim());
+			obj[id].g = Number(rgbArray[1].trim());
+			obj[id].b = Number(rgbArray[2].trim());
 		}
 		else
 		{
-			let newElem = document.createElement("span");
-			
-			// must attach the element to DOM, otherwise it will work only on Firefox
-			document.body.appendChild(newElem);
-			let style = window.getComputedStyle(newElem);
-			
-			$(newElem).css("color", getCssColor(obj));
-			let oldCssColor = style.getPropertyValue("color");
-			
-			$(newElem).css("color", str);
-			let newCssColor = style.getPropertyValue("color");
-			
-			newElem.remove();
-			
-			// if the new color is different from the previous one it's valid
-			if (newCssColor != "transparent" && newCssColor != oldCssColor)
-			{
-				let rgbArray = newCssColor.split("(")[1].split(")")[0].split(",");
-				obj.r = Number(rgbArray[0].trim());
-				obj.g = Number(rgbArray[1].trim());
-				obj.b = Number(rgbArray[2].trim());
-			}
-			else
-			{
-				let errStr = "setAnnotationColor(obj, str):" + 
-				"str is not a valid color identifier";
-			
-				throw errStr;
-			}
+			let errStr = "setAnnotationColor(obj, id, str):" + 
+			"str is not a valid color identifier";
+		
+			throw errStr;
 		}
 	}
 	
-	function setIdleAnnotationColor(str)
+	function setIdleAnnotationColor(_class, str)
 	{
 		try
 		{
-			setAnnotationColor(idleColor, str);
+			setAnnotationColor(idleColors, _class, str);
 		}
 		catch(err)
 		{
-			let errStr = "setIdleAnnotationColor(str) failed.\n";
+			let errStr = "setIdleAnnotationColor(class, str) failed";
 			
 			if (isValidString(err))
 				errStr += ":\n" + reason;
@@ -253,15 +292,15 @@
 		}
 	}
 	
-	function setActiveAnnotationColor(str)
+	function setActiveAnnotationColor(_class, str)
 	{
 		try
 		{
-			setAnnotationColor(activeColor, str);
+			setAnnotationColor(activeColors, _class, str);
 		}
 		catch(err)
 		{
-			let errStr = "setIdleAnnotationColor(str) failed.\n";
+			let errStr = "setIdleAnnotationColor(class, str) failed.\n";
 			
 			if (isValidString(err))
 				errStr += ":\n" + reason;
@@ -284,8 +323,8 @@
 		}
 		`).appendTo("head");
 		
-		setIdleAnnotationColor("rgb(150,150,150)");
-		setActiveAnnotationColor("orange");
+		setIdleAnnotationColor("default", "rgb(150,150,150)");
+		setActiveAnnotationColor("default", "orange");
 	});
 	
 	//¯¯¯¯¯¯¯¯¯¯¯¯///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -605,7 +644,7 @@
 			$(entry).hover(function()
 			{
 				dialog.style.opacity = 0.85;
-				spanMouseEnterHandler(null, params.relSpans, [spanId]);
+				spanMouseEnterHandlerWrapper(params.relSpans, spanId);
 			},
 			function()
 			{
@@ -942,13 +981,16 @@
 		}).toArray();
 	}
 	
-	function spanMouseEnterHandler(span, relSpans, spanIds)
+	let tempClass;
+	
+	function spanMouseEnterHandler(span, spanIds)
 	{
-		if (span)
+		if (!spanIds)
 		{
 			let closestAnchor = span.closest("a");
 			$(closestAnchor).click(function(e)
 			{
+				e.stopPropagation();
 				e.preventDefault();
 				
 				defer(chooseAnchorOrAnnotation_Handler,
@@ -983,20 +1025,68 @@
 			});
 		}
 		
-		relSpans = relSpans ? relSpans : getRelatedSpans(span);
-		spanIds = spanIds ? spanIds : getNodeDjeniusIds(span);
+		let relSpans =  getRelatedSpans(span);
+		spanIds = spanIds || getNodeDjeniusIds(span);
 		
-		let fraction = 0.90 / spanIds.length;
+		let fraction = 0.80 / spanIds.length;
 		
-		$(relSpans).each(function()
+		for (let relSpan of relSpans)
 		{
-			let commonIds = getNodeDjeniusIds(this).filter(x => spanIds.includes(x));
-			let alpha = 0.10 + commonIds.length * fraction;
-			let color = getCssColor(activeColor, alpha);
+			let commonIds = getNodeDjeniusIds(relSpan).filter(x => spanIds.includes(x));
+			let alpha = 0.20 + commonIds.length * fraction;
 			
-			this.style.backgroundColor = color;
-			this.style.boxShadow = "0 -1px 0 " + color + ", 0 1px 0 " + color;
+			let ids = (spanIds.length > 1) ? commonIds : spanIds;
+			let newColor = new Color();
+			for (let id of ids)
+			{
+				let idClass = annotationsClass[id] || tempClass;
+				newColor = newColor.sum(activeColors[idClass]);
+			}
+			newColor = newColor.sub(ids.length);
+			
+			let color = getCssColor(newColor, alpha);
+			
+			relSpan.style.backgroundColor = color;
+			relSpan.style.boxShadow = "0 -1px 0 " + color + ", 0 1px 0 " + color;
+		}
+	}
+	
+	function spanMouseEnterHandlerWrapper(relSpans, spanId)
+	{
+		// order relSpans for descending number of spanIds
+		
+		relSpansObj = relSpans.map(function(span)
+		{
+			let obj =
+			{
+				span: span,
+				ids: getNodeDjeniusIds(span)
+			};
+			
+			return obj;
 		});
+		
+		relSpansObj.sort((a,b) =>
+		{
+			if (a.ids.length < b.ids.length)
+				return -1;
+			if (a.ids.length > b.ids.length)
+				return 1;
+			return 0;
+		});
+		
+		// find the first with spanId
+		
+		for (let relSpanObj of relSpansObj)
+		{
+			if (relSpanObj.ids.includes(spanId))
+			{
+				// call spanMouseEnterHandler with that span and [spanId]
+				
+				spanMouseEnterHandler(relSpanObj.span, [spanId]);
+				return;
+			}
+		}
 	}
 	
 	function spanMouseLeaveHandler(span, relSpans)
@@ -1007,17 +1097,27 @@
 			$(closestAnchor).off("click");
 		}
 		
-		relSpans = relSpans ? relSpans : getRelatedSpans(span);
-		let fraction = 0.90 / (annotationsCollection.length || 1);
+		relSpans = relSpans || getRelatedSpans(span);
+		let fraction = 0.80 / (annotationsCollection.length || 1);
 		
-		$(relSpans).each(function()
+		for (let relSpan of relSpans)
 		{
-			let alpha = 0.10 + getNodeDjeniusIds(this).length * fraction;
-			let color = getCssColor(idleColor, alpha);
+			let spanIds = getNodeDjeniusIds(relSpan);
+			let alpha = 0.20 + spanIds.length * fraction;
 			
-			this.style.backgroundColor = color;
-			this.style.boxShadow = "0 -1px 0 " + color + ", 0 1px 0 " + color;
-		});
+			let newColor = new Color();
+			for (let id of spanIds)
+			{
+				let idClass = annotationsClass[id] || tempClass;
+				newColor = newColor.sum(idleColors[idClass]);
+			}
+			newColor = newColor.sub(spanIds.length);
+			
+			let color = getCssColor(newColor, alpha);
+			
+			relSpan.style.backgroundColor = color;
+			relSpan.style.boxShadow = "0 -1px 0 " + color + ", 0 1px 0 " + color;
+		}
 	}
 	
 	function spanClickHandler(span)
@@ -1025,7 +1125,7 @@
 		let selArray = getSelectionRanges();
 		if (selArray && selArray.length && !selArray[0].collapsed)
 		{
-			// user selection has both ends inside span, let's not trigger click event
+			// a new user selection has both ends inside span, let's not trigger click event
 			return;
 		}
 		
@@ -1038,10 +1138,18 @@
 		}
 		else if (spanIds.length == 1)
 		{
-			showAnnotation(/*test*/getAnnotationById(spanIds[0])/**/);
+			showAnnotation(getAnnotationById(spanIds[0]));
 		}
 		else
 		{
+			removeHighlightings();
+			let annotations = [];
+			for (let spanId of spanIds)
+			{
+				annotations.push(getAnnotationById(spanId));
+			}
+			highlightAnnotations(annotations);
+			
 			let relSpans = getRelatedSpans(span);
 			
 			defer(chooseAnnotation_Handler,
@@ -1062,6 +1170,11 @@
 					errStr += ":\n" + reason;
 				
 				console.error(errStr);
+			},
+			function()
+			{
+				removeHighlightings();
+				highlightAnnotations(annotationsCollection);
 			});
 		}
 	}
@@ -1131,7 +1244,7 @@
 					{
 						if (!diffRange.isEmpty())
 						{
-							diffRange.id = spanIdRange.id
+							diffRange.id = spanIdRange.id;
 							spanIdRanges.push(diffRange);
 						}
 					}
@@ -1221,6 +1334,7 @@
 	//_______________////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	let annotationsCollection = [];
+	let annotationsClass = {};
 	
 	function getAnnotationById(id)
 	{
@@ -1381,7 +1495,44 @@
 			.replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
 	}
 	
-	function newAnnotation()
+	function createAnnotation(newDjeniusRanges, _class, properties)
+	{
+		let newId = uuidv4();
+		annotationsClass[newId] = _class;
+		
+		let newDjeniusAnnotation =
+		{
+			id: newId,
+			ranges: newDjeniusRanges,
+			properties: properties
+		};
+		
+		defer(serverRequest_Handler,
+		{
+			request: ServerRequest.create,
+			data: newDjeniusAnnotation
+		},
+		function(result)
+		{
+			annotationsCollection = result;
+		},
+		function(reason)
+		{
+			let errStr = "defer(serverRequest_Handler, ...)";
+			
+			if (isValidString(reason))
+				errStr += ":\n" + reason;
+			
+			throw errStr;
+		},
+		function()
+		{
+			highlightAnnotations(annotationsCollection);
+			//console.log(annotationsCollection);
+		});
+	}
+	
+	function newAnnotation(_class = "default", properties)
 	{
 		removeHighlightings();
 		let newDjeniusRanges = getNewDjeniusRanges();
@@ -1389,67 +1540,57 @@
 		if (newDjeniusRanges.length)
 		{
 			window.getSelection().removeAllRanges(); //maybe save it if it fails to load the new ranges to server
+			
+			tempClass = _class;
 			highlightRanges(newDjeniusRanges, /*random id*/ "0");
 			$(spansCollection[0]).trigger("mouseenter");
 			
-			defer(getAnnotationProperties_Handler, null, function(properties)
+			if (properties)
 			{
-				if (properties)
+				createAnnotation(newDjeniusRanges, _class, properties);
+			}
+			else
+			{
+				defer(getAnnotationProperties_Handler, null, function(properties)
 				{
-					let newDjeniusAnnotation =
+					if (properties)
 					{
-						id: uuidv4(),
-						ranges: newDjeniusRanges,
-						properties: properties
-					};
+						createAnnotation(newDjeniusRanges, _class, properties);
+					}
+					else
+					{
+						throw "resolve(...) argument is null or undefined";
+					}
+				},
+				function(reason)
+				{
+					let errStr = "Annotation failed.\n" + 
+					"defer(getAnnotationProperties_Handler, ...)";
 					
-					defer(serverRequest_Handler,
-					{
-						request: ServerRequest.create,
-						data: newDjeniusAnnotation
-					},
-					function(result)
-					{
-						annotationsCollection = result;
-					},
-					function(reason)
-					{
-						let errStr = "defer(serverRequest_Handler, ...)";
-						
-						if (isValidString(reason))
-							errStr += ":\n" + reason;
-						
-						throw errStr;
-					},
-					function()
-					{
-						highlightAnnotations(annotationsCollection);
-						//console.log(annotationsCollection);
-					});
-				}
-				else
-				{
-					throw "resolve(...) argument is null or undefined";
-				}
-			},
-			function(reason)
-			{
-				let errStr = "Annotation failed.\n" + 
-				"defer(getAnnotationProperties_Handler, ...)";
-				
-				if (isValidString(reason))
-					errStr += ":\n" + reason;
-				
-				console.error(errStr);
-				
-				
-				highlightAnnotations(annotationsCollection);
-				console.log(annotationsCollection);
-			});
+					if (isValidString(reason))
+						errStr += ":\n" + reason;
+					
+					console.error(errStr);
+					
+					
+					highlightAnnotations(annotationsCollection);
+					console.log(annotationsCollection);
+				});
+			}
 		}
 		else
 		{
 			highlightAnnotations(annotationsCollection);
 		}
+	}
+	
+	//¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//  resetAnnotation  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//___________________////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	function resetAnnotations()
+	{
+		removeHighlightings();
+		annotationsCollection = [];
 	}
 })();

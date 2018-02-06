@@ -12,7 +12,7 @@
 	-->
 	
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-	<script src="../js/djenius.js"></script>
+	<script src="djenius.js"></script>
 	
 	<script>
 	$(function()
@@ -201,7 +201,25 @@
 			Djenius.setAnnotatable($("#test_djenius_div")[0], String(1));
 			Djenius.setIgnore($("#test_ignore")[0]);
 			
-			$("#test_djenius_button").click(Djenius.newAnnotation);
+			$("#test_djenius_button").click(function()
+			{
+				Djenius.newAnnotation();
+			});
+			
+			Djenius.setIdleAnnotationColor("green", "forestgreen");
+			Djenius.setActiveAnnotationColor("green", "lawngreen");
+			$("#test_djenius_button2").click(function()
+			{
+				Djenius.newAnnotation("green");
+			});
+			
+			$("#test_djenius_button3").click(function()
+			{
+				Djenius.newAnnotation(null,
+				{
+					annotation: "wewewe"
+				});
+			});
 			
 			$("#test_sel").click(function()
 			{
@@ -252,6 +270,7 @@
 		<p>
 			<span id="test_ignore">blocco div > p 1.1</span><br>
 			blocco div > p 1.2<br>
+			riga lunga lunga per rendere più semplice i test<br>
 			<a href="we">blocco div > p > a</a>
 		</p>
 		blocco div 2<br>
@@ -259,6 +278,8 @@
 		blocco div 3
 	</div>
 	<input id="test_djenius_button" type="button" value="test djenius">
+	<input id="test_djenius_button2" type="button" value="test djenius 2">
+	<input id="test_djenius_button3" type="button" value="test djenius 3">
 	<input id="test_sel" type="button" value="test sel">
 	<input id="test_unwrap" type="button" value="unwrap">
 	<input id="test_remove_span" type="button" value="test removeSpan">
