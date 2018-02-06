@@ -6,12 +6,16 @@ annotations is included.
 
 ## TODO
 
-* handle disambiguation pages
-* handle no result case
-* login system
-* genius (modal on smartphones)
-* improve Crossref results and presentation
-* footer
-* update jQuery and SemanticUI
-* remake icon with definitive colors once decided
-* maybe add search bar suggestion dropdown (would be cool)
+* Strip "play media" sections
+* Handle disambiguation pages
+* Handle no result case
+* Add "go to top" button
+* Login system
+* Use Djenius (modal on smartphones)
+* Improve Djenius performance (function that blocks annotations showing for batch annotation additions)
+* Versioning system
+* Improve Crossref results and presentation
+* Footer
+* Update jQuery and SemanticUI
+* Remake icon with definitive colors once decided
+* [Optional] Add search bar suggestion dropdown
