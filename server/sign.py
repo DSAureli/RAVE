@@ -11,8 +11,15 @@ def signUp(email, password, name):
 		#except Exception as e:
 			#return e.message
 		cur = con.cursor()
-		cur.execute( "INSERT INTO users (email, password,name) VALUES (?,?,?)",(email,password,name) )
-		con.commit()
+		
+		try:
+			cur.execute( "INSERT INTO users (email, password,name) VALUES (?,?,?)",(email,password,name) )
+			con.commit()
+		except:
+			con.rollback()
+			con.close()
+			return False
+		
 		con.close()
 		user = User()
 		user.id = email

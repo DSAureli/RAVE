@@ -17,9 +17,9 @@ class User(flask_login.UserMixin):
 
 @login_manager.user_loader
 def user_loader(email):
-	con = sqlite3.connect('/var/www/data/rave/rave/rave.db')
+	con = sqlite3.connect(DB_PATH)
 	con.row_factory = sqlite3.Row
-	cur = con.execute( "SELECT * FROM users WHERE email=?", (email) )
+	cur = con.execute( "SELECT * FROM users WHERE email=?", (email,) )
 	r = cur.fetchone()
 	if len(r)>0:
 		user = User()

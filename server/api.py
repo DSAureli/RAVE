@@ -6,7 +6,10 @@ import flask_login
 import sys
 import sign
 import login
-import djenius
+#import djenius
+from djenius import create
+from djenius import change
+
 
 @app.route('/sign', methods=['POST', 'DELETE'])
 def Sign():
@@ -37,4 +40,18 @@ def log():
 @app.route('/djenius', methods=['GET', 'PUT', 'POST', 'DELETE'])
 #@login_required
 def djenius():
-	return 'djenius'
+	data = request.get_json()
+	if request.method == 'POST':
+		if( create(data) ):
+			return "Annotation added"
+		else:
+			return "Annotation error"
+	if request.method == 'GET':
+		return 1
+	if request.method == 'PUT':
+		if( change(data) ):
+			return "Annotation changed"
+		else:
+			return "Update error"
+	if request.method == 'DELETE':
+		return 1
