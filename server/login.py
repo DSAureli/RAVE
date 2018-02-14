@@ -11,7 +11,7 @@ def Login(email, password):
 	con.row_factory = sqlite3.Row
 	cur = con.execute( "SELECT * FROM users WHERE email=? AND password=?", (email,password))
 	r = cur.fetchone()
-	if len(r)>0:
+	if r is not None:
 		user = User()
 		user.id = email
 		flask_login.login_user(user)

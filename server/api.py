@@ -3,17 +3,17 @@ from rave import app
 from rave import login_manager
 from rave import User
 import flask_login
-import sys
 import sign
 import login
-#import djenius
 from djenius import create
 from djenius import change
+from djenius import delete
+from djenius import getVersion
+from djenius import get
 
 
 @app.route('/sign', methods=['POST', 'DELETE'])
 def Sign():
-	#return str(sys.path).replace(",", ",<br>")
 	if request.method == 'POST':
 		email = request.form['email']
 		x = sign.signUp(email, request.form['password'], request.form['name'])
@@ -25,6 +25,7 @@ def Sign():
 		return "login form"
 
 
+	
 @app.route('/login', methods=['POST', 'DELETE'])
 def log():
 	if request.method == 'POST':
@@ -37,21 +38,42 @@ def log():
 		return "logged out"
 
 
+	
 @app.route('/djenius', methods=['GET', 'PUT', 'POST', 'DELETE'])
 #@login_required
 def djenius():
-	data = request.get_json()
+	#data = request.get_json()
+	
+	#adding
 	if request.method == 'POST':
-		if( create(data) ):
+		data = request.get_json()
+		if create(data):
 			return "Annotation added"
 		else:
-			return "Annotation error"
+			return "Error"
+		
+	#returning
 	if request.method == 'GET':
-		return 1
+		return get( request.args['page'] )
+
+	#changing
 	if request.method == 'PUT':
-		if( change(data) ):
+		data = request.get_json()
+		if change(data):
 			return "Annotation changed"
 		else:
 			return "Update error"
+		
+	#deleting
 	if request.method == 'DELETE':
-		return 1
+		data = request.get_json()
+		if delete(data):
+			return "Annotation deleted"
+		else:
+			return "Delete error"
+		
+
+@app.route('/version', methods=['POST'])
+def version():
+	data = request.get_json()
+	return getVersion(data)
