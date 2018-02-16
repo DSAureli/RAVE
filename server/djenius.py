@@ -6,11 +6,8 @@ import flask_login
 import sqlite3
 import json
 
-# TODO: aggiungi sezione in annotazioni
-# TODO: cambia getVersion perchè funzioni con GET
-# TODO: aggiungi -1 nel caso di errore getVersion
-# TODO: add false return to login.py
-# TODO: handle exceptions
+
+# TODO: change return values in api.py
 
 #call to create record
 def create(info):
@@ -23,28 +20,23 @@ def create(info):
 	annotation = info['data']['properties']['annotation']
 	array = json.dumps(info['data']['ranges'])
 
-	#try:
-	con = sqlite3.connect(DB_PATH)
-	cur = con.cursor()
+	try:
+		con = sqlite3.connect(DB_PATH)
+		cur = con.cursor()
 
-	#try:
-	cur.execute( "INSERT INTO annotations (id, user, page, section, version, public, annotation, array) VALUES (?,?,?,?,?,?,?,?)", (annID, user, page, section, version, public, annotation, array) )
-		#con.commit()
-	#except:
-		#con.rollback()
-		#con.close()
-		#return False
+		cur.execute( "INSERT INTO annotations (id, user, page, section, version, public, annotation, array) VALUES (?,?,?,?,?,?,?,?)", (annID, user, page, section, version, public, annotation, array) )
 
-	cur = con.execute( "SELECT * FROM versions WHERE page=?", (page,) )
-	r = cur.fetchone()
-	if r is None:
-		cur = con.execute( "INSERT INTO versions (page, version) VALUES (?,?)", (page,version) )
-	con.commit()
-	con.close()
-	#	return True
-	#except:
-	#	return False
-	return True
+		cur = con.execute( "SELECT * FROM versions WHERE page=?", (page,) )
+		r = cur.fetchone()
+		if r is None:
+			cur = con.execute( "INSERT INTO versions (page, version) VALUES (?,?)", (page,version) )
+		con.commit()
+		con.close()
+		return True
+	except:
+		con.rollback()
+		con.close()
+		return False
 	
 	
 	
@@ -55,70 +47,74 @@ def change(info):
 	annotation = info['data']['properties']['annotation']
 	array = json.dumps(info['data']['ranges'])
 	
-	#try:
-	con = sqlite3.connect(DB_PATH)
-	cur = con.cursor()
-		
-		#try:
-	cur.execute( "UPDATE annotations SET public=?, annotation=?, array=? WHERE id=?", (public, annotation, array, annID) )
-	con.commit()
-		#except:
-		#	con.rollback()
-		#	con.close()
-		#	return False
-		
-	con.close()
-	return True
-	#except:
-	return False
+	try:
+		con = sqlite3.connect(DB_PATH)
+		cur = con.cursor()	
+		cur.execute( "UPDATE annotations SET public=?, annotation=?, array=? WHERE id=?", (public, annotation, array, annID) )
+		con.commit()
+		con.close()
+		return True
+	except:
+		con.rollback()
+		con.close()
+		return False
 
 
 #call to delete record
 def delete(info):
 	annID = info['data']['id']
-	con = sqlite3.connect(DB_PATH)
-	cur = con.cursor()
-	cur.execute( "DELETE FROM annotations WHERE id=?", (annID,) )
-	con.commit()
-	con.close()
-	return True
+	try:
+		con = sqlite3.connect(DB_PATH)
+		cur = con.cursor()
+		cur.execute( "DELETE FROM annotations WHERE id=?", (annID,) )
+		con.commit()
+		con.close()
+		return True
+	except:
+		con.rollback()
+		con.close()
+		return False
 	
 	
 #call to get record
-
 def get(info):
 	page = info
-	connection = sqlite3.connect(DB_PATH)
-	connection.row_factory = sqlite3.Row
-	cursor = connection.cursor()
-	cursor = connection.execute( "SELECT * FROM annotations WHERE page=?", (page,))	
-	res = cursor.fetchall()
-	lista = list()
-	for row in res:
-		lista.append( {"page": row['page'], "section": row['section'], "version": row['version'], 
-						"data":{ "id":row['id'], "ranges": json.loads(row['array'])}, 
-						"properties":{ "annotation":row['annotation'], "public":row['public'] } 
-					   }) 
-	return json.dumps(lista)
-	#if res is not None
-	connection.close()
-	return elem
-	#else:
-	#	return None
+	try:
+		connection = sqlite3.connect(DB_PATH)
+		connection.row_factory = sqlite3.Row
+		cursor = connection.cursor()
+		cursor = connection.execute( "SELECT * FROM annotations WHERE page=?", (page,))	
+		res = cursor.fetchall()
+		lista = list()
+		for row in res:
+			lista.append( {"page": row['page'], "section": row['section'], "version": row['version'], 
+							"data":{ "id":row['id'], "ranges": json.loads(row['array'])}, 
+							"properties":{ "annotation":row['annotation'], "public":row['public'] } 
+						   }) 
+		
+		connection.close()
+		return json.dumps(lista)
+	except:
+		connection.close()
+		return "-1"
 	
 
 #call to get only the version 
 def getVersion(info):
-	page = info['page']
-	con = sqlite3.connect(DB_PATH)
-	con.row_factory = sqlite3.Row
-	cur = con.execute( "SELECT version FROM versions WHERE page=?", (page,))
-	res = cur.fetchone()
-	if res is None:
-		return "0"
-	else:
-		return str(res['version'])
-	
+	page = info
+	try:
+		con = sqlite3.connect(DB_PATH)
+		con.row_factory = sqlite3.Row
+		cur = con.execute( "SELECT version FROM versions WHERE page=?", (page,))
+		res = cur.fetchone()
+		con.close()
+		if res is None:
+			return "0"
+		else:
+			return str(res['version'])
+	except:
+		con.close()
+		return "-1"
 	
 	
 	

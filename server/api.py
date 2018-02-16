@@ -21,7 +21,7 @@ def Sign():
 			return "signed"
 		else:
 			return "error"
-	else:	#if method is DELETE
+	else:
 		return "login form"
 
 
@@ -33,47 +33,47 @@ def log():
 			return "login done"
 		else:
 			return "error"
-	else:	#if method is DELETE
+	else:	
 		flask_login.logout_user()
 		return "logged out"
 
 
 	
 @app.route('/djenius', methods=['GET', 'PUT', 'POST', 'DELETE'])
-#@login_required
 def djenius():
-	#data = request.get_json()
-	
 	#adding
 	if request.method == 'POST':
 		data = request.get_json()
 		if create(data):
-			return "Annotation added"
+			return "0"
 		else:
-			return "Error"
+			return "-1"
 		
 	#returning
 	if request.method == 'GET':
-		return get( request.args['page'] )
+		res = get( request.args['page'] )
+		if res=="-1":
+			return "-1"
+		else:
+			return res
 
 	#changing
 	if request.method == 'PUT':
 		data = request.get_json()
 		if change(data):
-			return "Annotation changed"
+			return "0"
 		else:
-			return "Update error"
+			return "-1"
 		
 	#deleting
 	if request.method == 'DELETE':
 		data = request.get_json()
 		if delete(data):
-			return "Annotation deleted"
+			return "0"
 		else:
-			return "Delete error"
+			return "-1"
 		
 
-@app.route('/version', methods=['POST'])
+@app.route('/version', methods=['GET'])
 def version():
-	data = request.get_json()
-	return getVersion(data)
+	return getVersion( request.args['page'] )
