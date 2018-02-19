@@ -157,25 +157,25 @@ header
 
 /* MAIN */
 
-#main_container
+.text.container
 {
 	flex: 1;
 	padding: 1em 0 2em 0;
 }
-#main_container .segment:not(.basic)
+.text.container .segment:not(.basic) 
 {
 	border-top: 2px solid #F57300;
 }
-#main_container a
+.text.container a
 {
 	color: #F57300;
 }
-#main_container a:hover
+.text.container a:hover
 {
 	color: #F57300;
 	text-decoration: underline;
 }
-#main_container .dimmer
+.text.container .dimmer
 {
 	z-index: 998;
 }
@@ -437,3 +437,26 @@ footer
 {
 	/* Desktop */
 }
+
+/*HOME*/
+#home_header
+{
+	padding-bottom: 1.8em;
+	padding-top: 1.0em;
+}
+
+.header h3
+{
+	padding-bottom: 0.4em;
+}
+
+#home_container
+{
+		width: 100%;
+		max-width: 1920px !important;
+		padding: 2em 0 4em 0;
+}
+
+
+
+

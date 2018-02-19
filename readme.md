@@ -10,7 +10,6 @@ annotations is included.
 * Handle disambiguation pages
 * Handle no result case
 * Add "go to top" button
-* Login system
 * Use Djenius (modal on smartphones)
 * Versioning system
 * Improve Crossref results and presentation

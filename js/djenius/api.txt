@@ -1,4 +1,5 @@
 Gio: "mi raccomando nelle ajax al server specifica sempre application/json come dataType"
+Gio: "nell'api per la creazione e annotazione usa gli interi uno per pubblico e 0 per privato"
 
 
 
