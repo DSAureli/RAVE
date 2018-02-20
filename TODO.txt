@@ -1,0 +1,27 @@
+Se history.state si rifà alla pagina attuale posso fare così:
+
+Al window.load controlla lo state, se non c'è significa che è la prima pagina,
+o che si è caricata una URL manuale
+In tal caso fai replaceState mettendo come numero la lunghezza della history.
+SOLO ORA binda l'evento onPopstate. In tal modo si evita il caso che l'user
+cambi pagina e che la replace modifichi una entry diversa della history. Tanto
+se non c'è la onpopstate la pagina si carica daccapo senza problemi (SICURO?)
+
+Lo stesso numero mettilo in una var in window. Ora, ogni volta che un popstate
+avviene, puoi confrontare vecchio e nuovo, aggiornare il vecchio e fare robe a
+seconda che sia backward o forward.
+
+Ogni volta che fai pushstate metti numero attuale + 1 e aggiorna la var in
+window allo stesso valore.
+
+Non pensare: "se metto una url nuova a metà della history poi facendo forward lo
+considera come backward", perché se metti una url nuova le entry successive
+spariscono.
+
+L'unico dubbio che ho è: se faccio reload di una pagina a metà della history, lo
+state me lo dà buono o no? [SI, testato]
+
+Se tutto funziona posso anche rimettere dei replaceState asincroni(per
+aggiungere sezione=Summary) e modifiche del titolo asincrone, basta che subito
+prima di farlo controllo che la pagina su cui sto agendo ha lo stesso numero (e
+magari url, per maggiore sicurezza) di quella su cui voglio agire

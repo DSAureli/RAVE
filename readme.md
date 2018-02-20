@@ -6,6 +6,7 @@ annotations is included.
 
 ## TODO
 
+* Apply combined visualization only on pages belonging to category
 * Strip "play media" sections
 * Handle disambiguation pages
 * Handle no result case
@@ -14,6 +15,6 @@ annotations is included.
 * Versioning system
 * Improve Crossref results and presentation
 * Footer
-* Update jQuery and SemanticUI
+* Update jQuery, SemanticUI and npm packages
 * Remake icon with definitive colors once decided
 * [Optional] Add search bar suggestion dropdown
