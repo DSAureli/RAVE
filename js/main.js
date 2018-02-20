@@ -22,7 +22,7 @@
 
 function createKeywordAnnotations()
 {
-	Djenius.setBatchLocalAnnotate(true);
+	Djenius.setAnnotationsVisible(false);
 	
 	// For each p in wiki content
 	$("#content_wiki > .mw-parser-output > p").each(function(index, p)
@@ -80,7 +80,7 @@ function createKeywordAnnotations()
 		//$p.dimmer("hide");
 	});
 	
-	Djenius.setBatchLocalAnnotate(false);
+	Djenius.setAnnotationsVisible(true);
 }
 
 

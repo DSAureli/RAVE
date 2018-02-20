@@ -80,7 +80,7 @@
 		newAnnotation: newAnnotation,
 		getAnnotationsCount: getAnnotationsCount,
 		resetAnnotations: resetAnnotations,
-		setBatchLocalAnnotate: setBatchLocalAnnotate
+		setAnnotationsVisible: setAnnotationsVisible
 	};
 	
 	//¯¯¯¯¯¯¯¯¯¯¯¯¯//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1496,7 +1496,7 @@
 			.replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
 	}
 	
-	let batchLocalAnnotate = false;
+	let annotationsVisible = true;
 	
 	function createAnnotation(newDjeniusRanges, _class, properties)
 	{
@@ -1510,11 +1510,8 @@
 			properties: properties
 		};
 		
-		if (batchLocalAnnotate)
-		{
-			annotationsCollection.push(newDjeniusAnnotation);
-			return;
-		}
+		// We need to use closure powers
+		let visible = annotationsVisible;
 		
 		defer(serverRequest_Handler,
 		{
@@ -1536,7 +1533,10 @@
 		},
 		function()
 		{
-			highlightAnnotations(annotationsCollection);
+			if (visible)
+			{
+				highlightAnnotations(annotationsCollection);
+			}
 		});
 	}
 	
@@ -1601,13 +1601,17 @@
 		annotationsCollection = [];
 	}
 	
-	function setBatchLocalAnnotate(bool)
+	function setAnnotationsVisible(bool)
 	{
-		batchLocalAnnotate = bool;
+		annotationsVisible = bool;
 		
-		if (!bool)
+		if (bool)
 		{
 			highlightAnnotations(annotationsCollection);
+		}
+		else
+		{
+			removeHighlightings();
 		}
 	}
 })();
