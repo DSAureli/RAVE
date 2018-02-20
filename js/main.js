@@ -242,9 +242,9 @@ function loadWiki(page, sectionIndex)
 		dataType: "jsonp",
 		success: function(result)
 		{
-			$("#content_wiki").html(filterWiki(result));
+			let wikiContent = filterWiki(result);
 			
-			$("#content_wiki a").each(function()
+			$(wikiContent).find("a").each(function()
 			{
 				//this.href = "//en.wikipedia.org" + this.pathname;
 				
@@ -264,7 +264,7 @@ function loadWiki(page, sectionIndex)
 				}
 			});
 			
-			$("#content_wiki a").click(function(e)
+			$(wikiContent).find("a").click(function(e)
 			{
 				e.preventDefault();
 				
@@ -274,7 +274,7 @@ function loadWiki(page, sectionIndex)
 				}
 			});
 			
-			$("#content_wiki img").each(function()
+			$(wikiContent).find("img").each(function()
 			{
 				let rplc = "https://";
 				if (!this.src.includes("upload.wikimedia.org"))
@@ -282,6 +282,8 @@ function loadWiki(page, sectionIndex)
 					
 				this.src = this.src.replace("file://", rplc);
 			});
+			
+			$("#content_wiki").html(wikiContent);
 		},
 		error: function(error)
 		{
