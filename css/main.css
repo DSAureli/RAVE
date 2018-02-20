@@ -1,4 +1,4 @@
-/* Black:	#1B1C1D */
+﻿/* Black:	#1B1C1D */
 /* Orange:	#F57300 */
 /* LOrange:	#F58700 */
 
@@ -157,27 +157,42 @@ header
 
 /* MAIN */
 
-.text.container
+.main.text.container
 {
 	flex: 1;
 	padding: 1em 0 2em 0;
 }
-.text.container .segment:not(.basic) 
+.main.text.container .segment:not(.basic)
 {
 	border-top: 2px solid #F57300;
 }
-.text.container a
+.main.text.container a
 {
 	color: #F57300;
 }
-.text.container a:hover
+.main.text.container a:hover
 {
 	color: #F57300;
 	text-decoration: underline;
 }
-.text.container .dimmer
+.main.text.container .dimmer
 {
 	z-index: 998;
+}
+#home_header
+{
+	padding-bottom: 1.8em;
+	padding-top: 1.0em;
+}
+.header h3
+{
+	padding-bottom: 0.4em;
+}
+#home_container
+{
+	width: 100%;
+	max-width: 1920px !important;
+	padding: 2em 0 4em 0;
 }
 #main_header
 {
@@ -436,27 +451,3 @@ footer
 @media only screen and (min-width: 992px)
 {
 	/* Desktop */
-}
-
-/*HOME*/
-#home_header
-{
-	padding-bottom: 1.8em;
-	padding-top: 1.0em;
-}
-
-.header h3
-{
-	padding-bottom: 0.4em;
-}
-
-#home_container
-{
-		width: 100%;
-		max-width: 1920px !important;
-		padding: 2em 0 4em 0;
-}
-
-
-
-

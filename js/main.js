@@ -1,4 +1,4 @@
-function pushHistoryState(page, section)
+﻿function pushHistoryState(page, section)
 {
 	//let path = "/";
 	let path = "./index.html";
@@ -16,18 +16,6 @@ function pushHistoryState(page, section)
 	}
 	
 	history.pushState(null, null, path);
-}
-
-
-
-function loadFromHome(event)
-{
-	event.preventDefault();
-	var selected = $(event.target).text();
-	$("#search_bar").val(selected);
-	$("#search_button").trigger("click");
-	$("#home_container").hide();
-	$("#main_container").show();
 }
 
 
@@ -420,16 +408,20 @@ function getDropdownValues(sections, selected)
 
 function loadPage(page, section)
 {
-	// Switch loading visuals on
-	
 	$("#main_dropdown").dropdown({action: "nothing"});
 	$("#main_dropdown").dropdown("change values");
 	$("#main_dropdown").addClass("disabled");
 	
-	// Load page
-	
 	if (isValidString(page))
 	{
+		// Wiki //
+		
+		if ($("#main_container").is(":hidden"))
+		{
+			$("#home_container").hide();
+			$("#main_container").show();
+		}
+		
 		$("#main_dropdown").addClass("loading");
 		
 		// Populate dropdown
@@ -490,12 +482,12 @@ function loadPage(page, section)
 	}
 	else
 	{
-		$("#main_container").hide();
-		$("#home_container").show();
-		$("#home_container a").bind("click", function(event)
+		// Homepage //
+		if ($("#home_container").is(":hidden"))
 		{
-			loadFromHome(event);
-		});
+			$("#main_container").hide();
+			$("#home_container").show();
+		}
 	}
 }
 
@@ -551,8 +543,6 @@ function initDjenius()
 
 function startSearch()
 {
-	$("#main_container").show();
-		$("#home_container").hide();
 	let search = $("#search_bar").val();
 	
 	if (!isValidString(search))
@@ -669,11 +659,11 @@ $(document).ready(function()
 	updateResponsiveness();
 	$(window).resize(updateResponsiveness);
 	
+	
 	$("#search_bar").focusout(function(event)
 	{
 		updateResponsiveness();
 	});
-	
 	
 	$("#search_bar").keyup(function(event)
 	{
@@ -689,8 +679,19 @@ $(document).ready(function()
 		startSearch();
 	});
 	
-	initDjenius();
 	
+	$("#main_container").hide();
+	
+	$("#home_container a").click(function(event)
+	{
+		event.preventDefault();
+		var selected = $(event.target).text();
+		$("#search_bar").val(selected);
+		$("#search_button").trigger("click");
+	});
+	
+	
+	initDjenius();
 	
 	$("#djenius_button").click(function()
 	{
@@ -703,16 +704,10 @@ $(document).ready(function()
 		// ...
 	});
 	
+	
 	// Load //
 	
 	handleLoad(window.location, false);
-	
-	/*$("#home_container a").click(function(event)
-	{
-		loadHome(event);
-	});*/
-	
-	//$("#main_container").hide();
 });
 
 
