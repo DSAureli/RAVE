@@ -371,10 +371,39 @@ function updateContent(page, sectionIndex, sectionName)
 	
 	loadWiki(page, sectionIndex).done(function()
 	{
-		$("#content_wiki_container").dimmer("hide");
-		$("#content_wiki_container .loader").addClass("disabled");
-		
-		setTimeout(createKeywordAnnotations(), 2000);
+		$.ajax(
+		{
+			url: "http://en.wikipedia.org/w/api.php",
+			data:
+			{
+				action: "parse",
+				redirects: true,
+				page: page,
+				prop: "categories",
+				format: "json"
+			},
+			dataType: "jsonp",
+			success: function(result)
+			{
+				if (result.parse.categories.map(x => x["*"]).includes("Emerging_technologies"))
+				{
+					window.mashup = true;
+					updateResponsiveness();
+					
+					createKeywordAnnotations();
+				}
+				else
+				{
+					window.mashup = false;
+					updateResponsiveness();
+				}
+			},
+			complete: function()
+			{
+				$("#content_wiki_container").dimmer("hide");
+				$("#content_wiki_container .loader").addClass("disabled");
+			}
+		});
 	});
 	
 	/*
@@ -623,13 +652,11 @@ function toggleBlurring(enable)
 	{
 		$("#column_crossref").addClass("blurring");
 		$("#content_wiki_container").addClass("blurring");
-		$("#content_wiki > .mw-parser-output > p").addClass("blurring");
 	}
 	else
 	{
 		$("#column_crossref").removeClass("blurring");
 		$("#content_wiki_container").removeClass("blurring");
-		$("#content_wiki > .mw-parser-output > p").removeClass("blurring");
 	}
 }
 
@@ -650,7 +677,7 @@ function updateResponsiveness()
 		if (!$("#search_bar").is(":focus"))
 			$("#header_input").detach().insertAfter("#header_flex");
 		
-		$("#column_wiki").removeClass("segment");
+		$("#content_wiki_container").removeClass("large segment");
 		toggleBlurring(false);
 	}
 	else
@@ -672,7 +699,40 @@ function updateResponsiveness()
 			toggleBlurring(true);
 		}
 		
-		$("#column_wiki").addClass("segment");
+		$("#content_wiki_container").addClass("large segment");
+	}
+	
+	// Mashup
+	
+	if (window.mashup)
+	{
+		if (window.device == 1)
+		{
+			$("#column_crossref").show();
+			
+			let classList = $("#column_wiki")[0].classList.value;
+			classList = classList.replaceAll("sixteen wide", "nine wide");
+			$("#column_wiki")[0].classList = classList;
+		}
+		else
+		{
+			$("#column_crossref").css("visibility", "visible");
+		}
+	}
+	else
+	{
+		if (window.device == 1)
+		{
+			$("#column_crossref").hide();
+			
+			let classList = $("#column_wiki")[0].classList.value;
+			classList = classList.replaceAll("nine wide", "sixteen wide");
+			$("#column_wiki")[0].classList = classList;
+		}
+		else
+		{
+			$("#column_crossref").css("visibility", "hidden");
+		}
 	}
 }
 
