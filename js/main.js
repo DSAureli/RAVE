@@ -20,6 +20,23 @@
 
 
 
+function getDescendantTextNodes(node)
+{
+	let nodes = [];
+	
+	$(node).not("[djenius_ignore]").contents().each(function()
+	{
+		if (this.nodeType == Node.TEXT_NODE)
+			nodes.push(this);
+		else
+			nodes.pushArray(getDescendantTextNodes(this));
+	});
+	
+	return nodes;
+}
+
+
+
 function createKeywordAnnotations()
 {
 	Djenius.setAnnotationsVisible(false);
@@ -27,32 +44,43 @@ function createKeywordAnnotations()
 	// For each p in wiki content
 	$("#content_wiki > .mw-parser-output > p").each(function(index, p)
 	{
-		let $p = $(p);
-		
-		/*
-		if (window.device == 2)
-		{
-			$p.addClass("blurring");
-		}
-		
-		$p.dimmer({"variation": "inverted"}).dimmer("show");
-		*/
 		Djenius.setAnnotatable(p, "p" + String(index));
 		
 		// Retrieve keywords
-		let text = $p.text();
-		let keyws = getKeywords(text,4).slice(0,4);
+		
+		let text = $(p).text();
+		let keyws = getKeywords(text, 5);
 		
 		// Wrap keywords in spans
-		keyws.forEach(function(keyw)
+		
+		let textNodes = getDescendantTextNodes(p);
+		
+		for (let textNode of textNodes)
 		{
-			let repl = "<span rave-keyword>" + keyw + "</span>";
-			$p.html($p.html().replace(keyw, repl));
-		});
+			let text = textNode.data;
+			
+			for (let keyw of keyws)
+			{
+				let repl = "<span rave-keyword>" + keyw + "</span>";
+				
+				text = text.replace(keyw, function(match)
+				{
+					keyws.removeAt(keyws.indexOf(keyw));
+					return repl;
+				});
+			}
+			
+			let textSpan = document.createElement("span");
+			textSpan.innerHTML = text;
+			
+			textNode.parentElement.replaceChild(textSpan, textNode);
+		}
 		
 		// Add annotations
+		
 		let sel = window.getSelection();
-		$p.find("[rave-keyword]").each(function(index, span)
+		
+		$(p).find("[rave-keyword]").each(function(index, span)
 		{
 			let range = document.createRange();
 			range.setStartBefore(span);
@@ -62,11 +90,12 @@ function createKeywordAnnotations()
 			{
 				temp = temp.parentNode;
 			}
+			
 			range.setEnd(temp.nextSibling, 0);
 			sel.addRange(range);
 			
 			let text = $(span).text();
-			$(span).contents().unwrap();
+			//$(span).contents().unwrap();
 			
 			Djenius.newAnnotation("crossref",
 			{
@@ -76,8 +105,6 @@ function createKeywordAnnotations()
 			
 			sel.removeAllRanges();
 		});
-		
-		//$p.dimmer("hide");
 	});
 	
 	Djenius.setAnnotationsVisible(true);
@@ -244,7 +271,7 @@ function loadWiki(page, sectionIndex)
 		{
 			let wikiContent = filterWiki(result);
 			
-			$(wikiContent).find("a").each(function()
+			$(wikiContent).find("a:not(.external.text)").each(function()
 			{
 				//this.href = "//en.wikipedia.org" + this.pathname;
 				

@@ -1,5 +1,3 @@
-- Aumenta a 10,20 le keyword per paragrafo
-
 - se homepage, seleziona la searchbar in automatico
 (nota: questo disattiva lo scroll con le frecce, me ne sbatto?)
 
@@ -10,8 +8,6 @@ NO! l'elemento dopo va rimosso! meglio esporre un metodo per cercare e seleziona
 all'interno di un elemento le parole date in un array, con argomento per decidere
 se selezionarle una volta sola o tutte le volte che compaiono. (Tale metodo riscrive
 l'HTML dell'elemento passato)
-
-- in loadWiki agisci su link e immagini PRIMA di appendere l'html a content_wiki!
 
 - usare .find() è più veloce che aggiungere all query
 - meno specifico a sinistra della query, più specifico a destra

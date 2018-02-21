@@ -1408,6 +1408,19 @@
 		
 		return nodes;
 	}
+	/*
+	//cool native alternative solution, but is the order guaranteed?
+	function textNodesUnder(el)
+	{
+		let n, a = [];
+		let walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+		while (n = walk.nextNode())
+		{
+			a.push(n);
+		}
+		return a;
+	}
+	*/
 	
 	function getIntersectionRange(range_a, range_b)
 	{
