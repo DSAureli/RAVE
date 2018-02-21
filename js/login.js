@@ -42,23 +42,34 @@ $(document).ready(function()
 		onSuccess: function(event, fields)
 		{
 			event.preventDefault();	
+			let url= $("#login_tab").hasClass("active") ? "login" : "sign";
+			$.ajax(
+			{
+				url: "http://site1767.tw.cs.unibo.it/wsgi/wsgi.wsgi/" + url,
+				method: "POST",
+				data: $("#login_form").serialize(),
+				success: function(data)
+				{
+					data = parseInt(data);
+					if(data)
+					{
+						$("#login_error").html("<ul class='list'><li>Wrong password or email</li></ul>");
+						$("#login_error").show();
+					}
+					else
+					{
+						$("#login_error").empty();
+						$("#login_error").hide();
+						$("#login_modal").modal("hide");
+					}
+				},
+				error: function(error)
+				{
+					$("#login_error").html("<ul class='list'><li>Connection error</li></ul>");
+				}
+			});
 		}
 		
-	});
-	
-	$("#login_button").click(function(e)
-	{
-		let url= $("#login_tab").hasClass("active") ? "login" : "sign";
-		$.ajax(
-		{
-			url: "http://site1767.tw.cs.unibo.it/wsgi/wsgi.wsgi/" + url,
-			method: "POST",
-			data: $("#login_form").serialize(),
-			success: function(data)
-			{
-				alert(data);
-			}
-		});
 	});
 	
 	$("#login_menu > a").click(function(e)
