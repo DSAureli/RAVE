@@ -39,14 +39,26 @@ $(document).ready(function()
 				]
 			},
 		},
-		onInvalid: function()
+		onSuccess: function(event, fields)
 		{
-			// ...
-		},
-		onValid: function()
-		{
-			// ...
+			event.preventDefault();	
 		}
+		
+	});
+	
+	$("#login_button").click(function(e)
+	{
+		let url= $("#login_tab").hasClass("active") ? "login" : "sign";
+		$.ajax(
+		{
+			url: "http://site1767.tw.cs.unibo.it/wsgi/wsgi.wsgi/" + url,
+			method: "POST",
+			data: $("#login_form").serialize(),
+			success: function(data)
+			{
+				alert(data);
+			}
+		});
 	});
 	
 	$("#login_menu > a").click(function(e)
@@ -138,4 +150,7 @@ $(document).ready(function()
 			}
 		}).modal("show");
 	});
+	
+	
+	
 });

@@ -13,7 +13,7 @@ def signUp(email, password, name):
 		cur = con.cursor()
 		
 		try:
-			cur.execute( "INSERT INTO users (email, password,name) VALUES (?,?,?)",(email,password,name) )
+			cur.execute( "INSERT INTO users (email, password,name) VALUES (?,?,?)", (email,password,name) )
 			con.commit()
 		except:
 			con.rollback()

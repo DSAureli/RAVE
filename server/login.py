@@ -15,7 +15,9 @@ def Login(email, password):
 			user = User()
 			user.id = email
 			flask_login.login_user(user)
-		return True
+			return True
+		else:
+			return False
 	except:
 		return False
 
