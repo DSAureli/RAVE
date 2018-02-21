@@ -714,9 +714,10 @@ $(document).ready(function()
 	$("#home_container a").click(function(event)
 	{
 		event.preventDefault();
-		var selected = $(event.target).text();
-		$("#search_bar").val(selected);
-		$("#search_button").trigger("click");
+		if (isValidString(this.href))
+        {
+          handleLoad(this, true);
+        }
 	});
 	
 	
