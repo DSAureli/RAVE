@@ -44,7 +44,7 @@
 			
 			newUserSelection_Handler = handler;
 		},
-		setGetAnnotationProperties_Handler: function(handler)
+		setProvideAnnotationProperties_Handler: function(handler)
 		{
 			if (!isFunction(handler))
 			{
@@ -52,7 +52,7 @@
 				return;
 			}
 			
-			getAnnotationProperties_Handler = handler;
+			provideAnnotationProperties_Handler = handler;
 		},
 		setChooseAnnotation_Handler: function(handler)
 		{
@@ -364,36 +364,33 @@
 		selectionEndTimeout = null;
 		let intRanges = getNewDjeniusRanges(true);
 		
-		if (intRanges.length)
+		defer(function(params, resolve, reject)
 		{
-			defer(function(params, resolve, reject)
+			if (isFunction(newUserSelectionResolve))
 			{
-				if (isFunction(newUserSelectionResolve))
-				{
-					newUserSelectionResolve();
-				}
-				
-				newUserSelectionResolve = resolve;
-				newUserSelection_Handler(params, resolve, reject);
-			},
-			{
-				ranges: intRanges
-			},
-			function(result)
-			{
-				// nothing
-			},
-			function(reason)
-			{
-				let errStr = "newUserSelection_Handler failed.\n" + 
-				"defer(newUserSelection_Handler, ...)";
-				
-				if (isValidString(reason))
-					errStr += ":\n" + reason;
-				
-				console.error(errStr);
-			});
-		}
+				newUserSelectionResolve();
+			}
+			
+			newUserSelectionResolve = resolve;
+			newUserSelection_Handler(params, resolve, reject);
+		},
+		{
+			ranges: intRanges
+		},
+		function(result)
+		{
+			// nothing
+		},
+		function(reason)
+		{
+			let errStr = "newUserSelection_Handler failed.\n" + 
+			"defer(newUserSelection_Handler, ...)";
+			
+			if (isValidString(reason))
+				errStr += ":\n" + reason;
+			
+			console.error(errStr);
+		});
 	});
 	
 	$(`
@@ -464,7 +461,7 @@
 	</style>
 	`).appendTo("head");
 	
-	let getAnnotationProperties_Handler = function(params, resolve, reject)
+	let provideAnnotationProperties_Handler = function(params, resolve, reject)
 	{
 		//resolve(window.prompt("Please enter annotation for selection", "default"));
 		
@@ -1029,18 +1026,22 @@
 		let relSpans =  getRelatedSpans(span);
 		spanIds = spanIds || getNodeDjeniusIds(span);
 		
-		let fraction = 0.80 / spanIds.length;
+		let fraction = 0.85 / spanIds.length;
 		
 		for (let relSpan of relSpans)
 		{
 			let commonIds = getNodeDjeniusIds(relSpan).filter(x => spanIds.includes(x));
-			let alpha = 0.20 + commonIds.length * fraction;
+			let alpha = 0.15 + commonIds.length * fraction;
 			
 			let ids = (spanIds.length > 1) ? commonIds : spanIds;
 			let newColor = new Color();
 			for (let id of ids)
 			{
-				let idClass = annotationsClass[id] || tempClass;
+				let annotationClass = annotationsCollection.filter(x => x.id == id)[0];
+				if (annotationClass)
+					annotationClass = annotationClass.class;
+				
+				let idClass = annotationClass || tempClass;
 				newColor = newColor.sum(activeColors[idClass]);
 			}
 			newColor = newColor.sub(ids.length);
@@ -1099,17 +1100,21 @@
 		}
 		
 		relSpans = relSpans || getRelatedSpans(span);
-		let fraction = 0.80 / (annotationsCollection.length || 1);
+		let fraction = 0.85 / (annotationsCollection.length || 1);
 		
 		for (let relSpan of relSpans)
 		{
 			let spanIds = getNodeDjeniusIds(relSpan);
-			let alpha = 0.20 + spanIds.length * fraction;
+			let alpha = 0.15 + spanIds.length * fraction;
 			
 			let newColor = new Color();
 			for (let id of spanIds)
 			{
-				let idClass = annotationsClass[id] || tempClass;
+				let annotationClass = annotationsCollection.filter(x => x.id == id)[0];
+				if (annotationClass)
+					annotationClass = annotationClass.class;
+				
+				let idClass = annotationClass || tempClass;
 				newColor = newColor.sum(idleColors[idClass]);
 			}
 			newColor = newColor.sub(spanIds.length);
@@ -1335,7 +1340,6 @@
 	//_______________////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	let annotationsCollection = [];
-	let annotationsClass = {};
 	
 	function getAnnotationById(id)
 	{
@@ -1514,11 +1518,11 @@
 	function createAnnotation(newDjeniusRanges, _class, properties)
 	{
 		let newId = uuidv4();
-		annotationsClass[newId] = _class;
 		
 		let newDjeniusAnnotation =
 		{
 			id: newId,
+			"class": _class,
 			ranges: newDjeniusRanges,
 			properties: properties
 		};
@@ -1572,7 +1576,7 @@
 				highlightRanges(newDjeniusRanges, /*random id*/ "0");
 				$(spansCollection[0]).trigger("mouseenter");
 				
-				defer(getAnnotationProperties_Handler, null, function(properties)
+				defer(provideAnnotationProperties_Handler, null, function(properties)
 				{
 					if (properties)
 					{
@@ -1586,7 +1590,7 @@
 				function(reason)
 				{
 					let errStr = "Annotation failed.\n" + 
-					"defer(getAnnotationProperties_Handler, ...)";
+					"defer(provideAnnotationProperties_Handler, ...)";
 					
 					if (isValidString(reason))
 						errStr += ":\n" + reason;
