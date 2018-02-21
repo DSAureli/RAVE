@@ -187,6 +187,8 @@ function filterWiki(result)
 	$(html).find(".reference").remove();
 	// citation needed and similar
 	$(html).find("sup.noprint").remove();
+	// play button
+	$(html).find("a").has(".play-btn-large").remove();
 	// end page references
 	$(html).find(".mw-references-wrap").remove();
 	// other references

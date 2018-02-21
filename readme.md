@@ -6,7 +6,6 @@ annotations is included.
 
 ## TODO
 
-* Strip "play media" sections
 * Handle disambiguation pages
 * Handle no result case
 * Add "go to top" button
