@@ -185,10 +185,13 @@ function filterWiki(result)
 	$(html).find(".mw-editsection").remove();
 	// sup numbers
 	$(html).find(".reference").remove();
+	$(html).find(".external.autonumber").remove();
 	// citation needed and similar
 	$(html).find("sup.noprint").remove();
 	// play button
 	$(html).find("a").has(".play-btn-large").remove();
+	// quote box
+	$(html).find(".quotebox.pullquote").remove();
 	// end page references
 	$(html).find(".mw-references-wrap").remove();
 	// other references
@@ -200,6 +203,13 @@ function filterWiki(result)
 	$(html).find(".hatnote").remove();
 	// external links
 	$(html).find(".external.free").remove();
+	
+	// empty ul
+	$(html).find("ul").filter(function()
+	{
+		return !isValidString(this.innerHTML);
+	}
+	).remove();
 	
 	// whitelist:
 	// .mw-redirect
