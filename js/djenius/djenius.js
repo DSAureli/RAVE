@@ -364,36 +364,33 @@
 		selectionEndTimeout = null;
 		let intRanges = getNewDjeniusRanges(true);
 		
-		if (intRanges.length)
+		defer(function(params, resolve, reject)
 		{
-			defer(function(params, resolve, reject)
+			if (isFunction(newUserSelectionResolve))
 			{
-				if (isFunction(newUserSelectionResolve))
-				{
-					newUserSelectionResolve();
-				}
-				
-				newUserSelectionResolve = resolve;
-				newUserSelection_Handler(params, resolve, reject);
-			},
-			{
-				ranges: intRanges
-			},
-			function(result)
-			{
-				// nothing
-			},
-			function(reason)
-			{
-				let errStr = "newUserSelection_Handler failed.\n" + 
-				"defer(newUserSelection_Handler, ...)";
-				
-				if (isValidString(reason))
-					errStr += ":\n" + reason;
-				
-				console.error(errStr);
-			});
-		}
+				newUserSelectionResolve();
+			}
+			
+			newUserSelectionResolve = resolve;
+			newUserSelection_Handler(params, resolve, reject);
+		},
+		{
+			ranges: intRanges
+		},
+		function(result)
+		{
+			// nothing
+		},
+		function(reason)
+		{
+			let errStr = "newUserSelection_Handler failed.\n" + 
+			"defer(newUserSelection_Handler, ...)";
+			
+			if (isValidString(reason))
+				errStr += ":\n" + reason;
+			
+			console.error(errStr);
+		});
 	});
 	
 	$(`
