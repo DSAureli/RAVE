@@ -61,6 +61,8 @@ $(document).ready(function()
 						$("#login_error").empty();
 						$("#login_error").hide();
 						$("#login_modal").modal("hide");
+						$("#header_logout").show();
+						$("#header_login").hide();
 					}
 				},
 				error: function(error)
@@ -162,6 +164,23 @@ $(document).ready(function()
 		}).modal("show");
 	});
 	
+	$("#header_logout").hide();
 	
+	$("#header_logout").click(function(e){
+		$.ajax(
+		{
+			url: "http://site1767.tw.cs.unibo.it/wsgi/wsgi.wsgi/login",
+			method: "DELETE",
+			success: function(data)
+			{
+				$("#header_logout").hide();
+				$("#header_login").show();
+			},
+			error: function(error)
+			{
+				console.log("error logging out");
+			}
+		});
+	});
 	
 });
