@@ -1,4 +1,8 @@
-﻿function pushHistoryState(page, section)
+﻿window.rave = {};
+
+
+
+function pushHistoryState(page, section)
 {
 	//let path = "/";
 	let path = "./index.html";
@@ -99,8 +103,8 @@ function createKeywordAnnotations()
 			
 			Djenius.newAnnotation("crossref",
 			{
-				crossref: true,
-				annotation: text
+				annotation: text,
+				public: 0
 			});
 			
 			sel.removeAllRanges();
@@ -264,17 +268,20 @@ function filterWiki(result)
 
 
 
-function loadWiki(page, sectionIndex)
+function loadSection()
 {
-	return $.ajax(
+	$("#content_wiki_container .loader").removeClass("disabled");
+	$("#content_wiki_container").dimmer("show");
+	
+	$.ajax(
 	{
 		url: "http://en.wikipedia.org/w/api.php",
 		data:
 		{
 			action: "parse",
 			redirects: true,
-			page: page,
-			section: sectionIndex,
+			page: rave.page,
+			section: rave.section,
 			prop: "text",
 			format: "json"
 		},
@@ -323,113 +330,29 @@ function loadWiki(page, sectionIndex)
 			});
 			
 			$("#content_wiki").html(wikiContent);
+			Djenius.resetAnnotations();
+			
+			if (rave.mashup)
+			{
+				createKeywordAnnotations();
+			}
 		},
 		error: function(error)
 		{
 			console.log(error);
 			$("#content_wiki").html(error);
 		},
-	});
-}
-
-
-
-function loadCrossref(page, sectionName)
-{
-	return $.ajax(
-	{
-		url: "https://api.crossref.org/works?query="+ page.split(" ").join("+") + "+" + sectionName.split(" ").join("+") + "&rows=10&sort=score",
-		dataType: "text",
-		success: function(cross)
+		complete: function()
 		{
-			cross = $.parseJSON(cross);
-			$("#content_crossref").html("");
-			
-			$.each(cross.message.items, (i, item) =>
-			{
-				if (item.issue != "0")
-				{
-					var newDiv = $("<div></div>").addClass("ui segment").append
-					(
-						$("<p></p>").html("Title: {0}</br>Publisher: {1}</br>Type: {2}</br>".format(item.title[0], item.publisher, item.type)).append
-						(
-							$("<a></a>").attr("href", item.URL).text("Get this content")
-						)
-					);
-					
-					//Djenius.setAnnotatable(newDiv, item.DOI);
-					$("#content_crossref").append(newDiv);
-				}
-			});
-		},
-		error: function(error)
-		{
-			console.log(error);
-			$("#content_crossref").html(error);
+			$("#content_wiki_container").dimmer("hide");
+			$("#content_wiki_container .loader").addClass("disabled");
 		}
 	});
 }
 
 
 
-function updateContent(page, sectionIndex, sectionName)
-{
-	$("#content_wiki_container .loader").removeClass("disabled");
-	$("#content_wiki_container").dimmer("show");
-	//$("#column_crossref .loader").removeClass("disabled");
-	//$("#column_crossref").dimmer("show");
-	
-	Djenius.resetAnnotations();
-	
-	loadWiki(page, sectionIndex).done(function()
-	{
-		$.ajax(
-		{
-			url: "http://en.wikipedia.org/w/api.php",
-			data:
-			{
-				action: "parse",
-				redirects: true,
-				page: page,
-				prop: "categories",
-				format: "json"
-			},
-			dataType: "jsonp",
-			success: function(result)
-			{
-				if (result.parse.categories.map(x => x["*"]).includes("Emerging_technologies"))
-				{
-					window.mashup = true;
-					updateResponsiveness();
-					
-					createKeywordAnnotations();
-				}
-				else
-				{
-					window.mashup = false;
-					updateResponsiveness();
-				}
-			},
-			complete: function()
-			{
-				$("#content_wiki_container").dimmer("hide");
-				$("#content_wiki_container .loader").addClass("disabled");
-			}
-		});
-	});
-	
-	/*
-	loadCrossref(page, sectionName).done(function()
-	{
-		$("#column_crossref").dimmer("hide");
-		$("#column_crossref .loader").addClass("disabled");
-	});
-	*/
-}
-
-
-
-function getDropdownValues(sections, selected)
+function getDropdownValues(sections)
 {
 	let values = [];
 	
@@ -440,7 +363,7 @@ function getDropdownValues(sections, selected)
 		toclevel: 1
 	});
 	
-	for (section of sections)
+	for (let section of sections)
 	{
 		if (section.line != "References" &&
 			section.line != "External links" &&
@@ -460,7 +383,7 @@ function getDropdownValues(sections, selected)
 		}
 	}
 	
-	let select = values.filter(value => value.value == selected);
+	let select = values.filter(value => value.value == rave.section);
 		
 	if (select.length)
 	{
@@ -472,6 +395,79 @@ function getDropdownValues(sections, selected)
 	}
 	
 	return values;
+}
+
+
+
+function loadWiki()
+{
+	let data =
+	{
+		action: "parse",
+		redirects: true,
+		page: rave.page,
+		prop: "categories|revid|sections|text",
+		format: "json"
+	};
+	
+	if (rave.version != "0")
+	{
+		data.oldid = rave.version;
+	}
+	
+	$.ajax(
+	{
+		url: "http://en.wikipedia.org/w/api.php",
+		data: data,
+		dataType: "jsonp",
+		success: function(result)
+		{
+			// Update mashup visualization
+			
+			rave.mashup = result.parse.categories.map(x => x["*"]).includes("Emerging_technologies");
+			updateResponsiveness();
+			
+			// Get revision id
+			
+			rave.version = result.parse.revid;
+			
+			// Populate dropdown
+			
+			let sections = result.parse.sections;
+			let values = getDropdownValues(sections);
+			let firstTime = true;
+			
+			$("#main_dropdown").dropdown(
+			{
+				action: "activate",
+				values: values,
+				onChange: function(value, text, $choice)
+				{
+					if (firstTime)
+					{
+						firstTime = false;
+					}
+					else
+					{
+						pushHistoryState(rave.page, value.toString());
+						rave.section = value;
+						loadSection();
+					}
+				}
+			});
+			
+			loadSection();
+		},
+		error: function(xhr, status, error)
+		{
+			console.error(error);
+		},
+		complete: function(xhr, status)
+		{
+			$("#main_dropdown").removeClass("disabled");
+			$("#main_dropdown").removeClass("loading");
+		}
+	});
 }
 
 
@@ -494,59 +490,30 @@ function loadPage(page, section)
 		
 		$("#main_dropdown").addClass("loading");
 		
-		// Populate dropdown
-		
 		if (!section)
 		{
 			section = 0;
 		}
 		
+		rave.page = page;
+		rave.section = section;
+		
 		$.ajax(
 		{
-			url: "http://en.wikipedia.org/w/api.php",
-			data:
+			url: "http://site1767.tw.cs.unibo.it/wsgi/wsgi.wsgi/version?page=" + page,
+			dataType: "text",
+			success: function(result)
 			{
-				action: "parse",
-				redirects: true,
-				page: page,
-				prop: "sections",
-				format: "json"
-			},
-			dataType: "jsonp",
-			success: function(result, status, xhr)
-			{
-				let sections = result.parse.sections;
-				let values = getDropdownValues(sections, section);
-				let firstTime = true;
+				//
+				console.log(result);
+				//
 				
-				$("#main_dropdown").dropdown(
-				{
-					action: "activate",
-					values: values,
-					onChange: function(value, text, $choice)
-					{
-						if (firstTime)
-						{
-							firstTime = false;
-						}
-						else
-						{
-							pushHistoryState(page, value.toString());
-							updateContent(page, value, text);
-						}
-					}
-				});
-				
-				updateContent(page, section, sections[section].line);
-				$("#main_dropdown").removeClass("disabled");
+				rave.version = result;
+				loadWiki();
 			},
 			error: function(xhr, status, error)
 			{
 				console.error(error);
-			},
-			complete: function(xhr, status)
-			{
-				$("#main_dropdown").removeClass("loading");
 			}
 		});
 	}
@@ -600,6 +567,51 @@ window.addEventListener("popstate", function(event)
 
 
 
+function loadCrossref(word)
+{
+	$("#column_crossref .loader").removeClass("disabled");
+	$("#column_crossref").dimmer("show");
+	
+	return $.ajax(
+	{
+		url: "https://api.crossref.org/works?query="+ rave.page.split(" ").join("+") + "+" + word.split(" ").join("+") + "&rows=5&sort=score",
+		dataType: "text",
+		success: function(cross)
+		{
+			cross = $.parseJSON(cross);
+			$("#content_crossref").html("");
+			
+			$.each(cross.message.items, (i, item) =>
+			{
+				if (item.issue != "0")
+				{
+					var newDiv = $("<div></div>").addClass("ui segment").append
+					(
+						$("<p></p>").html("Title: {0}</br>Publisher: {1}</br>Type: {2}</br>".format(item.title[0], item.publisher, item.type)).append
+						(
+							$("<a></a>").attr("href", item.URL).text("Get this content")
+						)
+					);
+					
+					$("#content_crossref").append(newDiv);
+				}
+			});
+		},
+		error: function(error)
+		{
+			console.log(error);
+			$("#content_crossref").html(error);
+		},
+		complete: function()
+		{
+			$("#column_crossref").dimmer("hide");
+			$("#column_crossref .loader").addClass("disabled");
+		}
+	});
+}
+
+
+
 function initDjenius()
 {
 	Djenius.setIdleAnnotationColor("crossref", "#66ccff");
@@ -607,6 +619,223 @@ function initDjenius()
 	
 	Djenius.setIdleAnnotationColor("user", "rgb(252,198,46)");
 	Djenius.setActiveAnnotationColor("user", "rgb(252,198,46)");
+	
+	Djenius.setNewUserSelection_Handler(function(params, resolve, reject)
+	{
+		// params = {ranges}
+		
+		if (params.ranges.length)
+		{
+			if (rave.device == 2)
+			{
+				$("#djenius_segment").show();
+			}
+			else
+			{
+				$("#sidebar_bottom")
+					.sidebar("setting", "mobileTransition", "overlay")
+					.sidebar("setting", "dimPage", false)
+					.sidebar("setting", "closable", false)
+					.sidebar("show");
+			}
+		}
+		else if ($("#djenius_button_new").is(":visible"))
+		{
+			if (rave.device == 2)
+			{
+				$("#djenius_segment").hide();
+			}
+			else
+			{
+				$("#sidebar_bottom").sidebar("hide");
+			}
+		}
+	});
+	
+	Djenius.setProvideAnnotationProperties_Handler(function(params, resolve, reject)
+	{
+		if (rave.device == 2)
+		{
+			$("#djenius_button_new").hide();
+			$("#djenius_form").show();
+		}
+		else
+		{
+			$("#sidebar_right")
+				.sidebar("setting", "mobileTransition", "overlay")
+				.sidebar("setting", "dimPage", true)
+				.sidebar("setting", "closable", false)
+				.sidebar("show");
+		}
+		
+		$("#djenius_button_cancel").off().click(function()
+		{
+			reject();
+			
+			if (rave.device == 2)
+			{
+				$("#djenius_form").hide();
+				$("#djenius_button_new").show();
+			}
+			else
+			{
+				$("#sidebar_right").sidebar("hide");
+			}
+			
+			$("#djenius_textarea")[0].value = "";
+			$("#djenius_dropdown").dropdown("set selected", "0");
+		});
+		
+		$("#djenius_button_submit").off().click(function()
+		{
+			let comment = $("#djenius_textarea")[0].value;
+			let _public = $("#djenius_dropdown").dropdown("get value");
+			
+			if (isValidString(comment))
+			{
+				resolve(
+				{
+					annotation: comment,
+					public: _public
+				});
+			}
+			else
+			{
+				reject();
+			}
+			
+			if (rave.device == 2)
+			{
+				$("#djenius_form").hide();
+				$("#djenius_button_new").show();
+			}
+			else
+			{
+				$("#sidebar_right").sidebar("hide");
+			}
+			
+			$("#djenius_textarea")[0].value = "";
+			$("#djenius_dropdown").dropdown("set selected", "0");
+		});
+	});
+	
+	/*
+	Djenius.setChooseAnnotation_Handler(function(params, resolve, reject)
+	{
+		// params = {spanIds, relSpans, anchor}
+		// ...
+	});
+	*/
+	
+	Djenius.setShowAnnotation_Handler(function(params, resolve, reject)
+	{
+		// params = {annotation}
+		console.log(params.annotation);
+		
+		let anno = params.annotation;
+		if (anno.class == "crossref")
+		{
+			// Crossref annotation
+			loadCrossref(params.annotation.properties.annotation);
+		}
+		else
+		{
+			// User annotation
+			// ...
+		}
+	});
+	
+	Djenius.setServerRequest_Handler(function(params, resolve, reject)
+	{
+		let obj =
+		{
+			url: "http://site1767.tw.cs.unibo.it/wsgi/wsgi.wsgi/djenius",
+			dataType: "text",
+			success: function(data)
+			{
+				resolve(data);
+			},
+			error: function(error)
+			{
+				reject(error);
+			}
+		};
+		
+		switch (params.request)
+		{
+			case Djenius.ServerRequest.create:
+				
+				if (params.data.class == "crossref")
+				{
+					let anno = Djenius.getAnnotationsCollection();
+					anno.push(params.data);
+					resolve(anno);
+					return;
+				}
+				
+				obj.method = "POST";
+				obj.data = JSON.stringify(
+				{
+					page: rave.page,
+					section: rave.section,
+					version: rave.version,
+					data: params.data
+				});
+				obj.contentType = "application/json";
+				break;
+				
+			case Djenius.ServerRequest.read:
+				
+				obj.url += "?page=" + rave.page;
+				obj.method = "GET";
+				break;
+				
+			case Djenius.ServerRequest.update:
+				
+				obj.method = "PUT";
+				obj.data = JSON.stringify(params.data);
+				obj.contentType = "application/json";
+				break;
+				
+			case Djenius.ServerRequest.delete:
+				
+				obj.method = "DELETE";
+				obj.data = JSON.stringify(
+				{
+					data: params.data
+				});
+				obj.contentType = "application/json";
+				break;
+		}
+		
+		$.ajax(obj);
+	});
+	
+	$("#djenius_button_new").click(function()
+	{
+		Djenius.newAnnotation();
+	});
+	
+	$("#djenius_dropdown").dropdown(
+	{
+		values:
+		[
+			{
+				value: "0",
+				name: "Private",
+				selected: true
+			},
+			{
+				value: "1",
+				name: "Public"
+			}
+		]
+	});
+	
+	if (rave.device == 2)
+	{
+		$("#djenius_form").hide();
+	}
 }
 
 
@@ -684,30 +913,39 @@ function updateResponsiveness()
 	
 	if (resp_str == "Mobile" || resp_str_edge == "0")
 	{
-		window.device = 0;
+		rave.device = 0;
 		
 		if (!$("#search_bar").is(":focus"))
 			$("#header_input").detach().insertAfter("#header_flex");
 		
 		$("#content_wiki_container").removeClass("large segment");
+		$("#sidebar_bottom").append($("#djenius_button_new"));
+		$("#sidebar_right").append($("#djenius_form"));
+		
 		toggleBlurring(false);
 	}
 	else
 	{
 		if (resp_str == "Tablet" || resp_str_edge == "1")
 		{
-			window.device = 1;
+			rave.device = 1;
 			
 			if (!$("#search_bar").is(":focus"))
 				$("#header_input").detach().insertAfter("#header_home");
+			
+			$("#sidebar_bottom").append($("#djenius_button_new"));
+			$("#sidebar_right").append($("#djenius_form"));
 			
 			toggleBlurring(false);
 		}
 		else
 		{
-			window.device = 2;
+			rave.device = 2;
 			
 			$("#header_input").detach().insertAfter("#header_home");
+			$("#djenius_segment").append($("#djenius_button_new"));
+			$("#djenius_segment").append($("#djenius_form"));
+			
 			toggleBlurring(true);
 		}
 		
@@ -716,9 +954,9 @@ function updateResponsiveness()
 	
 	// Mashup
 	
-	if (window.mashup)
+	if (rave.mashup)
 	{
-		if (window.device == 1)
+		if (rave.device == 1)
 		{
 			$("#column_crossref").show();
 			
@@ -733,7 +971,7 @@ function updateResponsiveness()
 	}
 	else
 	{
-		if (window.device == 1)
+		if (rave.device == 1)
 		{
 			$("#column_crossref").hide();
 			
@@ -794,17 +1032,6 @@ $(document).ready(function()
 	
 	
 	initDjenius();
-	
-	$("#djenius_button").click(function()
-	{
-		//set djenius_column loading animation on
-		// ...
-		
-		Djenius.newAnnotation();
-		
-		//set djenius_column loading animation off
-		// ...
-	});
 	
 	
 	// Load //

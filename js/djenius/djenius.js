@@ -1,5 +1,13 @@
 ﻿(function()
 {
+	var ServerRequest = 
+	{
+		create: 0,
+		read: 1,
+		update: 2,
+		delete: 3
+	};
+	
 	Djenius =
 	{
 		ServerRequest: ServerRequest,
@@ -74,13 +82,28 @@
 			
 			showAnnotation_Handler = handler;
 		},
+		setServerRequest_Handler: function(handler)
+		{
+			if (!isFunction(handler))
+			{
+				console.error("Argument 'handler' must be a function");
+				return;
+			}
+			
+			serverRequest_Handler = handler;
+		},
 		setIdleAnnotationColor: setIdleAnnotationColor,
 		setActiveAnnotationColor: setActiveAnnotationColor,
 		askServerForInitialCollection: askServerForInitialCollection,
 		newAnnotation: newAnnotation,
 		getAnnotationsCount: getAnnotationsCount,
 		resetAnnotations: resetAnnotations,
-		setAnnotationsVisible: setAnnotationsVisible
+		setAnnotationsVisible: setAnnotationsVisible,
+		
+		getAnnotationsCollection: function()
+		{
+			return annotationsCollection;
+		}
 	};
 	
 	//¯¯¯¯¯¯¯¯¯¯¯¯¯//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -694,14 +717,6 @@
 			reject(reason);
 		});
 	}
-	
-	var ServerRequest = 
-	{
-		create: 0,
-		read: 1,
-		update: 2,
-		delete: 3
-	};
 	
 	let serverRequest_Handler = function(params, resolve, reject)
 	{

@@ -11,12 +11,20 @@
 	<script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.2.14/dist/semantic.min.js"></script>
 	<script src="js/util.js"></script>
 	<script src="js/keyw/keyw.min.js"></script>
-	<script src="js/login.js"></script>
 	<script src="js/djenius/djenius.js"></script>
 	<script src="js/main.js"></script>
+	<script src="js/login.js"></script>
 </head>
 
 <body>
+<div id="sidebar_bottom" class="ui bottom horizontal inverted sidebar labeled icon menu">
+	<!--JS-->
+</div>
+<div id="sidebar_right" class="ui right vertical inverted sidebar labeled icon menu">
+	<!--JS-->
+</div>
+
+<div class="pusher">
 	<div id="resp_check"></div>
 	
 	<!-- HEADER -->
@@ -156,10 +164,9 @@
 			<!--CROSSREF-->
 			<div id="column_crossref" class="ui tablet computer only center aligned column">
 				<div class="ui inverted dimmer">
-					<div class="ui disabled text loader">Loading</div>
+					<div class="ui disabled big loader"></div>
 				</div>
-				<div id="content_crossref" class="ui segment">
-					<p>CROSSREF</p>
+				<div id="content_crossref" class="ui basic segment">
 					<!--JS-->
 				</div>
 			</div>
@@ -190,15 +197,39 @@
 				</div>
 			</div>
 			
-			<!--GENIUS-->
+			<!--DJENIUS-->
 			<div id="column_genius" class="ui large screen only justified column">
 				<div class="ui inverted dimmer">
 					<div class="ui disabled text loader">Loading</div>
 				</div>
-				<div id="djenius_segment" class="ui segment">
-					<p>GENIUS</p>
-					<input id="djenius_button" type="button" value="insert comment">
-					<!--JS-->
+				<div id="content_djenius" class="ui basic segment">
+					<div id="djenius_segment" class="ui segment">
+						<button id="djenius_button_new" class="ui fluid orange button">New Annotation</button>
+						<div id="djenius_form" class="ui form">
+							<div class="field">
+								<label>Comment</label>
+								<textarea id="djenius_textarea" rows="4"></textarea>
+							</div>
+							<div class="three fields">
+								<div class="field">
+									<div id="djenius_dropdown" class="ui selection dropdown">
+										<input name="section" type="hidden">
+										<i class="dropdown icon"></i>
+										<div class="default text">Private</div>
+										<div class="menu">
+											<!--JS-->
+										</div>
+									</div>
+								</div>
+								<div class="field">
+									<button id="djenius_button_cancel" class="ui fluid grey button">Cancel</button>
+								</div>
+								<div class="field">
+									<button id="djenius_button_submit" class="ui fluid orange button">Submit</button>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -278,5 +309,6 @@
 			<img src=""/>
 		</div>
 	</div>
+</div>
 </body>
 </html> 

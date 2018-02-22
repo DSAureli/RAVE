@@ -9,7 +9,7 @@ html
 	display: flex;
 	flex-direction: column;
 }
-body
+body, .pusher
 {
 	flex: 1;
 	display: flex;
@@ -45,7 +45,7 @@ body
 		flex: 2; /* Edge does not see content */
 	}
 }
-.ui, .menu, .menu > .item, form *
+.ui, .menu, .menu > .item, form *, .form *
 {
 	border-radius: 0 !important;
 }
@@ -212,25 +212,39 @@ header
 	z-index: 999 !important;
 }
 #main_dropdown.active,
-#main_dropdown > .menu
+#main_dropdown > .menu,
+#djenius_dropdown.active,
+#djenius_dropdown > .menu
 {
 	border-color: #F57300;
 }
-#main_dropdown:focus
+#main_dropdown:focus,
+#djenius_dropdown:focus
 {
 	border-color: #F58700;
 }
-#main_dropdown > .menu > .item
+#main_dropdown > .menu > .item,
+#djenius_dropdown > .menu > .item
 {
 	border-top: none;
 }
-#main_dropdown > .menu > .item:hover
+#main_dropdown > .menu > .item:hover,
+#djenius_dropdown > .menu > .item:hover
 {
 	background: #F58700;
 }
-#main_dropdown > .menu > .item.selected
+#main_dropdown > .menu > .item.selected,
+#djenius_dropdown > .menu > .item.selected
 {
 	background: #F57300;
+}
+#djenius_button_new
+{
+	color: #1B1C1D;
+}
+#djenius_dropdown
+{
+	min-width: 0;
 }
 @media only screen and (min-width: 768px) and (max-width: 1199px)
 {
@@ -257,6 +271,15 @@ header
 	{
 		padding-left: 1.5em;
 		padding-right: 1.5em;
+	}
+	#content_crossref,
+	#content_djenius
+	{
+		position: sticky;
+		top: 0;
+		margin: 0;
+		padding: 0;
+		padding-top: 152px;
 	}
 	#column_wiki
 	{
@@ -294,6 +317,11 @@ header
 {
 	/* Desktop */
 	
+	#content_crossref,
+	#content_djenius
+	{
+		padding-top: 111px;
+	}
 	#main_header
 	{
 		padding: 1em 0;
@@ -306,6 +334,14 @@ header
 	#main_header_divider
 	{
 		display: inline;
+	}
+	#djenius_segment
+	{
+		display: none;
+	}
+	#djenius_segment textarea
+	{
+		resize: none;
 	}
 }
 @media only screen and (min-width: 1680px)
