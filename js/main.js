@@ -793,7 +793,11 @@ function initDjenius()
 			case Djenius.ServerRequest.update:
 				
 				obj.method = "PUT";
-				obj.data = JSON.stringify(params.data);
+				obj.data = JSON.stringify(
+				{
+					page: rave.page,
+					data: params.data
+				});
 				obj.contentType = "application/json";
 				break;
 				
@@ -802,6 +806,7 @@ function initDjenius()
 				obj.method = "DELETE";
 				obj.data = JSON.stringify(
 				{
+					page: rave.page,
 					data: params.data
 				});
 				obj.contentType = "application/json";
