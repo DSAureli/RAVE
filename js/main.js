@@ -412,6 +412,7 @@ function loadWiki()
 	
 	if (rave.version != "0")
 	{
+		delete data.page;
 		data.oldid = rave.version;
 	}
 	
