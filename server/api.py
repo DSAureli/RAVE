@@ -15,14 +15,13 @@ from djenius import get
 @app.route('/sign', methods=['POST', 'DELETE'])
 def Sign():
 	if request.method == 'POST':
-		email = request.form['email']
-		x = sign.signUp(email, request.form['password'], request.form['name'])
+		x = sign.signUp(request.form['email'], request.form['password'], request.form['username'])
 		if x:
-			return "signed"
+			return "0"
 		else:
-			return "error"
+			return "-1"
 	else:
-		return "login form"
+		return "0"
 
 
 	
@@ -30,12 +29,12 @@ def Sign():
 def log():
 	if request.method == 'POST':
 		if ( login.Login(request.form['email'], request.form['password']) ):
-			return "login done"
+			return "0"
 		else:
-			return "error"
+			return "-1"
 	else:	
 		flask_login.logout_user()
-		return "logged out"
+		return "0"
 
 
 	

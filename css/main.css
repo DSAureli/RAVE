@@ -242,6 +242,11 @@ header
 {
 	color: #1B1C1D;
 }
+#djenius_form
+{
+	width: 80%;
+	margin: auto;
+}
 #djenius_dropdown
 {
 	min-width: 0;
@@ -339,7 +344,11 @@ header
 	{
 		display: none;
 	}
-	#djenius_segment textarea
+	#djenius_form
+	{
+		width: auto;
+	}
+	#djenius_form textarea
 	{
 		resize: none;
 	}

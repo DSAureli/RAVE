@@ -39,14 +39,39 @@ $(document).ready(function()
 				]
 			},
 		},
-		onInvalid: function()
+		onSuccess: function(event, fields)
 		{
-			// ...
-		},
-		onValid: function()
-		{
-			// ...
+			event.preventDefault();	
+			let url= $("#login_tab").hasClass("active") ? "login" : "sign";
+			$.ajax(
+			{
+				url: "http://site1767.tw.cs.unibo.it/wsgi/wsgi.wsgi/" + url,
+				method: "POST",
+				data: $("#login_form").serialize(),
+				success: function(data)
+				{
+					data = parseInt(data);
+					if(data)
+					{
+						$("#login_error").html("<ul class='list'><li>Wrong password or email</li></ul>");
+						$("#login_error").show();
+					}
+					else
+					{
+						$("#login_error").empty();
+						$("#login_error").hide();
+						$("#login_modal").modal("hide");
+						$("#header_logout").show();
+						$("#header_login").hide();
+					}
+				},
+				error: function(error)
+				{
+					$("#login_error").html("<ul class='list'><li>Connection error</li></ul>");
+				}
+			});
 		}
+		
 	});
 	
 	$("#login_menu > a").click(function(e)
@@ -138,4 +163,24 @@ $(document).ready(function()
 			}
 		}).modal("show");
 	});
+	
+	$("#header_logout").hide();
+	
+	$("#header_logout").click(function(e){
+		$.ajax(
+		{
+			url: "http://site1767.tw.cs.unibo.it/wsgi/wsgi.wsgi/login",
+			method: "DELETE",
+			success: function(data)
+			{
+				$("#header_logout").hide();
+				$("#header_login").show();
+			},
+			error: function(error)
+			{
+				console.log("error logging out");
+			}
+		});
+	});
+	
 });
