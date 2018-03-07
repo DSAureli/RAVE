@@ -43,10 +43,7 @@ def djenius():
 	#adding
 	if request.method == 'POST':
 		data = request.get_json()
-		if create(data):
-			return "0"
-		else:
-			return "-1"
+		return create(data)
 		
 	#returning
 	if request.method == 'GET':
@@ -59,18 +56,14 @@ def djenius():
 	#changing
 	if request.method == 'PUT':
 		data = request.get_json()
-		if change(data):
-			return "0"
-		else:
-			return "-1"
+		return change(data)
+			
 		
 	#deleting
 	if request.method == 'DELETE':
 		data = request.get_json()
-		if delete(data):
-			return "0"
-		else:
-			return "-1"
+		return delete(data)
+			
 		
 
 @app.route('/version', methods=['GET'])

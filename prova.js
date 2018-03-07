@@ -4,9 +4,9 @@ $(document).ready(function(){
 	//registrati
 	$("#signUp").click(function()
 	{
-		var email= $("form [name=email]").val("dav@dav");
-		var password= $("form [name=password]").val("dav");
-		var password= $("form [name=name]").val("dav");
+		var email= $("form [name=email]").val("gio@gio");
+		var password= $("form [name=password]").val("gio");
+		var password= $("form [name=name]").val("gio");
 		$.ajax(
 			{
 				url: "http://site1767.tw.cs.unibo.it/wsgi/wsgi.wsgi/sign",
@@ -66,7 +66,7 @@ $(document).ready(function(){
 				properties:
 				{
 					annotation: "Djenius is awesome!",
-					public: 1
+					public: "1"
 				}
 			}
 		}
@@ -110,7 +110,7 @@ $(document).ready(function(){
 				properties:
 				{
 					annotation: "Giorgio is a djenius!",
-					public: 0
+					public: "0"
 				}
 			}
 		}

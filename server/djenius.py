@@ -15,6 +15,7 @@ def create(info):
 	annID = info['data']['id']
 	page = info['page']
 	section= info['section']
+	classe= info['data']['class']
 	version = info['version']
 	public = info['data']['properties']['public']
 	annotation = info['data']['properties']['annotation']
@@ -24,7 +25,7 @@ def create(info):
 		con = sqlite3.connect(DB_PATH)
 		cur = con.cursor()
 
-		cur.execute( "INSERT INTO annotations (id, user, page, section, version, public, annotation, array) VALUES (?,?,?,?,?,?,?,?)", (annID, user, page, section, version, public, annotation, array) )
+		cur.execute( "INSERT INTO annotations (id, user, page, class, section, version, public, annotation, array) VALUES (?,?,?,?,?,?,?,?,?)", (annID, user, page, classe, section, version, public, annotation, array) )
 
 		cur = con.execute( "SELECT * FROM versions WHERE page=?", (page,) )
 		r = cur.fetchone()
@@ -32,17 +33,19 @@ def create(info):
 			cur = con.execute( "INSERT INTO versions (page, version) VALUES (?,?)", (page,version) )
 		con.commit()
 		con.close()
-		return True
+		return get(page)
 	except:
 		con.rollback()
 		con.close()
-		return False
-	
+		return "-1"
+
 	
 	
 #call to update record	
 def change(info):
 	annID = info['data']['id']
+	page = info['page']
+
 	public = info['data']['properties']['public']
 	annotation = info['data']['properties']['annotation']
 	array = json.dumps(info['data']['ranges'])
@@ -53,27 +56,29 @@ def change(info):
 		cur.execute( "UPDATE annotations SET public=?, annotation=?, array=? WHERE id=?", (public, annotation, array, annID) )
 		con.commit()
 		con.close()
-		return True
+		return get(page)
 	except:
 		con.rollback()
 		con.close()
-		return False
+		return "-1"
 
 
 #call to delete record
 def delete(info):
 	annID = info['data']['id']
+	page = info['page']
+
 	try:
 		con = sqlite3.connect(DB_PATH)
 		cur = con.cursor()
 		cur.execute( "DELETE FROM annotations WHERE id=?", (annID,) )
 		con.commit()
 		con.close()
-		return True
+		return get(page)
 	except:
 		con.rollback()
 		con.close()
-		return False
+		return "-1"
 	
 	
 #call to get record
@@ -87,10 +92,8 @@ def get(info):
 		res = cursor.fetchall()
 		lista = list()
 		for row in res:
-			lista.append( {"page": row['page'], "section": row['section'], "version": row['version'], 
-							"data":{ "id":row['id'], "ranges": json.loads(row['array'])}, 
-							"properties":{ "annotation":row['annotation'], "public":row['public'] } 
-						   }) 
+			lista.append( { "id":row['id'], "class":row['class'], "ranges": json.loads(row['array']), 
+							"properties":{ "annotation":row['annotation'], "public":row['public'] } }) 
 		
 		connection.close()
 		return json.dumps(lista)

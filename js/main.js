@@ -104,7 +104,7 @@ function createKeywordAnnotations()
 			Djenius.newAnnotation("crossref",
 			{
 				annotation: text,
-				public: 0
+				public: "0"
 			});
 			
 			sel.removeAllRanges();
@@ -690,7 +690,7 @@ function initDjenius()
 		$("#djenius_button_submit").off().click(function()
 		{
 			let comment = $("#djenius_textarea")[0].value;
-			let _public = $("#djenius_dropdown").dropdown("get value");
+			let _public = parseInt( $("#djenius_dropdown").dropdown("get value") );
 			
 			if (isValidString(comment))
 			{
@@ -742,7 +742,7 @@ function initDjenius()
 		else
 		{
 			// User annotation
-			// ...
+			alert(params.annotation.properties.annotation);
 		}
 	});
 	
@@ -754,7 +754,7 @@ function initDjenius()
 			dataType: "text",
 			success: function(data)
 			{
-				resolve(data);
+				resolve(JSON.parse(data));
 			},
 			error: function(error)
 			{
@@ -794,11 +794,7 @@ function initDjenius()
 			case Djenius.ServerRequest.update:
 				
 				obj.method = "PUT";
-				obj.data = JSON.stringify(
-				{
-					page: rave.page,
-					data: params.data
-				});
+				obj.data = JSON.stringify(params.data);
 				obj.contentType = "application/json";
 				break;
 				
@@ -807,7 +803,6 @@ function initDjenius()
 				obj.method = "DELETE";
 				obj.data = JSON.stringify(
 				{
-					page: rave.page,
 					data: params.data
 				});
 				obj.contentType = "application/json";

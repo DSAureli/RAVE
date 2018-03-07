@@ -12,9 +12,10 @@ conn.execute('''CREATE TABLE annotations
              (id text PRIMARY KEY,
               user text NOT NULL,
 			  page text NOT NULL,
+			  class text NOT NULL,
 			  section integer NOT NULL,
 			  version real NOT NULL,
-			  public integer NOT NULL,
+			  public text NOT NULL,
 			  annotation text NOT NULL,
 			  array text NOT NULL)''')
 
